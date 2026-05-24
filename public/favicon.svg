@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#C0392B"/>
+  <!-- chilli stem -->
+  <path d="M32 10 C32 10 36 6 40 8" stroke="#1E7E34" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- chilli body -->
+  <path d="M32 12 C28 14 24 20 24 30 C24 40 28 50 32 54 C36 50 40 40 40 30 C40 20 36 14 32 12 Z" fill="#E74C3C"/>
+  <path d="M32 12 C30 14 27 20 27 30 C27 40 30 50 32 54" fill="#C0392B"/>
+  <!-- shine -->
+  <ellipse cx="29" cy="22" rx="2" ry="4" fill="rgba(255,255,255,0.25)" transform="rotate(-10 29 22)"/>
+</svg>
