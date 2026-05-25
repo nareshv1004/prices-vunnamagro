@@ -78,74 +78,35 @@ function Navbar() {
   )
 }
 
-const FALLING_CHILLIS = [
-  { left: '48%', size: 28, delay: 0,    duration: 2.8 },
-  { left: '52%', size: 22, delay: 0.3,  duration: 3.1 },
-  { left: '44%', size: 18, delay: 0.7,  duration: 2.6 },
-  { left: '56%', size: 24, delay: 1.0,  duration: 3.3 },
-  { left: '40%', size: 20, delay: 1.4,  duration: 2.9 },
-  { left: '60%', size: 16, delay: 1.8,  duration: 3.0 },
-  { left: '35%', size: 26, delay: 2.1,  duration: 2.7 },
-  { left: '65%', size: 18, delay: 2.5,  duration: 3.2 },
-  { left: '30%', size: 14, delay: 2.9,  duration: 2.5 },
-  { left: '70%', size: 22, delay: 3.2,  duration: 3.4 },
-  { left: '25%', size: 20, delay: 3.6,  duration: 2.8 },
-  { left: '75%', size: 16, delay: 3.9,  duration: 3.1 },
-  { left: '20%', size: 24, delay: 4.3,  duration: 2.6 },
-  { left: '80%', size: 18, delay: 4.7,  duration: 3.3 },
-  { left: '15%', size: 14, delay: 5.0,  duration: 2.9 },
-  { left: '85%', size: 20, delay: 5.4,  duration: 2.7 },
-  { left: '10%', size: 16, delay: 5.8,  duration: 3.0 },
-  { left: '90%', size: 22, delay: 6.1,  duration: 3.2 },
-]
-
 function Hero() {
   return (
     <section className="hero" id="hero">
       <div className="hero__bg" />
-      <div className="hero__rain" aria-hidden="true">
-        <div className="hero__bag">
-          <span className="hero__bag-icon">🎒</span>
-          <span className="hero__bag-label">Chillies</span>
-        </div>
-        {FALLING_CHILLIS.map((c, i) => (
-          <span
-            key={i}
-            className="hero__falling-chilli"
-            style={{
-              left: c.left,
-              fontSize: `${c.size}px`,
-              animationDelay: `${c.delay}s`,
-              animationDuration: `${c.duration}s`,
-            }}
-          >🌶️</span>
-        ))}
-        <div className="hero__floor" />
-      </div>
-      <div className="hero__content">
-        <span className="hero__badge">🌿 Export Quality · India Origin</span>
-        <h1 className="hero__title">
-          Premium Indian<br />Chilli Products
-        </h1>
-        <p className="hero__subtitle">
-          From the fertile fields of Andhra Pradesh to global markets — we export
-          the finest dry red chillies, chilli powder, and chilli flakes with
-          consistent quality and reliable supply.
-        </p>
-        <div className="hero__actions">
-          <button className="btn btn--primary" onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}>
-            Explore Products
-          </button>
-          <button className="btn btn--outline" onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}>
-            Contact Us
-          </button>
-        </div>
-        <div className="hero__stats">
-          <div className="hero__stat"><strong>3+</strong><span>Product Lines</span></div>
-          <div className="hero__stat-divider" />
-          <div className="hero__stat"><strong>100%</strong><span>Natural</span></div>
-          <div className="hero__stat-divider" />
-          <div className="hero__stat"><strong>Global</strong><span>Export</span></div>
+      <div className="hero__overlay" />
+      <div className="container hero__inner">
+        <div className="hero__content">
+          <span className="hero__badge">🌿 Export Quality · India Origin</span>
+          <h1 className="hero__title">Premium Indian<br />Chilli Products</h1>
+          <p className="hero__subtitle">
+            From the fertile fields of Andhra Pradesh to global markets — we export
+            the finest dry red chillies, chilli powder, and chilli flakes with
+            consistent quality and reliable supply.
+          </p>
+          <div className="hero__actions">
+            <button className="btn btn--primary" onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}>
+              Explore Products
+            </button>
+            <button className="btn btn--outline" onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}>
+              Contact Us
+            </button>
+          </div>
+          <div className="hero__stats">
+            <div className="hero__stat"><strong>3+</strong><span>Product Lines</span></div>
+            <div className="hero__stat-divider" />
+            <div className="hero__stat"><strong>100%</strong><span>Natural</span></div>
+            <div className="hero__stat-divider" />
+            <div className="hero__stat"><strong>Global</strong><span>Export</span></div>
+          </div>
         </div>
       </div>
     </section>
