@@ -208,15 +208,31 @@ function About() {
 function Contact() {
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' })
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const subject = encodeURIComponent(`Inquiry from ${form.name}${form.company ? ` — ${form.company}` : ''}`)
-    const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\nCompany: ${form.company}\n\n${form.message}`)
-    window.location.href = `mailto:info@vunnamagroexports.net?subject=${subject}&body=${body}`
-    setSent(true)
+    setSubmitting(true)
+    setError(false)
+    try {
+      const res = await fetch('https://formspree.io/f/mjgzpbpl', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        setSent(true)
+      } else {
+        setError(true)
+      }
+    } catch {
+      setError(true)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -232,7 +248,7 @@ function Contact() {
           <div className="contact__details">
             <div className="contact__detail">
               <span>📧</span>
-              <a href="mailto:info@vunnamagroexports.net">info@vunnamagroexports.net</a>
+              <a href="mailto:nareshv@vunnamagroexports.net">nareshv@vunnamagroexports.net</a>
             </div>
             <div className="contact__detail">
               <span>🌍</span>
@@ -244,7 +260,7 @@ function Contact() {
           {sent ? (
             <div className="contact__thanks">
               <span>✅</span>
-              <p>Your email client has been opened. We'll respond within 24 hours.</p>
+              <p>Thank you! Your inquiry has been sent. We'll respond within 24 hours.</p>
             </div>
           ) : (
             <>
@@ -266,7 +282,10 @@ function Contact() {
                 <label htmlFor="message">Message *</label>
                 <textarea id="message" name="message" required rows={5} value={form.message} onChange={handleChange} placeholder="Tell us about your requirements — product, quantity, destination..." />
               </div>
-              <button type="submit" className="btn btn--primary btn--full">Send Inquiry →</button>
+              {error && <p className="contact__error">Something went wrong. Please try again or email us directly.</p>}
+              <button type="submit" className="btn btn--primary btn--full" disabled={submitting}>
+                {submitting ? 'Sending…' : 'Send Inquiry →'}
+              </button>
             </>
           )}
         </form>
