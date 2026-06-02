@@ -1,10 +1,59 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
+
+function CountUp({ to, suffix = '', duration = 1800 }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
+  const started = useRef(false)
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true
+        const start = performance.now()
+        const tick = (now) => {
+          const progress = Math.min((now - start) / duration, 1)
+          const eased = 1 - Math.pow(1 - progress, 3)
+          setCount(Math.floor(eased * to))
+          if (progress < 1) requestAnimationFrame(tick)
+          else setCount(to)
+        }
+        requestAnimationFrame(tick)
+        observer.disconnect()
+      }
+    }, { threshold: 0.5 })
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [to, duration])
+  return <strong ref={ref}>{count}{suffix}</strong>
+}
+
+function FadeIn({ children, delay = 0, className = '' }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { threshold: 0.12 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <div
+      ref={ref}
+      className={`fade-in ${visible ? 'fade-in--visible' : ''} ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  )
+}
 
 const PRODUCTS = [
   {
     id: 'dry-red-chilli',
     emoji: '🌶️',
+    image: '/product-dry-chilli.jpg',
     name: 'Dry Red Chillies',
     tagline: 'Whole Dried Chillies',
     description:
@@ -15,6 +64,7 @@ const PRODUCTS = [
   {
     id: 'chilli-powder',
     emoji: '🧂',
+    image: '/product-dry-chilli-powder.jpg',
     name: 'Chilli Powder',
     tagline: 'Ground Red Chilli',
     description:
@@ -25,6 +75,7 @@ const PRODUCTS = [
   {
     id: 'chilli-flakes',
     emoji: '✨',
+    image: '/product-chilli-flakes.jpg',
     name: 'Chilli Flakes',
     tagline: 'Crushed Red Chilli',
     description:
@@ -54,7 +105,7 @@ function Navbar() {
   return (
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <a className="navbar__logo" href="#hero" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-        <span className="navbar__logo-icon">🌶</span>
+        <img src="/vae_logo.png" alt="Vunnam Agro Exports logo" className="navbar__logo-img" />
         <span className="navbar__logo-text">
           <strong>Vunnam</strong> Agro Exports
         </span>
@@ -78,11 +129,32 @@ function Navbar() {
   )
 }
 
+const EDGE_CHILLIS = [
+  { left: '1%',  delay: 0,   duration: 9,  size: 18 },
+  { left: '5%',  delay: 2.5, duration: 11, size: 14 },
+  { left: '3%',  delay: 5,   duration: 8,  size: 20 },
+  { left: '7%',  delay: 1.5, duration: 12, size: 16 },
+  { left: '93%', delay: 0.8, duration: 10, size: 16 },
+  { left: '97%', delay: 3,   duration: 9,  size: 20 },
+  { left: '95%', delay: 1,   duration: 11, size: 14 },
+  { left: '91%', delay: 4,   duration: 8,  size: 18 },
+]
+
 function Hero() {
   return (
     <section className="hero" id="hero">
       <div className="hero__bg" />
       <div className="hero__overlay" />
+      <div className="hero__edge-rain" aria-hidden="true">
+        {EDGE_CHILLIS.map((c, i) => (
+          <span key={i} className="hero__edge-chilli" style={{
+            left: c.left,
+            fontSize: `${c.size}px`,
+            animationDelay: `${c.delay}s`,
+            animationDuration: `${c.duration}s`,
+          }}>🌶️</span>
+        ))}
+      </div>
       <div className="container hero__inner">
         <div className="hero__content">
           <span className="hero__badge">🌿 Export Quality · India Origin</span>
@@ -101,9 +173,9 @@ function Hero() {
             </button>
           </div>
           <div className="hero__stats">
-            <div className="hero__stat"><strong>3+</strong><span>Product Lines</span></div>
+            <div className="hero__stat"><CountUp to={3} suffix="+" /><span>Product Lines</span></div>
             <div className="hero__stat-divider" />
-            <div className="hero__stat"><strong>100%</strong><span>Natural</span></div>
+            <div className="hero__stat"><CountUp to={100} suffix="%" /><span>Natural</span></div>
             <div className="hero__stat-divider" />
             <div className="hero__stat"><strong>Global</strong><span>Export</span></div>
           </div>
@@ -116,8 +188,11 @@ function Hero() {
 function ProductCard({ product }) {
   return (
     <article className="product-card">
-      <div className="product-card__header" style={{ background: product.gradient }}>
-        <span className="product-card__emoji" role="img" aria-label={product.name}>{product.emoji}</span>
+      <div className="product-card__header" style={{ background: product.image ? 'none' : product.gradient }}>
+        {product.image
+          ? <img src={product.image} alt={product.name} className="product-card__img" />
+          : <span className="product-card__emoji" role="img" aria-label={product.name}>{product.emoji}</span>
+        }
       </div>
       <div className="product-card__body">
         <span className="product-card__tagline">{product.tagline}</span>
@@ -148,8 +223,10 @@ function Products() {
           </p>
         </div>
         <div className="products__grid">
-          {PRODUCTS.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {PRODUCTS.map((p, i) => (
+            <FadeIn key={p.id} delay={i * 150}>
+              <ProductCard product={p} />
+            </FadeIn>
           ))}
         </div>
       </div>
@@ -161,42 +238,46 @@ function About() {
   return (
     <section className="about" id="about">
       <div className="container about__inner">
-        <div className="about__visual">
+        <FadeIn className="about__visual">
           <div className="about__icon-grid">
             <div className="about__icon-cell">🌱</div>
             <div className="about__icon-cell">🌶️</div>
             <div className="about__icon-cell">☀️</div>
             <div className="about__icon-cell">🚢</div>
           </div>
-        </div>
+        </FadeIn>
         <div className="about__content">
-          <span className="section-label">About Us</span>
-          <h2 className="section-title">From Farm to<br />World Markets</h2>
-          <p>
-            Vunnam Agro Exports is a dedicated exporter of premium Indian chilli
-            products. We work directly with experienced farmers in Andhra Pradesh —
-            India's largest chilli-growing belt — to source the best produce each
-            season.
-          </p>
-          <p>
-            Our focus is on quality at every step: proper sun-drying and processing,
-            hygienic packaging, and timely delivery. We serve importers, spice
-            traders, and food manufacturers across Asia, the Middle East, Europe,
-            and the Americas.
-          </p>
+          <FadeIn delay={100}>
+            <span className="section-label">About Us</span>
+            <h2 className="section-title">From Farm to<br />World Markets</h2>
+            <p>
+              Vunnam Agro Exports is a dedicated exporter of premium Indian chilli
+              products. We work directly with experienced farmers in Andhra Pradesh —
+              India's largest chilli-growing belt — to source the best produce each
+              season.
+            </p>
+            <p>
+              Our focus is on quality at every step: proper sun-drying and processing,
+              hygienic packaging, and timely delivery. We serve importers, spice
+              traders, and food manufacturers across Asia, the Middle East, Europe,
+              and the Americas.
+            </p>
+          </FadeIn>
           <div className="about__pillars">
             {[
               { icon: '✅', label: 'Quality Tested', desc: 'Every lot lab-verified for moisture, pungency, and colour.' },
               { icon: '📦', label: 'Flexible Packaging', desc: 'Retail packs to bulk containers — we accommodate your needs.' },
               { icon: '🤝', label: 'Direct Sourcing', desc: 'No middlemen. We work with farmers for fair pricing.' },
-            ].map(({ icon, label, desc }) => (
-              <div className="about__pillar" key={label}>
-                <span>{icon}</span>
-                <div>
-                  <strong>{label}</strong>
-                  <p>{desc}</p>
+            ].map(({ icon, label, desc }, i) => (
+              <FadeIn key={label} delay={200 + i * 120}>
+                <div className="about__pillar">
+                  <span>{icon}</span>
+                  <div>
+                    <strong>{label}</strong>
+                    <p>{desc}</p>
+                  </div>
                 </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -299,7 +380,10 @@ function Footer() {
     <footer className="footer">
       <div className="container footer__inner">
         <div className="footer__brand">
-          <span className="footer__logo">🌶 Vunnam Agro Exports</span>
+          <div className="footer__logo">
+            <img src="/vae_logo.png" alt="Vunnam Agro Exports" className="footer__logo-img" />
+            <span>Vunnam Agro Exports</span>
+          </div>
           <p>Premium Indian chilli products for global markets.</p>
         </div>
         <div className="footer__links">

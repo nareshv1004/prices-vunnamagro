@@ -83,6 +83,66 @@
   margin-bottom: 60px;
 }
 
+/* ─── Scroll fade-in ─────────────────────────────────────────────────── */
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+  height: 100%;
+}
+.fade-in--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Navbar logo pulse ──────────────────────────────────────────────── */
+
+@keyframes logo-pulse {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 0px rgba(192,57,43,0)); }
+  50%       { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(192,57,43,0.5)); }
+}
+.navbar__logo-img {
+  animation: logo-pulse 1.4s ease-in-out 0.6s 1;
+}
+
+/* ─── Edge chilli rain ───────────────────────────────────────────────── */
+
+@keyframes edge-drift {
+  0%   { transform: translateY(-40px) rotate(-20deg); opacity: 0; }
+  8%   { opacity: 0.55; }
+  92%  { opacity: 0.55; }
+  100% { transform: translateY(105vh) rotate(200deg); opacity: 0; }
+}
+.hero__edge-rain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero__edge-chilli {
+  position: absolute;
+  top: 0;
+  animation: edge-drift linear infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+/* ─── Product card hover glow ────────────────────────────────────────── */
+
+/* ─── Hero entrance ──────────────────────────────────────────────────── */
+
+@keyframes hero-enter {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero__badge    { animation: hero-enter 0.6s ease forwards; animation-delay: 0.15s; opacity: 0; }
+.hero__title    { animation: hero-enter 0.6s ease forwards; animation-delay: 0.4s;  opacity: 0; }
+.hero__subtitle { animation: hero-enter 0.6s ease forwards; animation-delay: 0.65s; opacity: 0; }
+.hero__actions  { animation: hero-enter 0.6s ease forwards; animation-delay: 0.9s;  opacity: 0; }
+.hero__stats    { animation: hero-enter 0.6s ease forwards; animation-delay: 1.15s; opacity: 0; }
+
 /* ─── Navbar ──────────────────────────────────────────────────────────── */
 
 .navbar {
@@ -108,17 +168,25 @@
 .navbar__logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   cursor: pointer;
+  text-decoration: none;
 }
-.navbar__logo-icon {
-  font-size: 26px;
+.navbar__logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: block;
 }
 .navbar__logo-text {
   font-size: 16px;
   color: var(--white);
   font-family: 'Inter', sans-serif;
   transition: color 0.3s;
+  white-space: nowrap;
+  line-height: 1;
 }
 .navbar__links {
   display: flex;
@@ -362,16 +430,29 @@
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 .product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 16px 48px rgba(0,0,0,0.14),
+    0 0 0 2px rgba(192,57,43,0.18),
+    0 8px 24px rgba(192,57,43,0.12);
 }
 .product-card__header {
-  height: 180px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+.product-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .product-card__emoji {
   font-size: 72px;
@@ -379,6 +460,9 @@
 }
 .product-card__body {
   padding: 28px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 .product-card__tagline {
   font-size: 12px;
@@ -403,6 +487,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 }
 .product-card__specs li {
   font-size: 13px;
@@ -620,7 +705,7 @@
 }
 .footer__inner {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 40px;
   flex-wrap: wrap;
@@ -628,16 +713,25 @@
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .footer__logo {
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+.footer__logo span {
+  font-size: 17px;
   font-weight: 700;
   color: var(--white);
-  display: block;
-  margin-bottom: 10px;
+}
+.footer__logo-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 .footer__brand p {
-  font-size: 14px;
-  max-width: 240px;
-  line-height: 1.6;
+  display: none;
 }
 .footer__links {
   display: flex;
