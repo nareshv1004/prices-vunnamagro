@@ -64,7 +64,10 @@ export const handler = async (event) => {
       messages: [{ role: 'user', content: PROMPT }],
     })
 
-    const data = JSON.parse(message.content[0].text)
+    const raw = message.content[0].text
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('No JSON found in response')
+    const data = JSON.parse(jsonMatch[0])
 
     return {
       statusCode: 200,
@@ -80,7 +83,7 @@ export const handler = async (event) => {
     return {
       statusCode: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message || 'Unknown error', stack: err.stack }),
+      body: JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }),
     }
   }
 }
