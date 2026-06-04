@@ -59,7 +59,7 @@ export const handler = async (event) => {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 4096,
       tools: [{
         name: 'submit_price_data',

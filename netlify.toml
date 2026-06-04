@@ -6,6 +6,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."price-data"]
+  timeout = 30
+
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
