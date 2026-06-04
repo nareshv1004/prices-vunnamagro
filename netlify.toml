@@ -9,6 +9,12 @@
 [functions."price-data"]
   timeout = 30
 
+[[headers]]
+  for = "/price-list.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+
 [[redirects]]
   from   = "/*"
   to     = "/index.html"

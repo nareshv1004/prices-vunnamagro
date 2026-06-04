@@ -367,7 +367,8 @@
 
   const today = new Date()
   const dateParam = today.toISOString().split('T')[0]
-  const FUNCTION_URL = `/.netlify/functions/price-data?date=${dateParam}`
+  const BASE_URL = `/.netlify/functions/price-data?date=${dateParam}`
+  let FUNCTION_URL = BASE_URL
 
   function trendBadge(t) {
     const map = {
@@ -406,6 +407,7 @@
   }
 
   function doRefresh() {
+    FUNCTION_URL = `${BASE_URL}&t=${Date.now()}`
     document.getElementById('content').style.display = 'none'
     document.getElementById('error-msg').style.display = 'none'
     document.getElementById('loading').style.display = 'flex'
