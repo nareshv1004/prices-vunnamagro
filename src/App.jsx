@@ -249,10 +249,47 @@ function Products() {
   )
 }
 
-const PRICE_LINKS = [
-  { name: 'Teja S17 · Dried Red Chilli', href: '/price-list.html' },
-  { name: 'Teja S17 · Chilli Flakes', href: '/chilli-flakes-prices-2026.html' },
-  { name: 'Teja S17 · Chilli Powder', href: '/chilli-powder-prices-2026.html' },
+const PRICE_VARIETIES = [
+  {
+    variety: 'Teja S17',
+    products: [
+      { type: 'Dried Red Chilli', href: '/price-list.html' },
+      { type: 'Chilli Flakes', href: '/chilli-flakes-prices-2026.html' },
+      { type: 'Chilli Powder', href: '/chilli-powder-prices-2026.html' },
+    ],
+  },
+  {
+    variety: 'LCA-334',
+    products: [
+      { type: 'Dried Red Chilli', href: '#' },
+      { type: 'Chilli Flakes', href: '#' },
+      { type: 'Chilli Powder', href: '#' },
+    ],
+  },
+  {
+    variety: 'Byadagi',
+    products: [
+      { type: 'Dried Red Chilli', href: '#' },
+      { type: 'Chilli Flakes', href: '#' },
+      { type: 'Chilli Powder', href: '#' },
+    ],
+  },
+  {
+    variety: 'Wonder Hot',
+    products: [
+      { type: 'Dried Red Chilli', href: '#' },
+      { type: 'Chilli Flakes', href: '#' },
+      { type: 'Chilli Powder', href: '#' },
+    ],
+  },
+  {
+    variety: 'Mahi Teja - S15',
+    products: [
+      { type: 'Dried Red Chilli', href: '#' },
+      { type: 'Chilli Flakes', href: '#' },
+      { type: 'Chilli Powder', href: '#' },
+    ],
+  },
 ]
 
 function Prices() {
@@ -266,14 +303,22 @@ function Prices() {
             View current FOB / CIF pricing for each product variety.
           </p>
         </div>
-        <div className="prices__grid">
-          {PRICE_LINKS.map((item) => (
-            <div className="prices__card" key={item.name}>
-              <span className="prices__card-icon">🌶️</span>
-              <h3 className="prices__card-name">{item.name}</h3>
-              <a href={item.href} target="_blank" rel="noopener noreferrer" className="btn btn--price-list prices__btn">
-                🌐 Global Price List
-              </a>
+        <div className="prices__varieties">
+          {PRICE_VARIETIES.map(({ variety, products }) => (
+            <div className="prices__variety-row" key={variety}>
+              <h3 className="prices__variety-label">{variety}</h3>
+              <div className="prices__grid">
+                {products.map(({ type, href }) => (
+                  <div className="prices__card" key={type}>
+                    <span className="prices__card-icon">🌶️</span>
+                    <h3 className="prices__card-name">{type}</h3>
+                    {href === '#'
+                      ? <span className="btn btn--price-list prices__btn prices__btn--soon">Coming Soon</span>
+                      : <a href={href} target="_blank" rel="noopener noreferrer" className="btn btn--price-list prices__btn">🌐 Global Price List</a>
+                    }
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
