@@ -553,13 +553,13 @@
 }
 .prices__card {
   background: var(--white);
-  border-radius: 16px;
-  padding: 28px 24px;
+  border-radius: 12px;
+  padding: 16px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 12px;
+  gap: 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   transition: box-shadow 0.2s, transform 0.2s;
 }
@@ -568,11 +568,11 @@
   transform: translateY(-2px);
 }
 .prices__card-icon {
-  font-size: 36px;
+  font-size: 24px;
   line-height: 1;
 }
 .prices__card-name {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-dark);
   margin: 0;
