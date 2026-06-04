@@ -60,14 +60,66 @@ export const handler = async (event) => {
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 4096,
+      tools: [{
+        name: 'submit_price_data',
+        description: 'Submit the Teja S17 global price report',
+        input_schema: {
+          type: 'object',
+          properties: {
+            reportDate:    { type: 'string' },
+            variety:       { type: 'string' },
+            globalAverage: { type: 'number' },
+            marketSummary: { type: 'string' },
+            supplyContext: { type: 'string' },
+            keyFactors:    { type: 'array', items: { type: 'string' } },
+            india: {
+              type: 'object',
+              properties: {
+                flag:                   { type: 'string' },
+                domesticMarketPriceUSD: { type: 'number' },
+                fobPriceUSD:            { type: 'number' },
+                priceRange:             { type: 'string' },
+                trend:                  { type: 'string' },
+                notes:                  { type: 'string' },
+                source:                 { type: 'string' },
+              },
+              required: ['flag','domesticMarketPriceUSD','fobPriceUSD','priceRange','trend','notes','source'],
+            },
+            countries: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  country:    { type: 'string' },
+                  flag:       { type: 'string' },
+                  avgPriceUSD:{ type: 'number' },
+                  priceRange: { type: 'string' },
+                  trend:      { type: 'string' },
+                  notes:      { type: 'string' },
+                  source:     { type: 'string' },
+                },
+                required: ['country','flag','avgPriceUSD','priceRange','trend','notes','source'],
+              },
+            },
+            sources: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: { name: { type: 'string' }, url: { type: 'string' } },
+              },
+            },
+          },
+          required: ['reportDate','variety','india','countries','globalAverage','marketSummary','supplyContext','sources','keyFactors'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'submit_price_data' },
       messages: [{ role: 'user', content: PROMPT }],
     })
 
-    const raw = message.content[0].text
-    const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON found in response')
-    const data = JSON.parse(jsonMatch[0])
+    const toolUse = message.content.find(c => c.type === 'tool_use')
+    if (!toolUse) throw new Error('No tool use in response')
+    const data = toolUse.input
 
     return {
       statusCode: 200,
@@ -83,7 +135,7 @@ export const handler = async (event) => {
     return {
       statusCode: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message, type: err.constructor.name }),
+      body: JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }),
     }
   }
 }
