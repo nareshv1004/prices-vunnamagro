@@ -83,7 +83,7 @@ export const handler = async (event) => {
     return {
       statusCode: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }),
+      body: JSON.stringify({ error: err.message, type: err.constructor.name }),
     }
   }
 }
