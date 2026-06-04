@@ -84,12 +84,12 @@ export const handler = async (event) => {
                 flag:                   { type: 'string' },
                 domesticMarketPriceUSD: { type: 'number' },
                 fobPriceUSD:            { type: 'number' },
-                priceRange:             { type: 'string' },
+                rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
                 trend:                  { type: 'string' },
                 notes:                  { type: 'string' },
                 source:                 { type: 'string' },
               },
-              required: ['flag','domesticMarketPriceUSD','fobPriceUSD','priceRange','trend','notes','source'],
+              required: ['flag','domesticMarketPriceUSD','fobPriceUSD','rangeMin','rangeMax','trend','notes','source'],
             },
             countries: {
               type: 'array',
@@ -104,7 +104,7 @@ export const handler = async (event) => {
                   notes:       { type: 'string' },
                   source:      { type: 'string' },
                 },
-                required: ['country','flag','avgPriceUSD','priceRange','trend','notes','source'],
+                required: ['country','flag','avgPriceUSD','rangeMin','rangeMax','trend','notes','source'],
               },
             },
             sources: {

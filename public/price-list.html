@@ -1,526 +1,558 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teja S17 Global Price Report — Vunnam Agro Exports</title>
-  <link rel="icon" type="image/png" href="/vae_logo.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Global Price Intelligence — Vunnam Agro Exports</title>
+<link rel="icon" type="image/png" href="/vae_logo.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --bg:#FAF9F6; --surface:#FFFFFF; --surface2:#F4F2EC;
+    --border:rgba(0,0,0,.10); --border2:rgba(0,0,0,.18);
+    --text:#1A1916; --text2:#6B6860; --text3:#9E9C96;
+    --red:#D85A30; --red-bg:#FAECE7; --red-border:#F0997B; --red-dark:#993C1D;
+    --amber:#BA7517; --amber-bg:#FAEEDA; --amber-dark:#854F0B;
+    --green:#3B6D11; --green-bg:#EAF3DE;
+    --blue:#185FA5; --blue-bg:#E6F1FB; --blue-border:#85B7EB;
+    --inr-bg:#EEEDFE; --inr-border:#AFA9EC; --inr-dark:#3C3489;
+    --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
+    --shadow:0 1px 3px rgba(0,0,0,.07);
+  }
+  @media (prefers-color-scheme: dark) {
     :root {
-      --bg:       #060D18;
-      --surface:  #0E1726;
-      --surface2: #162035;
-      --border:   #1E2D45;
-      --text:     #E8EDF5;
-      --muted:    #7A8BA8;
-      --red:      #C0392B;
-      --red-soft: rgba(192,57,43,0.15);
-      --green:    #10B981;
-      --amber:    #F59E0B;
-      --blue:     #3B82F6;
+      --bg:#141410; --surface:#1E1D18; --surface2:#28271F;
+      --border:rgba(255,255,255,.09); --border2:rgba(255,255,255,.16);
+      --text:#F0EDE4; --text2:#9E9B92; --text3:#6B6860;
+      --red-bg:#3A1A0D; --red-border:#7A3018; --red-dark:#F0997B;
+      --amber-bg:#2E1F06; --amber-dark:#FAC775;
+      --green-bg:#0E2006; --blue-bg:#071A30; --blue-border:#185FA5;
+      --inr-bg:#1A1940; --inr-border:#3C3489; --inr-dark:#AFA9EC;
     }
+  }
+  html { font-size:16px; }
+  body { font-family:'Georgia',serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .page { max-width:1100px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh;
-      line-height: 1.6;
-    }
+  /* Loading overlay */
+  .loading-overlay {
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+  }
+  .loading-overlay.hidden { display:none; }
+  .spinner { width:36px; height:36px; border:3px solid var(--border2); border-top-color:var(--red); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-title { font-size:18px; color:var(--text); }
+  .loading-steps { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .loading-step { font-size:13px; font-family:'Arial',sans-serif; color:var(--text3); display:flex; align-items:center; gap:8px; }
+  .step-dot { width:8px; height:8px; border-radius:50%; background:var(--border2); flex-shrink:0; transition:background .3s; }
+  .step-dot.done { background:#639922; }
+  .step-dot.active { background:var(--red); animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-    /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .header-brand { display: flex; align-items: center; gap: 12px; }
-    .header-brand img { width: 40px; height: 40px; object-fit: contain; border-radius: 6px; }
-    .header-brand-text strong { display: block; font-size: 15px; color: var(--text); }
-    .header-brand-text span { font-size: 12px; color: var(--muted); }
-    .header-right { display: flex; align-items: center; gap: 16px; }
-    .report-badge {
-      background: var(--red-soft);
-      color: var(--red);
-      border: 1px solid rgba(192,57,43,0.3);
-      font-size: 12px;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 100px;
-      letter-spacing: 0.5px;
-    }
-    #report-date { font-size: 12px; color: var(--muted); }
-    .refresh-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 7px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .refresh-btn:hover { background: var(--border); border-color: var(--muted); }
-    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .inr { color: var(--amber); font-size: 0.85em; margin-left: 4px; }
-    .rate-chip {
-      font-size: 11px;
-      color: var(--muted);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      padding: 3px 10px;
-      border-radius: 100px;
-    }
+  /* Error banner */
+  .error-banner { background:var(--red-bg); border:1px solid var(--red-border); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:1.5rem; font-size:13px; font-family:'Arial',sans-serif; color:var(--red-dark); display:none; }
+  .error-banner.show { display:block; }
 
-    /* ── Layout ── */
-    .page { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+  /* Masthead */
+  .masthead { border-bottom:1px solid var(--border2); padding-bottom:1.5rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; }
+  .masthead-left { display:flex; align-items:center; gap:14px; }
+  .masthead-logo { width:48px; height:48px; object-fit:contain; border-radius:8px; flex-shrink:0; }
+  .masthead-text {}
+  .variety-pill { display:inline-flex; align-items:center; gap:6px; background:var(--red-bg); border:1px solid var(--red-border); border-radius:20px; padding:4px 12px; font-size:12px; font-family:'Arial',sans-serif; font-weight:600; color:var(--red-dark); letter-spacing:.03em; margin-bottom:10px; }
+  .masthead h1 { font-size:30px; font-weight:normal; letter-spacing:-.02em; line-height:1.2; }
+  .masthead h1 span { color:var(--red); }
+  .masthead-right { text-align:right; }
+  .meta-line { font-size:12px; font-family:'Arial',sans-serif; color:var(--text3); line-height:1.9; }
 
-    /* ── Loading ── */
-    #loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 50vh;
-      gap: 20px;
-    }
-    .spinner {
-      width: 48px; height: 48px;
-      border: 3px solid var(--border);
-      border-top-color: var(--red);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #loading p { color: var(--muted); font-size: 14px; }
+  /* Currency toggle */
+  .currency-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:12px 18px; margin-bottom:1.75rem; }
+  .currency-bar-label { font-size:12px; font-family:'Arial',sans-serif; color:var(--text2); white-space:nowrap; }
+  .toggle-wrap { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:3px; }
+  .toggle-btn { font-size:13px; font-family:'Arial',sans-serif; font-weight:600; padding:5px 18px; border-radius:17px; border:none; cursor:pointer; background:transparent; color:var(--text2); transition:all .18s; }
+  .toggle-btn.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.10); }
+  .toggle-btn.active.inr { color:var(--inr-dark); }
+  .rate-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-family:'Arial',sans-serif; padding:4px 12px; border-radius:20px; border:1px solid var(--inr-border); background:var(--inr-bg); color:var(--inr-dark); margin-left:auto; }
+  .rate-dot { width:7px; height:7px; border-radius:50%; background:var(--border2); flex-shrink:0; }
+  .rate-dot.live { background:#639922; }
 
-    /* ── Error ── */
-    #error-msg {
-      display: none;
-      text-align: center;
-      padding: 60px 24px;
-      color: var(--muted);
-    }
-    #error-msg span { font-size: 48px; display: block; margin-bottom: 16px; }
+  /* Freshness bar */
+  .freshness-bar { display:flex; align-items:center; gap:10px; font-size:12px; font-family:'Arial',sans-serif; color:var(--text2); background:var(--green-bg); border:1px solid #97C459; border-radius:var(--radius-md); padding:8px 14px; margin-bottom:1.5rem; }
+  .freshness-bar .fdot { width:7px; height:7px; border-radius:50%; background:#639922; flex-shrink:0; }
+  .freshness-bar span { color:var(--green); font-weight:600; }
+  .refresh-btn { font-size:12px; font-family:'Arial',sans-serif; padding:6px 16px; border-radius:20px; border:1px solid var(--border2); background:transparent; color:var(--text2); cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:6px; }
+  .refresh-btn:hover { border-color:var(--red); color:var(--red); }
+  .refresh-btn:disabled { opacity:.5; cursor:not-allowed; }
 
-    /* ── Content ── */
-    #content { display: none; }
+  /* Metrics */
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:2rem; }
+  .metric { background:var(--surface2); border-radius:var(--radius-md); padding:14px 18px; }
+  .metric-label { font-size:11px; font-family:'Arial',sans-serif; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+  .metric-val { font-size:22px; letter-spacing:-.02em; color:var(--text); }
+  .metric-sub { font-size:11px; font-family:'Arial',sans-serif; color:var(--text2); margin-top:2px; }
+  .section-label { font-size:11px; font-family:'Arial',sans-serif; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px; }
 
-    /* ── Section header ── */
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-    .section-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+  /* India card */
+  .india-card { background:var(--surface); border:1px solid var(--red-border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; margin-bottom:2rem; }
+  .india-header { display:flex; align-items:center; gap:14px; margin-bottom:1rem; }
+  .india-flag { font-size:36px; }
+  .india-title { font-size:18px; font-weight:normal; }
+  .india-subtitle { font-size:13px; font-family:'Arial',sans-serif; color:var(--text2); margin-top:2px; }
+  .india-prices { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .india-price-box { background:var(--surface2); border-radius:var(--radius-md); padding:12px 16px; }
+  .ipb-label { font-size:11px; font-family:'Arial',sans-serif; color:var(--text3); margin-bottom:4px; text-transform:uppercase; letter-spacing:.05em; }
+  .ipb-val { font-size:20px; color:var(--text); }
+  .ipb-sub { font-size:11px; font-family:'Arial',sans-serif; color:var(--text2); margin-top:2px; }
+  .india-note { margin-top:14px; font-size:12px; font-family:'Arial',sans-serif; color:var(--red-dark); background:var(--red-bg); border-radius:var(--radius-sm); padding:8px 14px; }
 
-    /* ── Metric cards ── */
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
-    .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px 24px;
-    }
-    .metric-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .metric-value { font-size: 32px; font-weight: 700; color: var(--text); font-family: 'Playfair Display', serif; }
-    .metric-unit  { font-size: 14px; color: var(--muted); margin-left: 4px; }
-    .metric-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  /* Controls */
+  .controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .filter-btn { font-size:12px; font-family:'Arial',sans-serif; padding:5px 14px; border-radius:20px; border:1px solid var(--border2); background:transparent; color:var(--text2); cursor:pointer; transition:all .15s; }
+  .filter-btn:hover { border-color:var(--red); color:var(--red); }
+  .filter-btn.active { background:var(--red-bg); border-color:var(--red-border); color:var(--red-dark); font-weight:600; }
+  .sort-sel { font-size:12px; font-family:'Arial',sans-serif; padding:5px 10px; border-radius:var(--radius-sm); border:1px solid var(--border2); background:var(--surface); color:var(--text2); cursor:pointer; margin-left:auto; }
 
-    /* ── India card ── */
-    .india-card {
-      background: var(--surface);
-      border: 1px solid var(--red);
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin-bottom: 40px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 24px;
-      align-items: center;
-    }
-    .india-flag { font-size: 56px; line-height: 1; }
-    .india-body {}
-    .india-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .india-title .badge-origin {
-      background: var(--red-soft);
-      color: var(--red);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-    .india-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px; }
-    .india-stat label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
-    .india-stat span  { font-size: 20px; font-weight: 700; color: var(--text); }
-    .india-notes { font-size: 13px; color: var(--muted); }
+  /* Country grid */
+  .countries-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:10px; margin-bottom:2.5rem; }
+  .country-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; cursor:pointer; transition:border-color .15s,box-shadow .15s; }
+  .country-card:hover { border-color:var(--border2); box-shadow:var(--shadow); }
+  .country-card.open { border-color:var(--red-border); }
+  .cc-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .cc-flag { font-size:24px; line-height:1; }
+  .cc-name { font-size:15px; color:var(--text); flex:1; }
+  .trend-badge { font-size:11px; font-family:'Arial',sans-serif; font-weight:600; padding:2px 9px; border-radius:20px; }
+  .t-rising { background:var(--red-bg); color:var(--red-dark); }
+  .t-stable { background:var(--amber-bg); color:var(--amber-dark); }
+  .t-falling { background:var(--green-bg); color:var(--green); }
+  .price-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .price-row-label { font-size:12px; font-family:'Arial',sans-serif; color:var(--text2); }
+  .price-row-val { font-size:15px; color:var(--text); }
+  .bar-track { height:5px; background:var(--surface2); border-radius:3px; overflow:hidden; }
+  .bar-fill { height:100%; background:var(--red); border-radius:3px; transition:width .5s ease; }
+  .cc-expanded { display:none; border-top:1px solid var(--border); padding-top:10px; margin-top:10px; }
+  .country-card.open .cc-expanded { display:block; }
+  .detail-row { display:flex; justify-content:space-between; font-size:12px; font-family:'Arial',sans-serif; padding:3px 0; }
+  .detail-label { color:var(--text2); }
+  .detail-val { color:var(--text); font-weight:600; }
+  .cc-note { font-size:12px; font-family:'Arial',sans-serif; color:var(--text2); background:var(--surface2); border-radius:var(--radius-sm); padding:8px 12px; margin-top:8px; line-height:1.5; }
 
-    /* ── Table ── */
-    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 40px; }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr { background: var(--surface2); }
-    th {
-      text-align: left;
-      padding: 14px 16px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-    td {
-      padding: 13px 16px;
-      font-size: 14px;
-      color: var(--text);
-      border-bottom: 1px solid var(--border);
-    }
-    tr:last-child td { border-bottom: none; }
-    tbody tr:hover { background: var(--surface2); }
-    .flag-cell { font-size: 22px; }
-    .price-cell { font-weight: 700; font-size: 15px; }
-    .range-cell { color: var(--muted); font-size: 13px; }
-    .notes-cell { color: var(--muted); font-size: 13px; max-width: 260px; }
+  /* Chart */
+  .chart-container { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; margin-bottom:2rem; }
+  .chart-legend { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; font-family:'Arial',sans-serif; color:var(--text2); }
+  .legend-dot { width:10px; height:10px; border-radius:2px; }
+  .chart-wrap { position:relative; width:100%; }
 
-    /* ── Trend badge ── */
-    .trend {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 100px;
-    }
-    .trend-rising  { background: rgba(16,185,129,0.12); color: var(--green); }
-    .trend-falling { background: rgba(239,68,68,0.12);  color: #EF4444; }
-    .trend-stable  { background: rgba(245,158,11,0.12); color: var(--amber); }
+  /* Context */
+  .context-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:2rem; }
+  .context-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem 1.5rem; }
+  .context-title { font-size:11px; font-family:'Arial',sans-serif; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; }
+  .context-text { font-size:14px; color:var(--text); line-height:1.7; }
+  .factors-wrap { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:2rem; }
+  .factor-tag { font-size:12px; font-family:'Arial',sans-serif; padding:6px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:20px; color:var(--text2); }
+  .sources-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:2rem; }
+  .source-link { font-size:12px; font-family:'Arial',sans-serif; padding:5px 12px; background:var(--blue-bg); border:1px solid var(--blue-border); border-radius:var(--radius-sm); color:var(--blue); text-decoration:none; transition:opacity .15s; }
+  .source-link:hover { opacity:.75; }
+  .footer { border-top:1px solid var(--border); padding-top:1rem; font-size:12px; font-family:'Arial',sans-serif; color:var(--text3); }
 
-    /* ── Summary ── */
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
-    .summary-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-    }
-    .summary-card h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-    .summary-card p  { font-size: 14px; color: var(--text); line-height: 1.75; }
-
-    /* ── Key factors ── */
-    .factors-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .factors-list li {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 14px;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .factors-list li::before { content: '▸'; color: var(--red); flex-shrink: 0; }
-
-    /* ── Sources ── */
-    .sources { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
-    .source-chip {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
-      color: var(--blue);
-      text-decoration: none;
-      transition: border-color 0.2s;
-    }
-    .source-chip:hover { border-color: var(--blue); }
-
-    /* ── Footer ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 24px 32px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.8;
-    }
-    footer a { color: var(--muted); text-decoration: underline; }
-
-    @media (max-width: 640px) {
-      .india-card { grid-template-columns: 1fr; }
-      .summary-grid { grid-template-columns: 1fr; }
-      .factors-list { grid-template-columns: 1fr; }
-    }
-  </style>
+  @media (max-width:640px) {
+    .masthead { flex-direction:column; align-items:flex-start; }
+    .masthead-right { text-align:left; }
+    .india-prices { grid-template-columns:1fr 1fr; }
+    .context-grid { grid-template-columns:1fr; }
+    .masthead h1 { font-size:22px; }
+    .rate-badge { margin-left:0; }
+  }
+</style>
 </head>
 <body>
 
-<header>
-  <div class="header-brand">
-    <img src="/vae_logo.png" alt="VAE Logo" />
-    <div class="header-brand-text">
-      <strong>Vunnam Agro Exports</strong>
-      <span>Global Price Intelligence</span>
-    </div>
-  </div>
-  <div class="header-right">
-    <span id="rate-chip" class="rate-chip">Loading rate…</span>
-    <span class="report-badge">TEJA S17 · LIVE REPORT</span>
-    <span id="report-date">Loading…</span>
-    <button class="refresh-btn" id="refresh-btn" onclick="doRefresh()">↺ Refresh</button>
-  </div>
-</header>
-
-<div class="page">
-
-  <!-- Loading -->
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Generating live market intelligence…</p>
-  </div>
-
-  <!-- Error -->
-  <div id="error-msg">
-    <span>⚠️</span>
-    <p id="error-text">Unable to load price data. Please try again later.</p>
-  </div>
-
-  <!-- Content -->
-  <div id="content">
-
-    <div style="margin-bottom:32px;">
-      <h1 class="section-title" id="page-title">Teja S17 — Global Price Report</h1>
-      <p class="section-sub" id="sub-line"><span id="sub-line-text">Dried Red Chilli · All prices in USD per kg</span> · <span id="report-date-inline"></span></p>
-    </div>
-
-    <!-- Metrics -->
-    <div class="metrics" id="metrics"></div>
-
-    <!-- India -->
-    <div class="india-card" id="india-card"></div>
-
-    <!-- Country Table -->
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#7A8BA8;text-transform:uppercase;letter-spacing:1px;">Import Markets</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Country</th>
-            <th>USD / kg</th>
-            <th>INR / kg</th>
-            <th>Range (USD)</th>
-            <th>Trend</th>
-            <th>Notes</th>
-            <th>Source</th>
-          </tr>
-        </thead>
-        <tbody id="country-table"></tbody>
-      </table>
-    </div>
-
-    <!-- Summary + Supply -->
-    <div class="summary-grid" id="summary-grid"></div>
-
-    <!-- Key Factors -->
-    <div class="summary-card" style="margin-bottom:40px;">
-      <h3>Key Market Factors</h3>
-      <ul class="factors-list" id="factors-list"></ul>
-    </div>
-
-    <!-- Sources -->
-    <div class="summary-card">
-      <h3>Data Sources</h3>
-      <div class="sources" id="sources-list"></div>
-    </div>
-
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-title">Loading today's data…</div>
+  <div class="loading-steps">
+    <div class="loading-step"><span class="step-dot active" id="step1dot"></span><span>Connecting to price service</span></div>
+    <div class="loading-step"><span class="step-dot" id="step2dot"></span><span>Generating today's prices with AI</span></div>
+    <div class="loading-step"><span class="step-dot" id="step3dot"></span><span>Building dashboard</span></div>
   </div>
 </div>
 
-<footer>
-  <p>© <span id="year"></span> Vunnam Agro Exports · <a href="/">vunnamagroexports.net</a></p>
-  <p style="margin-top:6px;">Prices are indicative estimates based on market intelligence and may vary. Not financial advice.</p>
-</footer>
+<div class="page" id="mainPage" style="display:none;">
+
+  <!-- Masthead -->
+  <div class="masthead">
+    <div class="masthead-left">
+      <img src="/vae_logo.png" alt="VAE" class="masthead-logo">
+      <div class="masthead-text">
+        <div class="variety-pill" id="varietyPill">🌶 Teja S17 · Dried Red Chilli</div>
+        <h1>Global <span>Price</span> Intelligence</h1>
+      </div>
+    </div>
+    <div class="masthead-right">
+      <div class="meta-line" id="reportDateLine">Loading…</div>
+      <div class="meta-line" id="currencyMetaLine">All prices in USD / kg</div>
+      <div class="meta-line">Origin: Andhra Pradesh &amp; Telangana, India</div>
+    </div>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <!-- Freshness bar -->
+  <div class="freshness-bar" id="freshnessBar">
+    <span class="fdot"></span>
+    <span id="freshnessText">Data generated for today</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll(true)" style="margin-left:auto;" disabled>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Currency toggle -->
+  <div class="currency-bar">
+    <span class="currency-bar-label">Display prices in:</span>
+    <div class="toggle-wrap">
+      <button class="toggle-btn active" id="btnUSD" onclick="setCurrency('USD')">$ USD</button>
+      <button class="toggle-btn inr" id="btnINR" onclick="setCurrency('INR')">₹ INR</button>
+    </div>
+    <div class="rate-badge" id="rateBadge">
+      <span class="rate-dot" id="rateDot"></span>
+      <span id="rateText">Loading…</span>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Global avg price</div><div class="metric-val" id="mGlobal">—</div><div class="metric-sub" id="mGlobalSub">CIF average</div></div>
+    <div class="metric"><div class="metric-label">India FOB</div><div class="metric-val" id="mFOB">—</div><div class="metric-sub" id="mFOBSub">Stemmed</div></div>
+    <div class="metric"><div class="metric-label">Mandi price</div><div class="metric-val" id="mMandi">—</div><div class="metric-sub">Guntur / Khammam</div></div>
+    <div class="metric"><div class="metric-label">Price spread</div><div class="metric-val" id="mSpread">—</div><div class="metric-sub" id="mSpreadSub">Min–max across markets</div></div>
+    <div class="metric"><div class="metric-label">Markets tracked</div><div class="metric-val">18</div><div class="metric-sub">Countries + India origin</div></div>
+  </div>
+
+  <div class="section-label">Origin market</div>
+  <div class="india-card">
+    <div class="india-header">
+      <span class="india-flag">🇮🇳</span>
+      <div>
+        <div class="india-title">India</div>
+        <div class="india-subtitle">World's largest Teja S17 producer &amp; exporter · Guntur, Khammam, Warangal</div>
+      </div>
+    </div>
+    <div class="india-prices">
+      <div class="india-price-box"><div class="ipb-label">Domestic mandi</div><div class="ipb-val" id="iMandi">—</div><div class="ipb-sub" id="iMandiSub">loading…</div></div>
+      <div class="india-price-box"><div class="ipb-label">FOB price</div><div class="ipb-val" id="iFOB">—</div><div class="ipb-sub" id="iFOBSub">loading…</div></div>
+      <div class="india-price-box"><div class="ipb-label">Seasonal range</div><div class="ipb-val" id="iRange">—</div><div class="ipb-sub" id="iRangeSub">FOB</div></div>
+    </div>
+    <div class="india-note" id="indiaNoteEl">ℹ Loading market data…</div>
+  </div>
+
+  <div class="section-label">Import markets</div>
+  <div class="controls">
+    <button class="filter-btn active" onclick="filterCards('all')">All markets</button>
+    <button class="filter-btn" onclick="filterCards('rising')">↑ Rising</button>
+    <button class="filter-btn" onclick="filterCards('stable')">→ Stable</button>
+    <button class="filter-btn" onclick="filterCards('falling')">↓ Falling</button>
+    <select class="sort-sel" onchange="sortCards(this.value)">
+      <option value="price-desc">Price: High → Low</option>
+      <option value="price-asc">Price: Low → High</option>
+      <option value="name">Country A–Z</option>
+    </select>
+  </div>
+  <div class="countries-grid" id="grid"></div>
+
+  <div class="section-label">Price comparison</div>
+  <div class="chart-container">
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#D85A30"></span>Rising</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#BA7517"></span>Stable</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#639922"></span>Falling</span>
+    </div>
+    <div class="chart-wrap" id="chartWrap">
+      <canvas id="priceChart" aria-label="Horizontal bar chart comparing import prices"></canvas>
+    </div>
+  </div>
+
+  <div class="context-grid">
+    <div class="context-card"><div class="context-title">🌐 Market summary</div><div class="context-text" id="marketSummary">Loading…</div></div>
+    <div class="context-card"><div class="context-title">🌱 Supply context</div><div class="context-text" id="supplyContext">Loading…</div></div>
+  </div>
+
+  <div class="section-label">Key market factors</div>
+  <div class="factors-wrap" id="factorsWrap"></div>
+
+  <div class="section-label">Data sources</div>
+  <div class="sources-row" id="sourcesRow"></div>
+
+  <div class="footer">Vunnam Agro Exports · Global Price Intelligence · AI-generated daily estimates · INR conversion uses live USD/INR rate · For commercial decisions verify with current mandi rates.</div>
+</div>
 
 <script>
-  document.getElementById('year').textContent = new Date().getFullYear()
+/* ── Product config ───────────────────────────────────────────────────── */
+const PRODUCTS = {
+  'dry-chilli':    { pill:'🌶 Teja S17 · Dried Red Chilli',    fn:'price-data',           fobSub:'Stemmed, 10-12% moisture' },
+  'chilli-powder': { pill:'🌶 Teja S17 · Chilli Powder',        fn:'chilli-powder-prices', fobSub:'80-100 ASTA grade, food-grade' },
+  'chilli-flakes': { pill:'🌶 Teja S17 · Chilli Flakes',        fn:'chilli-flakes-prices', fobSub:'3-5mm crushed, stemmed & deseeded' },
+}
+const productKey = new URLSearchParams(window.location.search).get('product') || 'dry-chilli'
+const cfg = PRODUCTS[productKey] || PRODUCTS['dry-chilli']
+document.getElementById('varietyPill').textContent = cfg.pill
+document.getElementById('mFOBSub').textContent = cfg.fobSub
 
-  const PRODUCTS = {
-    'dry-chilli': {
-      title: 'Teja S17 — Global Price Report',
-      badge: 'TEJA S17 · LIVE REPORT',
-      subLine: 'Dried Red Chilli · All prices in USD per kg',
-      fn: 'price-data',
-    },
-    'chilli-powder': {
-      title: 'Teja S17 Chilli Powder — Global Price Report',
-      badge: 'CHILLI POWDER · LIVE REPORT',
-      subLine: 'Teja S17 Chilli Powder (80-100 ASTA) · All prices in USD per kg',
-      fn: 'chilli-powder-prices',
-    },
-    'chilli-flakes': {
-      title: 'Teja S17 Chilli Flakes — Global Price Report',
-      badge: 'CHILLI FLAKES · LIVE REPORT',
-      subLine: 'Teja S17 Chilli Flakes (3-5mm) · All prices in USD per kg',
-      fn: 'chilli-flakes-prices',
-    },
+/* ── State ────────────────────────────────────────────────────────────── */
+let COUNTRIES = [], INDIA = {}, currency = 'USD', usdInr = 84.0
+let chartInstance = null, activeFilter = 'all', activeSort = 'price-desc'
+const today = new Date()
+const todayISO  = today.toISOString().slice(0, 10)
+const todayStr  = today.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+
+/* ── Loading steps ────────────────────────────────────────────────────── */
+function stepDone(n) {
+  document.getElementById('step' + n + 'dot').className = 'step-dot done'
+  if (n < 3) document.getElementById('step' + (n + 1) + 'dot').className = 'step-dot active'
+}
+
+/* ── Format helpers ───────────────────────────────────────────────────── */
+function fmt(usd) {
+  return currency === 'INR'
+    ? '₹' + Math.round(usd * usdInr).toLocaleString('en-IN')
+    : '$' + usd.toFixed(2)
+}
+function fmtRange(min, max) {
+  if (!min || !max) return '—'
+  return currency === 'INR'
+    ? '₹' + Math.round(min * usdInr).toLocaleString('en-IN') + '–₹' + Math.round(max * usdInr).toLocaleString('en-IN')
+    : '$' + min.toFixed(2) + '–$' + max.toFixed(2)
+}
+function unit() { return currency === 'INR' ? '₹/kg' : 'USD/kg' }
+
+/* ── Fetch from Netlify function ──────────────────────────────────────── */
+async function fetchPriceData(bustCache) {
+  const url = `/.netlify/functions/${cfg.fn}?date=${todayISO}${bustCache ? '&t=' + Date.now() : ''}`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('Service error ' + res.status)
+  const data = await res.json()
+  if (data.error) throw new Error(data.error)
+  return data
+}
+
+/* ── Render ───────────────────────────────────────────────────────────── */
+function renderAll(data) {
+  COUNTRIES = data.countries
+  INDIA     = data.india
+  usdInr    = data.usdToInr || 84.0
+
+  // Rate badge
+  document.getElementById('rateDot').className = 'rate-dot live'
+  document.getElementById('rateText').textContent = '1 USD = ₹' + usdInr.toFixed(2)
+
+  // Date
+  document.getElementById('reportDateLine').textContent = 'Data for: ' + todayStr
+  document.getElementById('freshnessText').innerHTML =
+    'AI-generated price estimates for <span>' + todayStr + '</span> · Reflects today\'s seasonal &amp; market conditions'
+
+  updateDisplayValues()
+
+  document.getElementById('marketSummary').textContent = data.marketSummary
+  document.getElementById('supplyContext').textContent  = data.supplyContext
+
+  const fw = document.getElementById('factorsWrap')
+  fw.innerHTML = ''
+  ;(data.keyFactors || []).forEach(f => {
+    const s = document.createElement('span')
+    s.className = 'factor-tag'
+    s.textContent = f
+    fw.appendChild(s)
+  })
+
+  const sr = document.getElementById('sourcesRow')
+  sr.innerHTML = ''
+  ;(data.sources || []).forEach(s => {
+    const a = document.createElement('a')
+    a.className = 'source-link'
+    a.href = s.url
+    a.target = '_blank'
+    a.rel = 'noopener'
+    a.textContent = s.name
+    sr.appendChild(a)
+  })
+
+  renderGrid()
+  renderChart()
+  document.getElementById('refreshBtn').disabled = false
+}
+
+function updateDisplayValues() {
+  if (!COUNTRIES.length) return
+  const globalAvg = COUNTRIES.reduce((s, c) => s + c.avgPriceUSD, 0) / COUNTRIES.length
+  const maxP = Math.max(...COUNTRIES.map(c => c.avgPriceUSD))
+  const minP = Math.min(...COUNTRIES.map(c => c.avgPriceUSD))
+
+  document.getElementById('mGlobal').textContent    = fmt(globalAvg)
+  document.getElementById('mGlobalSub').textContent = unit() + ' CIF average'
+  document.getElementById('mFOB').textContent        = fmt(INDIA.fobPriceUSD)
+  document.getElementById('mMandi').textContent      = fmt(INDIA.domesticMarketPriceUSD)
+  document.getElementById('mSpread').textContent     = fmt(maxP - minP)
+  document.getElementById('mSpreadSub').textContent  = 'Min–max · ' + unit()
+
+  document.getElementById('iMandi').textContent  = fmt(INDIA.domesticMarketPriceUSD)
+  document.getElementById('iFOB').textContent    = fmt(INDIA.fobPriceUSD)
+  document.getElementById('iRange').textContent  = fmtRange(INDIA.rangeMin, INDIA.rangeMax)
+  document.getElementById('iRangeSub').textContent = unit() + ' FOB'
+  document.getElementById('iMandiSub').textContent = currency === 'INR'
+    ? 'Live rate: 1 USD = ₹' + usdInr.toFixed(2)
+    : '≈ ₹' + Math.round(INDIA.domesticMarketPriceUSD * usdInr) + '/kg today'
+  document.getElementById('iFOBSub').textContent = cfg.fobSub
+  document.getElementById('indiaNoteEl').textContent = 'ℹ ' + (INDIA.notes || '')
+  document.getElementById('currencyMetaLine').textContent = currency === 'INR' ? 'All prices in INR / kg' : 'All prices in USD / kg'
+
+  renderGrid()
+  renderChart()
+}
+
+/* ── Country grid ─────────────────────────────────────────────────────── */
+function trendClass(t) { return { rising:'t-rising', stable:'t-stable', falling:'t-falling' }[t] || 't-stable' }
+function trendLabel(t) { return { rising:'Rising ↑', stable:'Stable →', falling:'Falling ↓' }[t] || t }
+
+function renderGrid() {
+  const maxP = Math.max(...COUNTRIES.map(c => c.avgPriceUSD))
+  let data = [...COUNTRIES]
+  if (activeFilter !== 'all') data = data.filter(c => c.trend === activeFilter)
+  if (activeSort === 'price-desc') data.sort((a, b) => b.avgPriceUSD - a.avgPriceUSD)
+  else if (activeSort === 'price-asc') data.sort((a, b) => a.avgPriceUSD - b.avgPriceUSD)
+  else data.sort((a, b) => a.country.localeCompare(b.country))
+
+  const grid = document.getElementById('grid')
+  const openSet = new Set()
+  grid.querySelectorAll('.country-card.open .cc-name').forEach(el => openSet.add(el.textContent))
+  grid.innerHTML = ''
+
+  data.forEach(c => {
+    const pct = Math.round((c.avgPriceUSD / maxP) * 100)
+    const div = document.createElement('div')
+    div.className = 'country-card' + (openSet.has(c.country) ? ' open' : '')
+    div.innerHTML = `
+      <div class="cc-top">
+        <span class="cc-flag">${c.flag}</span>
+        <span class="cc-name">${c.country}</span>
+        <span class="trend-badge ${trendClass(c.trend)}">${trendLabel(c.trend)}</span>
+      </div>
+      <div class="price-row">
+        <span class="price-row-label">Avg import price</span>
+        <span class="price-row-val">${fmt(c.avgPriceUSD)}/kg</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="cc-expanded">
+        <div class="detail-row"><span class="detail-label">Price range</span><span class="detail-val">${fmtRange(c.rangeMin, c.rangeMax)}/kg</span></div>
+        <div class="detail-row"><span class="detail-label">USD price</span><span class="detail-val">$${c.avgPriceUSD.toFixed(2)}/kg</span></div>
+        <div class="detail-row"><span class="detail-label">Trend</span><span class="detail-val">${c.trend.charAt(0).toUpperCase() + c.trend.slice(1)}</span></div>
+        <div class="detail-row"><span class="detail-label">Source</span><span class="detail-val">${c.source}</span></div>
+        <div class="cc-note">${c.notes}</div>
+      </div>`
+    div.addEventListener('click', () => div.classList.toggle('open'))
+    grid.appendChild(div)
+  })
+}
+
+/* ── Chart ────────────────────────────────────────────────────────────── */
+function renderChart() {
+  const sorted = [...COUNTRIES].sort((a, b) => b.avgPriceUSD - a.avgPriceUSD)
+  const labels = sorted.map(c => c.flag + ' ' + c.country)
+  const values = sorted.map(c => currency === 'INR' ? Math.round(c.avgPriceUSD * usdInr) : c.avgPriceUSD)
+  const colors = sorted.map(c => c.trend === 'rising' ? '#D85A30' : c.trend === 'falling' ? '#639922' : '#BA7517')
+  const h = sorted.length * 38 + 80
+  document.getElementById('chartWrap').style.height = h + 'px'
+
+  const ttFmt = currency === 'INR'
+    ? ctx => ' ₹' + ctx.parsed.x.toLocaleString('en-IN') + '/kg'
+    : ctx => ' $' + ctx.parsed.x.toFixed(2) + '/kg'
+  const tickFmt = currency === 'INR'
+    ? v => '₹' + Math.round(v).toLocaleString('en-IN')
+    : v => '$' + v.toFixed(2)
+
+  if (chartInstance) {
+    chartInstance.data.datasets[0].data = values
+    chartInstance.data.datasets[0].backgroundColor = colors
+    chartInstance.options.scales.x.ticks.callback = tickFmt
+    chartInstance.options.plugins.tooltip.callbacks.label = ttFmt
+    chartInstance.update()
+    return
   }
 
-  const productKey = new URLSearchParams(window.location.search).get('product') || 'dry-chilli'
-  const cfg = PRODUCTS[productKey] || PRODUCTS['dry-chilli']
-
-  document.title = `${cfg.title} — Vunnam Agro Exports`
-  document.getElementById('page-title').textContent = cfg.title
-  document.getElementById('sub-line-text').textContent = cfg.subLine
-  document.querySelector('.report-badge').textContent = cfg.badge
-
-  const today = new Date()
-  const dateParam = today.toISOString().split('T')[0]
-  const BASE_URL = `/.netlify/functions/${cfg.fn}?date=${dateParam}`
-  let FUNCTION_URL = BASE_URL
-
-  function trendBadge(t) {
-    const map = {
-      rising:  ['↑ Rising',  'rising'],
-      falling: ['↓ Falling', 'falling'],
-      stable:  ['→ Stable',  'stable'],
+  chartInstance = new Chart(document.getElementById('priceChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Avg import price', data:values, backgroundColor:colors, borderWidth:0, borderRadius:4 }] },
+    options: {
+      indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label:ttFmt } } },
+      scales: {
+        x: { grid:{ color:'rgba(128,128,128,0.12)' }, ticks:{ callback:tickFmt, font:{ size:11 } } },
+        y: { ticks:{ font:{ size:12 } } }
+      }
     }
-    const [label, cls] = map[t] || ['— Unknown', 'stable']
-    return `<span class="trend trend-${cls}">${label}</span>`
+  })
+}
+
+/* ── Currency switch ──────────────────────────────────────────────────── */
+function setCurrency(c) {
+  currency = c
+  document.getElementById('btnUSD').classList.toggle('active', c === 'USD')
+  document.getElementById('btnINR').classList.toggle('active', c === 'INR')
+  updateDisplayValues()
+}
+
+/* ── Filter / sort ────────────────────────────────────────────────────── */
+function filterCards(trend) {
+  activeFilter = trend
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active',
+      (trend === 'all'     && b.textContent.trim() === 'All markets') ||
+      (trend === 'rising'  && b.textContent.includes('Rising'))  ||
+      (trend === 'stable'  && b.textContent.includes('Stable'))  ||
+      (trend === 'falling' && b.textContent.includes('Falling'))
+    )
+  })
+  renderGrid()
+}
+function sortCards(val) { activeSort = val; renderGrid() }
+
+/* ── Main loader ──────────────────────────────────────────────────────── */
+async function loadAll(bustCache) {
+  document.getElementById('mainPage').style.display = 'none'
+  document.getElementById('loadingOverlay').classList.remove('hidden')
+  document.getElementById('step1dot').className = 'step-dot active'
+  document.getElementById('step2dot').className = 'step-dot'
+  document.getElementById('step3dot').className = 'step-dot'
+  document.getElementById('errorBanner').classList.remove('show')
+  document.getElementById('refreshBtn').disabled = true
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null }
+
+  try {
+    stepDone(1)
+    document.getElementById('step2dot').className = 'step-dot active'
+    const priceData = await fetchPriceData(bustCache)
+    stepDone(2)
+
+    document.getElementById('step3dot').className = 'step-dot active'
+    renderAll(priceData)
+    stepDone(3)
+
+    document.getElementById('loadingOverlay').classList.add('hidden')
+    document.getElementById('mainPage').style.display = 'block'
+  } catch(err) {
+    document.getElementById('loadingOverlay').classList.add('hidden')
+    document.getElementById('mainPage').style.display = 'block'
+    document.getElementById('refreshBtn').disabled = false
+    const banner = document.getElementById('errorBanner')
+    banner.textContent = '⚠ ' + err.message
+    banner.classList.add('show')
   }
+}
 
-  function inr(usd, rate) {
-    return `<span class="inr">₹${Math.round(usd * rate).toLocaleString('en-IN')}</span>`
-  }
-
-  async function load() {
-    const btn = document.getElementById('refresh-btn')
-    if (btn) btn.disabled = true
-
-    try {
-      const priceRes = await fetch(FUNCTION_URL)
-      if (!priceRes.ok) throw new Error(await priceRes.text())
-      const d = await priceRes.json()
-      if (d.error) throw new Error(d.error)
-
-      const rate = d.usdToInr || 84.0
-      document.getElementById('rate-chip').textContent = `1 USD = ₹${rate.toFixed(2)}`
-      render(d, rate)
-    } catch (e) {
-      document.getElementById('loading').style.display = 'none'
-      document.getElementById('error-msg').style.display = 'block'
-      document.getElementById('error-text').textContent = e.message || 'Failed to load data.'
-    } finally {
-      if (btn) btn.disabled = false
-    }
-  }
-
-  function doRefresh() {
-    FUNCTION_URL = `${BASE_URL}&t=${Date.now()}`
-    document.getElementById('content').style.display = 'none'
-    document.getElementById('error-msg').style.display = 'none'
-    document.getElementById('loading').style.display = 'flex'
-    load()
-  }
-
-  function render(d, rate) {
-    document.getElementById('loading').style.display = 'none'
-    document.getElementById('content').style.display = 'block'
-    document.getElementById('report-date').textContent = d.reportDate
-    document.getElementById('report-date-inline').textContent = d.reportDate
-
-    // Metrics
-    document.getElementById('metrics').innerHTML = `
-      <div class="metric-card">
-        <div class="metric-label">India FOB Price</div>
-        <div class="metric-value">$${d.india.fobPriceUSD.toFixed(2)}<span class="metric-unit">/kg</span></div>
-        <div class="metric-sub">${inr(d.india.fobPriceUSD, rate)} &nbsp;·&nbsp; Range: $${d.india.priceRange}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">India Domestic</div>
-        <div class="metric-value">$${d.india.domesticMarketPriceUSD.toFixed(2)}<span class="metric-unit">/kg</span></div>
-        <div class="metric-sub">${inr(d.india.domesticMarketPriceUSD, rate)} &nbsp;·&nbsp; Mandi price</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Global Average</div>
-        <div class="metric-value">$${d.globalAverage.toFixed(2)}<span class="metric-unit">/kg</span></div>
-        <div class="metric-sub">${inr(d.globalAverage, rate)} &nbsp;·&nbsp; ${d.countries.length} markets</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Variety</div>
-        <div class="metric-value" style="font-size:22px;">${d.variety}</div>
-        <div class="metric-sub">India origin</div>
-      </div>
-    `
-
-    // India card
-    document.getElementById('india-card').innerHTML = `
-      <div class="india-flag">${d.india.flag}</div>
-      <div class="india-body">
-        <div class="india-title">India — Origin Market <span class="badge-origin">SOURCE</span></div>
-        <div class="india-grid">
-          <div class="india-stat"><label>Domestic Price</label><span>$${d.india.domesticMarketPriceUSD.toFixed(2)} ${inr(d.india.domesticMarketPriceUSD, rate)}</span></div>
-          <div class="india-stat"><label>FOB Price</label><span>$${d.india.fobPriceUSD.toFixed(2)} ${inr(d.india.fobPriceUSD, rate)}</span></div>
-          <div class="india-stat"><label>Price Range</label><span>$${d.india.priceRange}</span></div>
-          <div class="india-stat"><label>Trend</label>${trendBadge(d.india.trend)}</div>
-        </div>
-        <div class="india-notes">📍 ${d.india.notes} &nbsp;·&nbsp; Source: ${d.india.source}</div>
-      </div>
-    `
-
-    // Country table
-    document.getElementById('country-table').innerHTML = d.countries.map(c => `
-      <tr>
-        <td class="flag-cell">${c.flag}</td>
-        <td style="font-weight:600;">${c.country}</td>
-        <td class="price-cell">$${c.avgPriceUSD.toFixed(2)}</td>
-        <td class="price-cell">${inr(c.avgPriceUSD, rate)}</td>
-        <td class="range-cell">$${c.priceRange}</td>
-        <td>${trendBadge(c.trend)}</td>
-        <td class="notes-cell">${c.notes}</td>
-        <td class="range-cell">${c.source}</td>
-      </tr>
-    `).join('')
-
-    // Summary
-    document.getElementById('summary-grid').innerHTML = `
-      <div class="summary-card">
-        <h3>Market Summary</h3>
-        <p>${d.marketSummary}</p>
-      </div>
-      <div class="summary-card">
-        <h3>Supply Context</h3>
-        <p>${d.supplyContext}</p>
-      </div>
-    `
-
-    document.getElementById('factors-list').innerHTML = d.keyFactors.map(f => `<li>${f}</li>`).join('')
-    document.getElementById('sources-list').innerHTML = d.sources.map(s =>
-      `<a class="source-chip" href="${s.url}" target="_blank" rel="noopener">↗ ${s.name}</a>`
-    ).join('')
-  }
-
-  load()
+loadAll()
 </script>
 </body>
 </html>
