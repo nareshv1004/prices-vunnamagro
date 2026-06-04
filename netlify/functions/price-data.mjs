@@ -58,6 +58,11 @@ export const handler = async (event) => {
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+    const dateParam = event.queryStringParameters?.date
+    const dateLabel = dateParam
+      ? new Date(dateParam + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+      : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 4096,
@@ -114,7 +119,7 @@ export const handler = async (event) => {
         },
       }],
       tool_choice: { type: 'tool', name: 'submit_price_data' },
-      messages: [{ role: 'user', content: PROMPT }],
+      messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${PROMPT}` }],
     })
 
     const toolUse = message.content.find(c => c.type === 'tool_use')

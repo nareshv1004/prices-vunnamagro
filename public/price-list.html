@@ -62,6 +62,32 @@
       letter-spacing: 0.5px;
     }
     #report-date { font-size: 12px; color: var(--muted); }
+    .refresh-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .refresh-btn:hover { background: var(--border); border-color: var(--muted); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .inr { color: var(--amber); font-size: 0.85em; margin-left: 4px; }
+    .rate-chip {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
 
     /* ── Layout ── */
     .page { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
@@ -258,8 +284,10 @@
     </div>
   </div>
   <div class="header-right">
+    <span id="rate-chip" class="rate-chip">Loading rate…</span>
     <span class="report-badge">TEJA S17 · LIVE REPORT</span>
     <span id="report-date">Loading…</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="doRefresh()">↺ Refresh</button>
   </div>
 </header>
 
@@ -299,8 +327,9 @@
           <tr>
             <th></th>
             <th>Country</th>
-            <th>Avg Price / kg</th>
-            <th>Range</th>
+            <th>USD / kg</th>
+            <th>INR / kg</th>
+            <th>Range (USD)</th>
             <th>Trend</th>
             <th>Notes</th>
             <th>Source</th>
@@ -336,7 +365,9 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear()
 
-  const FUNCTION_URL = '/.netlify/functions/price-data'
+  const today = new Date()
+  const dateParam = today.toISOString().split('T')[0]
+  const FUNCTION_URL = `/.netlify/functions/price-data?date=${dateParam}`
 
   function trendBadge(t) {
     const map = {
@@ -348,21 +379,49 @@
     return `<span class="trend trend-${cls}">${label}</span>`
   }
 
+  function inr(usd, rate) {
+    return `<span class="inr">₹${Math.round(usd * rate).toLocaleString('en-IN')}</span>`
+  }
+
   async function load() {
+    const btn = document.getElementById('refresh-btn')
+    if (btn) btn.disabled = true
+
     try {
-      const res = await fetch(FUNCTION_URL)
-      if (!res.ok) throw new Error(await res.text())
-      const d = await res.json()
+      const [priceRes, rateRes] = await Promise.all([
+        fetch(FUNCTION_URL),
+        fetch('https://api.frankfurter.app/latest?from=USD&to=INR').catch(() => null),
+      ])
+
+      if (!priceRes.ok) throw new Error(await priceRes.text())
+      const d = await priceRes.json()
       if (d.error) throw new Error(d.error)
-      render(d)
+
+      let rate = 83.5
+      if (rateRes && rateRes.ok) {
+        const rateData = await rateRes.json()
+        rate = rateData.rates?.INR || rate
+      }
+
+      document.getElementById('rate-chip').textContent = `1 USD = ₹${rate.toFixed(2)}`
+      render(d, rate)
     } catch (e) {
       document.getElementById('loading').style.display = 'none'
       document.getElementById('error-msg').style.display = 'block'
       document.getElementById('error-text').textContent = e.message || 'Failed to load data.'
+    } finally {
+      if (btn) btn.disabled = false
     }
   }
 
-  function render(d) {
+  function doRefresh() {
+    document.getElementById('content').style.display = 'none'
+    document.getElementById('error-msg').style.display = 'none'
+    document.getElementById('loading').style.display = 'flex'
+    load()
+  }
+
+  function render(d, rate) {
     document.getElementById('loading').style.display = 'none'
     document.getElementById('content').style.display = 'block'
     document.getElementById('report-date').textContent = d.reportDate
@@ -373,17 +432,17 @@
       <div class="metric-card">
         <div class="metric-label">India FOB Price</div>
         <div class="metric-value">$${d.india.fobPriceUSD.toFixed(2)}<span class="metric-unit">/kg</span></div>
-        <div class="metric-sub">Range: $${d.india.priceRange}</div>
+        <div class="metric-sub">${inr(d.india.fobPriceUSD, rate)} &nbsp;·&nbsp; Range: $${d.india.priceRange}</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">India Domestic</div>
         <div class="metric-value">$${d.india.domesticMarketPriceUSD.toFixed(2)}<span class="metric-unit">/kg</span></div>
-        <div class="metric-sub">Mandi price</div>
+        <div class="metric-sub">${inr(d.india.domesticMarketPriceUSD, rate)} &nbsp;·&nbsp; Mandi price</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Global Average</div>
         <div class="metric-value">$${d.globalAverage.toFixed(2)}<span class="metric-unit">/kg</span></div>
-        <div class="metric-sub">${d.countries.length} import markets</div>
+        <div class="metric-sub">${inr(d.globalAverage, rate)} &nbsp;·&nbsp; ${d.countries.length} markets</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Variety</div>
@@ -398,8 +457,8 @@
       <div class="india-body">
         <div class="india-title">India — Origin Market <span class="badge-origin">SOURCE</span></div>
         <div class="india-grid">
-          <div class="india-stat"><label>Domestic Price</label><span>$${d.india.domesticMarketPriceUSD.toFixed(2)}/kg</span></div>
-          <div class="india-stat"><label>FOB Price</label><span>$${d.india.fobPriceUSD.toFixed(2)}/kg</span></div>
+          <div class="india-stat"><label>Domestic Price</label><span>$${d.india.domesticMarketPriceUSD.toFixed(2)} ${inr(d.india.domesticMarketPriceUSD, rate)}</span></div>
+          <div class="india-stat"><label>FOB Price</label><span>$${d.india.fobPriceUSD.toFixed(2)} ${inr(d.india.fobPriceUSD, rate)}</span></div>
           <div class="india-stat"><label>Price Range</label><span>$${d.india.priceRange}</span></div>
           <div class="india-stat"><label>Trend</label>${trendBadge(d.india.trend)}</div>
         </div>
@@ -413,6 +472,7 @@
         <td class="flag-cell">${c.flag}</td>
         <td style="font-weight:600;">${c.country}</td>
         <td class="price-cell">$${c.avgPriceUSD.toFixed(2)}</td>
+        <td class="price-cell">${inr(c.avgPriceUSD, rate)}</td>
         <td class="range-cell">$${c.priceRange}</td>
         <td>${trendBadge(c.trend)}</td>
         <td class="notes-cell">${c.notes}</td>
@@ -432,10 +492,7 @@
       </div>
     `
 
-    // Key factors
     document.getElementById('factors-list').innerHTML = d.keyFactors.map(f => `<li>${f}</li>`).join('')
-
-    // Sources
     document.getElementById('sources-list').innerHTML = d.sources.map(s =>
       `<a class="source-chip" href="${s.url}" target="_blank" rel="noopener">↗ ${s.name}</a>`
     ).join('')
