@@ -15,6 +15,16 @@
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
 
+[[headers]]
+  for = "/chilli-powder-prices-2026.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/chilli-flakes-prices-2026.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 [[redirects]]
   from   = "/*"
   to     = "/index.html"

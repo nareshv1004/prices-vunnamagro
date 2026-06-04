@@ -309,8 +309,8 @@
   <div id="content">
 
     <div style="margin-bottom:32px;">
-      <h1 class="section-title">Teja S17 — Global Price Report</h1>
-      <p class="section-sub" id="sub-line">Dried Red Chilli · All prices in USD per kg · <span id="report-date-inline"></span></p>
+      <h1 class="section-title" id="page-title">Teja S17 — Global Price Report</h1>
+      <p class="section-sub" id="sub-line"><span id="sub-line-text">Dried Red Chilli · All prices in USD per kg</span> · <span id="report-date-inline"></span></p>
     </div>
 
     <!-- Metrics -->
@@ -365,9 +365,38 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear()
 
+  const PRODUCTS = {
+    'dry-chilli': {
+      title: 'Teja S17 — Global Price Report',
+      badge: 'TEJA S17 · LIVE REPORT',
+      subLine: 'Dried Red Chilli · All prices in USD per kg',
+      fn: 'price-data',
+    },
+    'chilli-powder': {
+      title: 'Teja S17 Chilli Powder — Global Price Report',
+      badge: 'CHILLI POWDER · LIVE REPORT',
+      subLine: 'Teja S17 Chilli Powder (80-100 ASTA) · All prices in USD per kg',
+      fn: 'chilli-powder-prices',
+    },
+    'chilli-flakes': {
+      title: 'Teja S17 Chilli Flakes — Global Price Report',
+      badge: 'CHILLI FLAKES · LIVE REPORT',
+      subLine: 'Teja S17 Chilli Flakes (3-5mm) · All prices in USD per kg',
+      fn: 'chilli-flakes-prices',
+    },
+  }
+
+  const productKey = new URLSearchParams(window.location.search).get('product') || 'dry-chilli'
+  const cfg = PRODUCTS[productKey] || PRODUCTS['dry-chilli']
+
+  document.title = `${cfg.title} — Vunnam Agro Exports`
+  document.getElementById('page-title').textContent = cfg.title
+  document.getElementById('sub-line-text').textContent = cfg.subLine
+  document.querySelector('.report-badge').textContent = cfg.badge
+
   const today = new Date()
   const dateParam = today.toISOString().split('T')[0]
-  const BASE_URL = `/.netlify/functions/price-data?date=${dateParam}`
+  const BASE_URL = `/.netlify/functions/${cfg.fn}?date=${dateParam}`
   let FUNCTION_URL = BASE_URL
 
   function trendBadge(t) {

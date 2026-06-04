@@ -204,12 +204,17 @@ function ProductCard({ product }) {
           ))}
         </ul>
         {product.id === 'dry-red-chilli' && (
-          <a
-            href="/price-list.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn--price-list"
-          >
+          <a href="/price-list.html" target="_blank" rel="noopener noreferrer" className="btn btn--price-list">
+            🌐 Global Price List
+          </a>
+        )}
+        {product.id === 'chilli-powder' && (
+          <a href="/chilli-powder-prices-2026.html" target="_blank" rel="noopener noreferrer" className="btn btn--price-list">
+            🌐 Global Price List
+          </a>
+        )}
+        {product.id === 'chilli-flakes' && (
+          <a href="/chilli-flakes-prices-2026.html" target="_blank" rel="noopener noreferrer" className="btn btn--price-list">
             🌐 Global Price List
           </a>
         )}
