@@ -126,6 +126,16 @@ export const handler = async (event) => {
     if (!toolUse) throw new Error('No tool use in response')
     const data = toolUse.input
 
+    // Fetch live USD→INR rate server-side
+    let usdToInr = 84.0
+    try {
+      const rateRes = await fetch('https://open.er-api.com/v6/latest/USD')
+      if (rateRes.ok) {
+        const rateData = await rateRes.json()
+        usdToInr = rateData.rates?.INR ?? usdToInr
+      }
+    } catch (_) {}
+
     return {
       statusCode: 200,
       headers: {
@@ -133,7 +143,7 @@ export const handler = async (event) => {
         'Content-Type': 'application/json',
         'Cache-Control': 'public, max-age=3600',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, usdToInr }),
     }
   } catch (err) {
     console.error(err)

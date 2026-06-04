@@ -388,21 +388,12 @@
     if (btn) btn.disabled = true
 
     try {
-      const [priceRes, rateRes] = await Promise.all([
-        fetch(FUNCTION_URL),
-        fetch('https://api.frankfurter.app/latest?from=USD&to=INR').catch(() => null),
-      ])
-
+      const priceRes = await fetch(FUNCTION_URL)
       if (!priceRes.ok) throw new Error(await priceRes.text())
       const d = await priceRes.json()
       if (d.error) throw new Error(d.error)
 
-      let rate = 83.5
-      if (rateRes && rateRes.ok) {
-        const rateData = await rateRes.json()
-        rate = rateData.rates?.INR || rate
-      }
-
+      const rate = d.usdToInr || 84.0
       document.getElementById('rate-chip').textContent = `1 USD = ₹${rate.toFixed(2)}`
       render(d, rate)
     } catch (e) {
