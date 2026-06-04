@@ -51,6 +51,26 @@
   background: var(--red);
   color: var(--white);
 }
+.btn--price-list {
+  background: linear-gradient(135deg, #1a3a5c, #0f2540);
+  color: #7EC8E3;
+  border-color: #1E4D7A;
+  width: 100%;
+  margin-top: 20px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn--price-list:hover {
+  background: linear-gradient(135deg, #1E4D7A, #163d66);
+  border-color: #2a6aad;
+  color: #A8D8EA;
+  transform: translateY(-1px);
+}
 .btn--full {
   width: 100%;
 }

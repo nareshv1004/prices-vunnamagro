@@ -203,6 +203,16 @@ function ProductCard({ product }) {
             <li key={s}>{s}</li>
           ))}
         </ul>
+        {product.id === 'dry-red-chilli' && (
+          <a
+            href="/price-list.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn--price-list"
+          >
+            🌐 Global Price List
+          </a>
+        )}
         <button className="btn btn--outline-red" onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}>
           Request Sample
         </button>

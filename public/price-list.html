@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teja S17 Global Price Report — Vunnam Agro Exports</title>
+  <link rel="icon" type="image/png" href="/vae_logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #060D18;
+      --surface:  #0E1726;
+      --surface2: #162035;
+      --border:   #1E2D45;
+      --text:     #E8EDF5;
+      --muted:    #7A8BA8;
+      --red:      #C0392B;
+      --red-soft: rgba(192,57,43,0.15);
+      --green:    #10B981;
+      --amber:    #F59E0B;
+      --blue:     #3B82F6;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand img { width: 40px; height: 40px; object-fit: contain; border-radius: 6px; }
+    .header-brand-text strong { display: block; font-size: 15px; color: var(--text); }
+    .header-brand-text span { font-size: 12px; color: var(--muted); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .report-badge {
+      background: var(--red-soft);
+      color: var(--red);
+      border: 1px solid rgba(192,57,43,0.3);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 100px;
+      letter-spacing: 0.5px;
+    }
+    #report-date { font-size: 12px; color: var(--muted); }
+
+    /* ── Layout ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+
+    /* ── Loading ── */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      gap: 20px;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { color: var(--muted); font-size: 14px; }
+
+    /* ── Error ── */
+    #error-msg {
+      display: none;
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--muted);
+    }
+    #error-msg span { font-size: 48px; display: block; margin-bottom: 16px; }
+
+    /* ── Content ── */
+    #content { display: none; }
+
+    /* ── Section header ── */
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .section-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+    /* ── Metric cards ── */
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .metric-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .metric-value { font-size: 32px; font-weight: 700; color: var(--text); font-family: 'Playfair Display', serif; }
+    .metric-unit  { font-size: 14px; color: var(--muted); margin-left: 4px; }
+    .metric-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── India card ── */
+    .india-card {
+      background: var(--surface);
+      border: 1px solid var(--red);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .india-flag { font-size: 56px; line-height: 1; }
+    .india-body {}
+    .india-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .india-title .badge-origin {
+      background: var(--red-soft);
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .india-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .india-stat label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+    .india-stat span  { font-size: 20px; font-weight: 700; color: var(--text); }
+    .india-notes { font-size: 13px; color: var(--muted); }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 40px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--surface2); }
+    th {
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 13px 16px;
+      font-size: 14px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    .flag-cell { font-size: 22px; }
+    .price-cell { font-weight: 700; font-size: 15px; }
+    .range-cell { color: var(--muted); font-size: 13px; }
+    .notes-cell { color: var(--muted); font-size: 13px; max-width: 260px; }
+
+    /* ── Trend badge ── */
+    .trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .trend-rising  { background: rgba(16,185,129,0.12); color: var(--green); }
+    .trend-falling { background: rgba(239,68,68,0.12);  color: #EF4444; }
+    .trend-stable  { background: rgba(245,158,11,0.12); color: var(--amber); }
+
+    /* ── Summary ── */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .summary-card h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .summary-card p  { font-size: 14px; color: var(--text); line-height: 1.75; }
+
+    /* ── Key factors ── */
+    .factors-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .factors-list li {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .factors-list li::before { content: '▸'; color: var(--red); flex-shrink: 0; }
+
+    /* ── Sources ── */
+    .sources { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+    .source-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--blue);
+      text-decoration: none;
+      transition: border-color 0.2s;
+    }
+    .source-chip:hover { border-color: var(--blue); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .india-card { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .factors-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <img src="/vae_logo.png" alt="VAE Logo" />
+    <div class="header-brand-text">
+      <strong>Vunnam Agro Exports</strong>
+      <span>Global Price Intelligence</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="report-badge">TEJA S17 · LIVE REPORT</span>
+    <span id="report-date">Loading…</span>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Generating live market intelligence…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-msg">
+    <span>⚠️</span>
+    <p id="error-text">Unable to load price data. Please try again later.</p>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <div style="margin-bottom:32px;">
+      <h1 class="section-title">Teja S17 — Global Price Report</h1>
+      <p class="section-sub" id="sub-line">Dried Red Chilli · All prices in USD per kg · <span id="report-date-inline"></span></p>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics" id="metrics"></div>
+
+    <!-- India -->
+    <div class="india-card" id="india-card"></div>
+
+    <!-- Country Table -->
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#7A8BA8;text-transform:uppercase;letter-spacing:1px;">Import Markets</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Country</th>
+            <th>Avg Price / kg</th>
+            <th>Range</th>
+            <th>Trend</th>
+            <th>Notes</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="country-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Summary + Supply -->
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <!-- Key Factors -->
+    <div class="summary-card" style="margin-bottom:40px;">
+      <h3>Key Market Factors</h3>
+      <ul class="factors-list" id="factors-list"></ul>
+    </div>
+
+    <!-- Sources -->
+    <div class="summary-card">
+      <h3>Data Sources</h3>
+      <div class="sources" id="sources-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>© <span id="year"></span> Vunnam Agro Exports · <a href="/">vunnamagroexports.net</a></p>
+  <p style="margin-top:6px;">Prices are indicative estimates based on market intelligence and may vary. Not financial advice.</p>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear()
+
+  const FUNCTION_URL = '/.netlify/functions/price-data'
+
+  function trendBadge(t) {
+    const map = {
+      rising:  ['↑ Rising',  'rising'],
+      falling: ['↓ Falling', 'falling'],
+      stable:  ['→ Stable',  'stable'],
+    }
+    const [label, cls] = map[t] || ['— Unknown', 'stable']
+    return `<span class="trend trend-${cls}">${label}</span>`
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(FUNCTION_URL)
+      if (!res.ok) throw new Error(await res.text())
+      const d = await res.json()
+      if (d.error) throw new Error(d.error)
+      render(d)
+    } catch (e) {
+      document.getElementById('loading').style.display = 'none'
+      document.getElementById('error-msg').style.display = 'block'
+      document.getElementById('error-text').textContent = e.message || 'Failed to load data.'
+    }
+  }
+
+  function render(d) {
+    document.getElementById('loading').style.display = 'none'
+    document.getElementById('content').style.display = 'block'
+    document.getElementById('report-date').textContent = d.reportDate
+    document.getElementById('report-date-inline').textContent = d.reportDate
+
+    // Metrics
+    document.getElementById('metrics').innerHTML = `
+      <div class="metric-card">
+        <div class="metric-label">India FOB Price</div>
+        <div class="metric-value">$${d.india.fobPriceUSD.toFixed(2)}<span class="metric-unit">/kg</span></div>
+        <div class="metric-sub">Range: $${d.india.priceRange}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">India Domestic</div>
+        <div class="metric-value">$${d.india.domesticMarketPriceUSD.toFixed(2)}<span class="metric-unit">/kg</span></div>
+        <div class="metric-sub">Mandi price</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Global Average</div>
+        <div class="metric-value">$${d.globalAverage.toFixed(2)}<span class="metric-unit">/kg</span></div>
+        <div class="metric-sub">${d.countries.length} import markets</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Variety</div>
+        <div class="metric-value" style="font-size:22px;">${d.variety}</div>
+        <div class="metric-sub">India origin</div>
+      </div>
+    `
+
+    // India card
+    document.getElementById('india-card').innerHTML = `
+      <div class="india-flag">${d.india.flag}</div>
+      <div class="india-body">
+        <div class="india-title">India — Origin Market <span class="badge-origin">SOURCE</span></div>
+        <div class="india-grid">
+          <div class="india-stat"><label>Domestic Price</label><span>$${d.india.domesticMarketPriceUSD.toFixed(2)}/kg</span></div>
+          <div class="india-stat"><label>FOB Price</label><span>$${d.india.fobPriceUSD.toFixed(2)}/kg</span></div>
+          <div class="india-stat"><label>Price Range</label><span>$${d.india.priceRange}</span></div>
+          <div class="india-stat"><label>Trend</label>${trendBadge(d.india.trend)}</div>
+        </div>
+        <div class="india-notes">📍 ${d.india.notes} &nbsp;·&nbsp; Source: ${d.india.source}</div>
+      </div>
+    `
+
+    // Country table
+    document.getElementById('country-table').innerHTML = d.countries.map(c => `
+      <tr>
+        <td class="flag-cell">${c.flag}</td>
+        <td style="font-weight:600;">${c.country}</td>
+        <td class="price-cell">$${c.avgPriceUSD.toFixed(2)}</td>
+        <td class="range-cell">$${c.priceRange}</td>
+        <td>${trendBadge(c.trend)}</td>
+        <td class="notes-cell">${c.notes}</td>
+        <td class="range-cell">${c.source}</td>
+      </tr>
+    `).join('')
+
+    // Summary
+    document.getElementById('summary-grid').innerHTML = `
+      <div class="summary-card">
+        <h3>Market Summary</h3>
+        <p>${d.marketSummary}</p>
+      </div>
+      <div class="summary-card">
+        <h3>Supply Context</h3>
+        <p>${d.supplyContext}</p>
+      </div>
+    `
+
+    // Key factors
+    document.getElementById('factors-list').innerHTML = d.keyFactors.map(f => `<li>${f}</li>`).join('')
+
+    // Sources
+    document.getElementById('sources-list').innerHTML = d.sources.map(s =>
+      `<a class="source-chip" href="${s.url}" target="_blank" rel="noopener">↗ ${s.name}</a>`
+    ).join('')
+  }
+
+  load()
+</script>
+</body>
+</html>
