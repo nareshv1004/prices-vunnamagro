@@ -85,7 +85,7 @@ const PRODUCTS = [
   },
 ]
 
-const NAV_LINKS = ['Products', 'About', 'Contact']
+const NAV_LINKS = ['Products', 'Prices', 'About', 'Contact']
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -242,6 +242,39 @@ function Products() {
             <FadeIn key={p.id} delay={i * 150}>
               <ProductCard product={p} />
             </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const PRICE_LINKS = [
+  { name: 'Teja S17 · Dried Red Chilli', href: '/price-list.html' },
+  { name: 'Teja S17 · Chilli Flakes', href: '/chilli-flakes-prices-2026.html' },
+  { name: 'Teja S17 · Chilli Powder', href: '/chilli-powder-prices-2026.html' },
+]
+
+function Prices() {
+  return (
+    <section className="prices" id="prices">
+      <div className="container">
+        <div className="section-header">
+          <span className="section-label">Price Lists</span>
+          <h2 className="section-title">2026 Export Prices<br />by Variety</h2>
+          <p className="section-subtitle">
+            View current FOB / CIF pricing for each product variety.
+          </p>
+        </div>
+        <div className="prices__grid">
+          {PRICE_LINKS.map((item) => (
+            <div className="prices__card" key={item.name}>
+              <span className="prices__card-icon">🌶️</span>
+              <h3 className="prices__card-name">{item.name}</h3>
+              <a href={item.href} target="_blank" rel="noopener noreferrer" className="btn btn--price-list prices__btn">
+                🌐 Global Price List
+              </a>
+            </div>
           ))}
         </div>
       </div>
@@ -423,6 +456,7 @@ export default function App() {
       <main>
         <Hero />
         <Products />
+        <Prices />
         <About />
         <Contact />
       </main>
