@@ -119,6 +119,20 @@
     .qnote { font-size: 11px; color: #888; font-style: italic; margin-top: 14px; border-top: 1px solid #eee; padding-top: 10px; }
     .print-btns { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 16px; }
 
+    /* ── Expense rows ── */
+    .exp-table-head { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 0 2px 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .exp-row { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .exp-row:last-child { border-bottom: none; }
+    .exp-row input[type="text"] { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; padding: 6px 9px; outline: none; width: 100%; }
+    .exp-row input[type="text"]:focus { border-color: var(--red); }
+    .exp-row input[type="number"] { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; padding: 6px 9px; outline: none; width: 100%; text-align: right; }
+    .exp-row input[type="number"]:focus { border-color: var(--red); }
+    .exp-row select { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; padding: 6px 6px; outline: none; width: 100%; }
+    .exp-row select:focus { border-color: var(--red); }
+    .exp-row select option { background: var(--s2); }
+    .exp-remove { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
+    .exp-remove:hover { border-color: #e74c3c; color: #e74c3c; }
+
     @media print {
       body { background: #fff !important; }
       .overlay { position: static !important; background: none !important; padding: 0 !important; display: block !important; }
@@ -248,23 +262,18 @@
         </div>
       </div>
 
-      <!-- Other Costs -->
+      <!-- Expense Breakdown -->
       <div class="card">
-        <div class="card-title">Additional Costs</div>
-        <div class="frow col3">
-          <div class="fg">
-            <label>Commission / Agent (%)</label>
-            <input id="commission" type="number" value="0" min="0" step="0.1" oninput="calc()" />
-          </div>
-          <div class="fg">
-            <label id="lbl-other">Other Charges (USD/kg)</label>
-            <input id="other" type="number" value="0" min="0" step="0.01" oninput="calc()" />
-            <p class="hint">Inspection, fumigation, etc.</p>
-          </div>
-          <div class="fg">
-            <label>Bank / LC Charges (%)</label>
-            <input id="bankCharge" type="number" value="0" min="0" step="0.1" oninput="calc()" />
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="card-title" style="margin-bottom:0;">Expense Breakdown</div>
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="addExpenseRow()">+ Add Expense</button>
+        </div>
+        <div class="exp-table-head">
+          <span>Expense</span><span>Amount</span><span>Unit</span><span></span>
+        </div>
+        <div id="expense-rows"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;">
+          Units: <strong>/kg</strong> = per kg · <strong>/MT</strong> = per metric tonne · <strong>% FOB</strong> = percent of FOB value · <strong>flat</strong> = fixed total for the order
         </div>
       </div>
 
@@ -428,6 +437,57 @@
   let shipmentType = 'FOB'
   let currency = 'USD'
   let usdToInr = 84.0
+  let expRowId = 0
+
+  const DEFAULT_EXPENSES = [
+    { name: 'Transport to port',          amount: 0, unit: 'per_mt'  },
+    { name: 'Processing / cleaning',       amount: 0, unit: 'per_kg'  },
+    { name: 'Phytosanitary certificate',   amount: 0, unit: 'flat'    },
+    { name: 'Quality inspection / lab',    amount: 0, unit: 'flat'    },
+    { name: 'Fumigation',                  amount: 0, unit: 'flat'    },
+    { name: 'CHA charges',                 amount: 0, unit: 'flat'    },
+    { name: 'Port handling / THC',         amount: 0, unit: 'per_mt'  },
+    { name: 'Agent commission',            amount: 0, unit: 'pct_fob' },
+    { name: 'Bank / LC charges',           amount: 0, unit: 'pct_fob' },
+  ]
+
+  function addExpenseRow(name = '', amount = 0, unit = 'per_kg') {
+    const id = expRowId++
+    const row = document.createElement('div')
+    row.className = 'exp-row'
+    row.dataset.id = id
+    row.innerHTML = `
+      <input type="text" class="exp-name" value="${name}" placeholder="Expense name" />
+      <input type="number" class="exp-amount" value="${amount}" min="0" step="0.01" oninput="calc()" />
+      <select class="exp-unit" onchange="calc()">
+        <option value="per_kg" ${unit==='per_kg'?'selected':''}>/ kg</option>
+        <option value="per_mt" ${unit==='per_mt'?'selected':''}>/ MT</option>
+        <option value="pct_fob" ${unit==='pct_fob'?'selected':''}>% FOB</option>
+        <option value="flat" ${unit==='flat'?'selected':''}>flat</option>
+      </select>
+      <button class="exp-remove" onclick="removeExpenseRow(this)" title="Remove">×</button>
+    `
+    document.getElementById('expense-rows').appendChild(row)
+    calc()
+  }
+
+  function removeExpenseRow(btn) {
+    btn.closest('.exp-row').remove()
+    calc()
+  }
+
+  function getExpensesTotal(qtyKg, fobDisp) {
+    let total = 0
+    document.querySelectorAll('.exp-row').forEach(row => {
+      const amount = parseFloat(row.querySelector('.exp-amount').value) || 0
+      const unit   = row.querySelector('.exp-unit').value
+      if (unit === 'per_kg')  total += amount * qtyKg
+      if (unit === 'per_mt')  total += amount * (qtyKg / 1000)
+      if (unit === 'pct_fob') total += fobDisp * qtyKg * (amount / 100)
+      if (unit === 'flat')    total += amount
+    })
+    return total
+  }
 
   // Fetch live exchange rate
   async function fetchRate() {
@@ -468,7 +528,7 @@
     document.getElementById('tog-inr').classList.toggle('on', c === 'INR')
 
     // Convert current input values
-    const priceFields = ['fobPrice', 'packCost', 'sellPrice', 'other']
+    const priceFields = ['fobPrice', 'packCost', 'sellPrice']
     priceFields.forEach(id => {
       const el = document.getElementById(id)
       const v = parseFloat(el.value) || 0
@@ -480,6 +540,21 @@
             : v
       }
       el.step = step()
+    })
+
+    // Convert expense rows (skip % FOB rows — they're dimensionless)
+    document.querySelectorAll('.exp-row').forEach(row => {
+      const unit = row.querySelector('.exp-unit').value
+      if (unit === 'pct_fob') return
+      const el = row.querySelector('.exp-amount')
+      const v  = parseFloat(el.value) || 0
+      if (v > 0) {
+        el.value = prev === 'USD' && c === 'INR'
+          ? Math.round(v * usdToInr)
+          : prev === 'INR' && c === 'USD'
+            ? (v / usdToInr).toFixed(2)
+            : v
+      }
     })
 
     // Convert freight (per MT)
@@ -499,7 +574,6 @@
     document.getElementById('lbl-fob').textContent = `FOB Price (${cLabel}/kg)`
     document.getElementById('lbl-pack').textContent = `Packaging Cost (${cLabel}/kg)`
     document.getElementById('lbl-freight').textContent = `Ocean Freight (${cLabel}/MT)`
-    document.getElementById('lbl-other').textContent = `Other Charges (${cLabel}/kg)`
     document.getElementById('lbl-sell').textContent = `Sell Price (${cLabel}/kg)`
 
     if (c === 'INR') {
@@ -542,12 +616,8 @@
     // All inputs are in display currency; convert to USD for internal calc
     const fobDisp  = parseFloat(document.getElementById('fobPrice').value) || 0
     const packDisp = parseFloat(document.getElementById('packCost').value) || 0
-    const otherDisp= parseFloat(document.getElementById('other').value) || 0
     const sellDisp = parseFloat(document.getElementById('sellPrice').value) || 0
-    const commPct  = parseFloat(document.getElementById('commission').value) || 0
-    const bankPct  = parseFloat(document.getElementById('bankCharge').value) || 0
 
-    // Work in display currency throughout
     const purchaseTotal = qtyKg * fobDisp
     let freightTotal = 0, insuranceTotal = 0
     if (shipmentType === 'CIF') {
@@ -556,12 +626,10 @@
       freightTotal   = (qtyKg / 1000) * freightMTDisp
       insuranceTotal = purchaseTotal * (insPct / 100)
     }
-    const packTotal  = qtyKg * packDisp
-    const commTotal  = purchaseTotal * (commPct / 100)
-    const otherTotal = qtyKg * otherDisp
-    const bankTotal  = purchaseTotal * (bankPct / 100)
-    const totalCost  = purchaseTotal + freightTotal + insuranceTotal + packTotal + commTotal + otherTotal + bankTotal
-    const costPerKg  = qtyKg > 0 ? totalCost / qtyKg : 0
+    const packTotal    = qtyKg * packDisp
+    const extrasTotal  = getExpensesTotal(qtyKg, fobDisp)
+    const totalCost    = purchaseTotal + freightTotal + insuranceTotal + packTotal + extrasTotal
+    const costPerKg    = qtyKg > 0 ? totalCost / qtyKg : 0
 
     const revenue    = qtyKg * sellDisp
     const profit     = revenue - totalCost
@@ -572,7 +640,7 @@
     document.getElementById('s-purchase').textContent = fmtK(purchaseTotal) + ` (${fmtPerKg(fobDisp)})`
     document.getElementById('s-freight').textContent = fmtK(freightTotal + insuranceTotal)
     document.getElementById('s-pack').textContent = fmtK(packTotal)
-    document.getElementById('s-extras').textContent = fmtK(commTotal + otherTotal + bankTotal)
+    document.getElementById('s-extras').textContent = fmtK(extrasTotal)
     document.getElementById('s-totalcost').textContent = fmtK(totalCost)
     document.getElementById('s-costpkg').textContent = fmtPerKg(costPerKg)
     document.getElementById('s-revenue').textContent = fmtK(revenue) + ` (${fmtPerKg(sellDisp)})`
@@ -612,9 +680,7 @@
     const qtyMT       = qtyKg / 1000
     const fob         = parseFloat(document.getElementById('fobPrice').value) || 0
     const pack        = parseFloat(document.getElementById('packCost').value) || 0
-    const commPct     = parseFloat(document.getElementById('commission').value) || 0
-    const other       = parseFloat(document.getElementById('other').value) || 0
-    const bankPct     = parseFloat(document.getElementById('bankCharge').value) || 0
+    const extrasTotal = getExpensesTotal(qtyKg, fob)
     const sell        = parseFloat(document.getElementById('sellPrice').value) || 0
     const currLabel   = currency === 'INR' ? 'INR' : 'USD'
     const currSym     = currency === 'INR' ? '₹' : '$'
@@ -636,12 +702,7 @@
     const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })
     const validUntil = new Date(Date.now() + parseInt(validity)*86400000).toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })
 
-    const purchasePerKg = fob
-    const packPerKg     = pack
-    const commPerKg     = fob * (commPct / 100)
-    const otherPerKg    = other
-    const bankPerKg     = fob * (bankPct / 100)
-    const totalCostPerKg = purchasePerKg + packPerKg + commPerKg + otherPerKg + bankPerKg
+    const totalCostPerKg = qtyKg > 0 ? (fob * qtyKg + pack * qtyKg + extrasTotal) / qtyKg : fob + pack
 
     let freightPerKg = 0, insPerKg = 0, cifPerKg = 0
     if (type === 'CIF') {
@@ -786,6 +847,7 @@
   }
 
   // Init
+  DEFAULT_EXPENSES.forEach(e => addExpenseRow(e.name, e.amount, e.unit))
   fetchRate().then(() => {
     setShipment('FOB')
     calc()
