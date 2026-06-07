@@ -7,7 +7,7 @@ const CORS = {
 const VARIETY_INFO = {
   'Teja S17':      'Teja S17 chilli flakes 3-5mm, stemmed & deseeded. Raw dried chilli FOB ~$2.50-2.75/kg. Flakes add ~25-35% processing premium: FOB India flakes ~$3.30-3.80/kg. High pungency, widely used in pizza toppings.',
   'LCA-334':       'LCA-334 chilli flakes 3-5mm, stemmed & deseeded. Raw dried chilli FOB ~$2.90-3.10/kg. Flakes FOB India ~$3.80-4.20/kg. Good colour and medium-high pungency.',
-  'Byadagi':       'Byadagi chilli flakes 3-5mm, stemmed & deseeded. Raw dried chilli FOB ~$6.00-7.00/kg. Byadagi flakes FOB India ~$7.50-9.00/kg — premium colour flakes prized for deep red colour and mild heat.',
+  'Byadagi':       'Byadagi chilli flakes 3-5mm stemmed & deseeded, GI-tagged variety from Karnataka. Prized for deep red colour and mild heat. Raw dried Byadagi B2B export FOB $3.35-6.60/kg. Flakes add processing premium: FOB India flakes ~$4.50-8.00/kg. Stemless/premium grade commands higher. Sources: agmarknet.gov.in, KSAMB, indiamart.com.',
   'Wonder Hot':    'Wonder Hot chilli flakes 3-5mm, high-pungency. Raw dried chilli FOB ~$2.80-3.20/kg. Flakes FOB India ~$3.60-4.20/kg. Used for hot seasoning blends.',
   'Mahi Teja S15': 'Mahi Teja S15 chilli flakes 3-5mm. Raw dried chilli FOB ~$2.50-2.80/kg. Flakes FOB India ~$3.20-3.70/kg. Medium-high pungency hybrid gaining export market share.',
 }

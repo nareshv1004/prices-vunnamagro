@@ -7,7 +7,7 @@ const CORS = {
 const VARIETY_INFO = {
   'Teja S17':      'Teja S17 chilli powder 80-100 ASTA. Raw dried chilli FOB ~$2.50-2.75/kg. Powder adds ~30-40% processing premium over dried: FOB India powder ~$3.50-4.00/kg. High pungency, widely used in spice blends.',
   'LCA-334':       'LCA-334 chilli powder 80-100 ASTA. Raw dried chilli FOB ~$2.90-3.10/kg. Powder FOB India ~$4.00-4.50/kg including processing premium. Good colour and medium-high pungency.',
-  'Byadagi':       'Byadagi chilli powder premium grade. Raw dried chilli FOB ~$6.00-7.00/kg. Byadagi powder FOB India ~$8.00-10.00/kg — premium colour powder used for paprika and natural food colouring. ASTA 8,000-10,000.',
+  'Byadagi':       'Byadagi chilli powder, GI-tagged variety from Karnataka. Premium colour powder for paprika and natural food colouring. Raw dried Byadagi B2B export FOB $3.35-6.60/kg. Powder adds processing premium: FOB India powder ~$5.00-9.00/kg. International retail (Amazon USA/UK) equivalent $18-28/kg. Sources: agmarknet.gov.in, KSAMB, indiamart.com.',
   'Wonder Hot':    'Wonder Hot chilli powder, high-pungency. Raw dried chilli FOB ~$2.80-3.20/kg. Powder FOB India ~$3.80-4.50/kg. Used for hot seasoning blends and oleoresin-grade applications.',
   'Mahi Teja S15': 'Mahi Teja S15 chilli powder. Raw dried chilli FOB ~$2.50-2.80/kg. Powder FOB India ~$3.50-4.00/kg. Medium-high pungency hybrid gaining export market share.',
 }

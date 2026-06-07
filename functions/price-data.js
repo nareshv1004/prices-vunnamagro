@@ -7,7 +7,7 @@ const CORS = {
 const VARIETY_INFO = {
   'Teja S17':      'Teja S17 grown in Andhra Pradesh/Telangana. High pungency 80,000-100,000 SHU. Guntur mandi price ~₹18,000/quintal (~$2.17/kg). FOB India ~$2.50-2.75/kg. Trend: rising due to 15-20% production decline in 2025/26 season.',
   'LCA-334':       'LCA-334 grown in Andhra Pradesh/Telangana. Medium-high pungency, good colour. Guntur mandi price ~₹21,000/quintal AC grade (~$2.53/kg). FOB India ~$2.90-3.10/kg. Higher than Teja due to colour premium.',
-  'Byadagi':       'Byadagi grown in Karnataka. Prized for deep red colour, mild heat, high ASTA (8,000-10,000). Byadagi mandi price ₹46,000-48,000/quintal (~$5.60-5.80/kg). FOB India ~$6.00-7.00/kg. Premium colour chilli — record auction ₹89,999/quintal in Feb 2026.',
+  'Byadagi':       'Byadagi grown in Karnataka, GI-tagged for bright red colour and low heat. Supply chain tiers: APMC Byadagi mandi (Haveri) ₹160-420/kg ($1.90-5.00/kg) wholesale auction; B2B export wholesale on IndiaMART/TradeIndia ₹280-550/kg ($3.35-6.60/kg) FOB; India consumer retail (BigBasket/Blinkit) ₹480-720/kg. International retail (Amazon USA/UK) $14-22/kg. Sources: agmarknet.gov.in, KSAMB, indiamart.com, bigbasket.com, amazon.com.',
   'Wonder Hot':    'Wonder Hot high-pungency variety from Andhra Pradesh, used for oleoresin and hot spice blends. Similar domestic pricing to Teja S17 but FOB premium ~$2.80-3.20/kg due to high SHU content.',
   'Mahi Teja S15': 'Mahi Teja S15 hybrid from Andhra Pradesh/Telangana. Medium-high pungency, gaining export share. Priced similar to Teja S17: domestic ~$2.10-2.25/kg, FOB ~$2.50-2.80/kg.',
 }
