@@ -5,11 +5,11 @@ const CORS = {
 }
 
 const VARIETY_INFO = {
-  'Teja S17':       'Teja S17 chilli powder (80-100 ASTA grade) is processed in Andhra Pradesh and Telangana. High pungency, widely used in spice blends and food processing.',
-  'LCA-334':        'LCA-334 chilli powder is processed in Andhra Pradesh and Telangana. Medium-high pungency with good colour, used in food processing and seasoning blends.',
-  'Byadagi':        'Byadagi chilli powder is processed in Karnataka. Prized for deep red colour and mild heat. Premium grade used for colour-rich powders, paprika, and natural food colouring.',
-  'Wonder Hot':     'Wonder Hot chilli powder is high-pungency, processed in Andhra Pradesh. Used for hot seasoning blends, oleoresin-grade applications, and industrial spice processing.',
-  'Mahi Teja S15':  'Mahi Teja S15 chilli powder is processed in Andhra Pradesh and Telangana. Medium-high pungency hybrid gaining export market share in global spice markets.',
+  'Teja S17':      'Teja S17 chilli powder 80-100 ASTA. Raw dried chilli FOB ~$2.50-2.75/kg. Powder adds ~30-40% processing premium over dried: FOB India powder ~$3.50-4.00/kg. High pungency, widely used in spice blends.',
+  'LCA-334':       'LCA-334 chilli powder 80-100 ASTA. Raw dried chilli FOB ~$2.90-3.10/kg. Powder FOB India ~$4.00-4.50/kg including processing premium. Good colour and medium-high pungency.',
+  'Byadagi':       'Byadagi chilli powder premium grade. Raw dried chilli FOB ~$6.00-7.00/kg. Byadagi powder FOB India ~$8.00-10.00/kg — premium colour powder used for paprika and natural food colouring. ASTA 8,000-10,000.',
+  'Wonder Hot':    'Wonder Hot chilli powder, high-pungency. Raw dried chilli FOB ~$2.80-3.20/kg. Powder FOB India ~$3.80-4.50/kg. Used for hot seasoning blends and oleoresin-grade applications.',
+  'Mahi Teja S15': 'Mahi Teja S15 chilli powder. Raw dried chilli FOB ~$2.50-2.80/kg. Powder FOB India ~$3.50-4.00/kg. Medium-high pungency hybrid gaining export market share.',
 }
 
 const SCHEMA = {
@@ -82,13 +82,15 @@ export async function onRequest({ request, env }) {
 
     const prompt = `You are a commodity spice trade analyst with deep expertise in Indian chilli exports.
 
-Provide realistic, accurate price data for ${variety} Chilli Powder (80-100 ASTA grade) based on your knowledge. ${varietyDesc}
+Provide accurate price data for ${variety} Chilli Powder (80-100 ASTA grade). Use these verified market anchors as your baseline:
+${varietyDesc}
 
-Return ONLY a raw JSON object — nothing before { or after }, no markdown, no backticks. Keep all string values under 90 characters.
+Use the FOB India powder price as your anchor. Import prices in each country will be higher than FOB India due to freight (typically $0.10-0.30/kg sea freight), import duties, and local distribution margins.
+Key context for June 2026: Indian chilli supply is tight (15-20% production shortfall in 2025/26), driving prices 15-25% above 2024 levels. Byadagi powder is in a premium tier due to its unique colour properties.
 
 Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, Vietnam, Thailand, Philippines, Myanmar, Nepal, Pakistan, Japan, South Korea, UAE, USA, UK, Germany, Spain.
 trend: rising | falling | stable
-All prices in USD per kg for ${variety} chilli powder (80-100 ASTA grade).`
+All prices in USD per kg for ${variety} chilli powder (80-100 ASTA grade). Keep all string values under 90 characters.`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

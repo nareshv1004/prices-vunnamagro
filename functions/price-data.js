@@ -5,11 +5,11 @@ const CORS = {
 }
 
 const VARIETY_INFO = {
-  'Teja S17':       'Teja (S17) is India\'s most exported chilli, grown in Andhra Pradesh and Telangana. High pungency (80,000-100,000 SHU), widely used for oleoresin extraction and spice blends.',
-  'LCA-334':        'LCA-334 is a high-yielding variety grown in Andhra Pradesh and Telangana, with medium-high pungency and good colour. Widely traded in domestic and export markets.',
-  'Byadagi':        'Byadagi is grown in Karnataka\'s Byadagi region. Known for deep red colour and mild heat. Primarily used for paprika, natural colour extraction, and Indian cooking.',
-  'Wonder Hot':     'Wonder Hot is a high-pungency variety from Andhra Pradesh used for oleoresin extraction and hot spice blends. Commands premium pricing in export markets.',
-  'Mahi Teja S15':  'Mahi Teja S15 is a high-yield hybrid from Andhra Pradesh and Telangana with medium-high pungency. Gaining significant share in export markets.',
+  'Teja S17':      'Teja S17 grown in Andhra Pradesh/Telangana. High pungency 80,000-100,000 SHU. Guntur mandi price ~₹18,000/quintal (~$2.17/kg). FOB India ~$2.50-2.75/kg. Trend: rising due to 15-20% production decline in 2025/26 season.',
+  'LCA-334':       'LCA-334 grown in Andhra Pradesh/Telangana. Medium-high pungency, good colour. Guntur mandi price ~₹21,000/quintal AC grade (~$2.53/kg). FOB India ~$2.90-3.10/kg. Higher than Teja due to colour premium.',
+  'Byadagi':       'Byadagi grown in Karnataka. Prized for deep red colour, mild heat, high ASTA (8,000-10,000). Byadagi mandi price ₹46,000-48,000/quintal (~$5.60-5.80/kg). FOB India ~$6.00-7.00/kg. Premium colour chilli — record auction ₹89,999/quintal in Feb 2026.',
+  'Wonder Hot':    'Wonder Hot high-pungency variety from Andhra Pradesh, used for oleoresin and hot spice blends. Similar domestic pricing to Teja S17 but FOB premium ~$2.80-3.20/kg due to high SHU content.',
+  'Mahi Teja S15': 'Mahi Teja S15 hybrid from Andhra Pradesh/Telangana. Medium-high pungency, gaining export share. Priced similar to Teja S17: domestic ~$2.10-2.25/kg, FOB ~$2.50-2.80/kg.',
 }
 
 const SCHEMA = {
@@ -82,13 +82,15 @@ export async function onRequest({ request, env }) {
 
     const prompt = `You are a commodity spice trade analyst with deep expertise in Indian chilli exports.
 
-Provide realistic, accurate price data for ${variety} dried red chilli based on your knowledge. ${varietyDesc}
+Provide accurate price data for ${variety} dried red chilli. Use these verified market anchors as your baseline:
+${varietyDesc}
 
-Return ONLY a raw JSON object — nothing before { or after }, no markdown, no backticks. Keep all string values under 90 characters.
+Use the FOB India price as your anchor. Import prices in each country will be higher than FOB India due to freight (typically $0.10-0.30/kg sea freight), import duties, and local distribution margins.
+Key context for June 2026: Indian chilli supply is tight (15-20% production shortfall in 2025/26), driving prices 15-25% above 2024 levels. Byadagi is a premium colour chilli in a separate pricing tier from heat chillies.
 
 Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, Vietnam, Thailand, Philippines, Myanmar, Nepal, Pakistan, Japan, South Korea, UAE, USA, UK, Germany, Spain.
 trend values: rising | falling | stable
-All prices in USD per kg for ${variety} dried red chilli.`
+All prices in USD per kg for ${variety} dried red chilli. Keep all string values under 90 characters.`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
