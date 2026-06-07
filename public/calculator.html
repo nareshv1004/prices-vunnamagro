@@ -136,7 +136,17 @@
 </header>
 
 <div class="main">
-  <div class="page-title">Cost &amp; Profit Calculator</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px;">
+    <div class="page-title" style="margin-bottom:0;">Cost &amp; Profit Calculator</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:12px;color:var(--muted);">Currency</span>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <button class="tog on" id="tog-usd" onclick="setCurrency('USD')">$ USD</button>
+        <button class="tog" id="tog-inr" onclick="setCurrency('INR')">₹ INR</button>
+      </div>
+      <span id="rate-badge" style="font-size:11px;color:var(--muted);"></span>
+    </div>
+  </div>
   <p class="page-sub">Enter order details to calculate landed cost, margins, and generate a formal quotation.</p>
 
   <div class="calc-grid">
@@ -195,12 +205,12 @@
         <div class="card-title">Purchase Price (FOB India)</div>
         <div class="frow">
           <div class="fg">
-            <label>FOB Price (USD/kg)</label>
+            <label id="lbl-fob">FOB Price (USD/kg)</label>
             <input id="fobPrice" type="number" value="2.62" min="0" step="0.01" oninput="calc()" />
             <p class="hint" id="priceHint">Suggested for Teja S17 · Dried Chilli</p>
           </div>
           <div class="fg">
-            <label>Packaging Cost (USD/kg)</label>
+            <label id="lbl-pack">Packaging Cost (USD/kg)</label>
             <input id="packCost" type="number" value="0.05" min="0" step="0.01" oninput="calc()" />
             <p class="hint">25 kg jute bags ≈ $0.05/kg</p>
           </div>
@@ -218,9 +228,9 @@
         <div id="cif-fields" style="display:none;">
           <div class="frow col3">
             <div class="fg">
-              <label>Ocean Freight (USD/MT)</label>
+              <label id="lbl-freight">Ocean Freight (USD/MT)</label>
               <input id="freight" type="number" value="60" min="0" step="1" oninput="calc()" />
-              <p class="hint">Asia ~$25, EU ~$75, USA ~$90</p>
+              <p class="hint" id="hint-freight">Asia ~$25, EU ~$75, USA ~$90</p>
             </div>
             <div class="fg">
               <label>Insurance (% of FOB)</label>
@@ -247,7 +257,7 @@
             <input id="commission" type="number" value="0" min="0" step="0.1" oninput="calc()" />
           </div>
           <div class="fg">
-            <label>Other Charges (USD/kg)</label>
+            <label id="lbl-other">Other Charges (USD/kg)</label>
             <input id="other" type="number" value="0" min="0" step="0.01" oninput="calc()" />
             <p class="hint">Inspection, fumigation, etc.</p>
           </div>
@@ -263,7 +273,7 @@
         <div class="card-title">Target Selling Price</div>
         <div class="frow">
           <div class="fg">
-            <label>Sell Price (USD/kg)</label>
+            <label id="lbl-sell">Sell Price (USD/kg)</label>
             <input id="sellPrice" type="number" value="3.00" min="0" step="0.01" oninput="calc()" />
             <p class="hint">Your quoted price to the buyer</p>
           </div>
@@ -406,8 +416,8 @@
 </div>
 
 <script>
-  // ── Price lookup table (FOB India $/kg, June 2026) ──
-  const PRICES = {
+  // ── Price lookup table (FOB India USD/kg, June 2026) ──
+  const PRICES_USD = {
     'Teja S17':     { 'Dried Red Chilli': 2.62, 'Chilli Powder': 3.70, 'Chilli Flakes': 3.55 },
     'LCA-334':      { 'Dried Red Chilli': 3.00, 'Chilli Powder': 4.20, 'Chilli Flakes': 4.00 },
     'Byadagi':      { 'Dried Red Chilli': 6.50, 'Chilli Powder': 9.00, 'Chilli Flakes': 7.75 },
@@ -416,16 +426,101 @@
   }
 
   let shipmentType = 'FOB'
+  let currency = 'USD'
+  let usdToInr = 84.0
 
-  function fmt(n) { return '$' + n.toFixed(2) }
-  function fmtK(n) { return n >= 1000 ? '$' + (n/1000).toFixed(2) + 'k' : fmt(n) }
+  // Fetch live exchange rate
+  async function fetchRate() {
+    try {
+      const r = await fetch('https://open.er-api.com/v6/latest/USD')
+      if (r.ok) {
+        const d = await r.json()
+        usdToInr = d.rates?.INR ?? usdToInr
+        document.getElementById('rate-badge').textContent = `1 USD = ₹${usdToInr.toFixed(2)}`
+      }
+    } catch(_) {}
+  }
 
-  function onVarietyChange() {
+  function toDisplay(usdVal) { return currency === 'INR' ? usdVal * usdToInr : usdVal }
+  function toUSD(displayVal) { return currency === 'INR' ? displayVal / usdToInr : displayVal }
+
+  function sym() { return currency === 'INR' ? '₹' : '$' }
+  function step() { return currency === 'INR' ? '1' : '0.01' }
+
+  function fmt(n) {
+    if (currency === 'INR') return '₹' + Math.round(n).toLocaleString('en-IN')
+    return '$' + n.toFixed(2)
+  }
+  function fmtK(n) {
+    if (currency === 'INR') {
+      if (n >= 100000) return '₹' + (n/100000).toFixed(2) + 'L'
+      if (n >= 1000)   return '₹' + (n/1000).toFixed(1) + 'k'
+      return '₹' + Math.round(n).toLocaleString('en-IN')
+    }
+    return n >= 1000 ? '$' + (n/1000).toFixed(2) + 'k' : '$' + n.toFixed(2)
+  }
+  function fmtPerKg(n) { return fmt(n) + '/kg' }
+
+  function setCurrency(c) {
+    const prev = currency
+    currency = c
+    document.getElementById('tog-usd').classList.toggle('on', c === 'USD')
+    document.getElementById('tog-inr').classList.toggle('on', c === 'INR')
+
+    // Convert current input values
+    const priceFields = ['fobPrice', 'packCost', 'sellPrice', 'other']
+    priceFields.forEach(id => {
+      const el = document.getElementById(id)
+      const v = parseFloat(el.value) || 0
+      if (v > 0) {
+        el.value = prev === 'USD' && c === 'INR'
+          ? Math.round(v * usdToInr)
+          : prev === 'INR' && c === 'USD'
+            ? (v / usdToInr).toFixed(2)
+            : v
+      }
+      el.step = step()
+    })
+
+    // Convert freight (per MT)
+    const freightEl = document.getElementById('freight')
+    const fv = parseFloat(freightEl.value) || 0
+    if (fv > 0) {
+      freightEl.value = prev === 'USD' && c === 'INR'
+        ? Math.round(fv * usdToInr)
+        : prev === 'INR' && c === 'USD'
+          ? (fv / usdToInr).toFixed(2)
+          : fv
+      freightEl.step = c === 'INR' ? '100' : '1'
+    }
+
+    // Update labels
+    const cLabel = c === 'INR' ? '₹' : 'USD'
+    document.getElementById('lbl-fob').textContent = `FOB Price (${cLabel}/kg)`
+    document.getElementById('lbl-pack').textContent = `Packaging Cost (${cLabel}/kg)`
+    document.getElementById('lbl-freight').textContent = `Ocean Freight (${cLabel}/MT)`
+    document.getElementById('lbl-other').textContent = `Other Charges (${cLabel}/kg)`
+    document.getElementById('lbl-sell').textContent = `Sell Price (${cLabel}/kg)`
+
+    if (c === 'INR') {
+      document.getElementById('hint-freight').textContent = 'Asia ~₹2,100, EU ~₹6,300, USA ~₹7,600'
+    } else {
+      document.getElementById('hint-freight').textContent = 'Asia ~$25, EU ~$75, USA ~$90'
+    }
+
+    // Re-suggest price for current variety
+    onVarietyChange(false)
+    calc()
+  }
+
+  function onVarietyChange(updateHint = true) {
     const v = document.getElementById('variety').value
     const p = document.getElementById('productType').value
-    const suggested = PRICES[v]?.[p] ?? 2.62
-    document.getElementById('fobPrice').value = suggested.toFixed(2)
-    document.getElementById('priceHint').textContent = `Suggested for ${v} · ${p}`
+    const suggestedUSD = PRICES_USD[v]?.[p] ?? 2.62
+    const suggested = toDisplay(suggestedUSD)
+    document.getElementById('fobPrice').value = currency === 'INR' ? Math.round(suggested) : suggested.toFixed(2)
+    document.getElementById('fobPrice').step = step()
+    if (updateHint) document.getElementById('priceHint').textContent = `Suggested for ${v} · ${p}`
     calc()
   }
 
@@ -444,52 +539,51 @@
     const qtyUnit = document.getElementById('qtyUnit').value
     const qtyKg   = qtyUnit === 'MT' ? qtyRaw * 1000 : qtyRaw
 
-    const fob     = parseFloat(document.getElementById('fobPrice').value) || 0
-    const pack    = parseFloat(document.getElementById('packCost').value) || 0
-    const commPct = parseFloat(document.getElementById('commission').value) || 0
-    const other   = parseFloat(document.getElementById('other').value) || 0
-    const bankPct = parseFloat(document.getElementById('bankCharge').value) || 0
-    const sell    = parseFloat(document.getElementById('sellPrice').value) || 0
+    // All inputs are in display currency; convert to USD for internal calc
+    const fobDisp  = parseFloat(document.getElementById('fobPrice').value) || 0
+    const packDisp = parseFloat(document.getElementById('packCost').value) || 0
+    const otherDisp= parseFloat(document.getElementById('other').value) || 0
+    const sellDisp = parseFloat(document.getElementById('sellPrice').value) || 0
+    const commPct  = parseFloat(document.getElementById('commission').value) || 0
+    const bankPct  = parseFloat(document.getElementById('bankCharge').value) || 0
 
-    const purchaseTotal = qtyKg * fob
-    let freightTotal = 0
-    let insuranceTotal = 0
+    // Work in display currency throughout
+    const purchaseTotal = qtyKg * fobDisp
+    let freightTotal = 0, insuranceTotal = 0
     if (shipmentType === 'CIF') {
-      const freightMT  = parseFloat(document.getElementById('freight').value) || 0
-      const insPct     = parseFloat(document.getElementById('insurance').value) || 0
-      freightTotal  = (qtyKg / 1000) * freightMT
+      const freightMTDisp = parseFloat(document.getElementById('freight').value) || 0
+      const insPct        = parseFloat(document.getElementById('insurance').value) || 0
+      freightTotal   = (qtyKg / 1000) * freightMTDisp
       insuranceTotal = purchaseTotal * (insPct / 100)
     }
-    const packTotal  = qtyKg * pack
+    const packTotal  = qtyKg * packDisp
     const commTotal  = purchaseTotal * (commPct / 100)
-    const otherTotal = qtyKg * other
+    const otherTotal = qtyKg * otherDisp
     const bankTotal  = purchaseTotal * (bankPct / 100)
     const totalCost  = purchaseTotal + freightTotal + insuranceTotal + packTotal + commTotal + otherTotal + bankTotal
     const costPerKg  = qtyKg > 0 ? totalCost / qtyKg : 0
 
-    const revenue    = qtyKg * sell
+    const revenue    = qtyKg * sellDisp
     const profit     = revenue - totalCost
     const margin     = revenue > 0 ? (profit / revenue) * 100 : 0
 
-    // Update UI
-    const qLabel = qtyUnit === 'MT' ? `${qtyRaw} MT (${(qtyKg).toLocaleString()} kg)` : `${qtyRaw} kg`
+    const qLabel = qtyUnit === 'MT' ? `${qtyRaw} MT (${qtyKg.toLocaleString()} kg)` : `${qtyRaw} kg`
     document.getElementById('s-qty').textContent = qLabel
-    document.getElementById('s-purchase').textContent = fmtK(purchaseTotal) + ` (${fmt(fob)}/kg)`
+    document.getElementById('s-purchase').textContent = fmtK(purchaseTotal) + ` (${fmtPerKg(fobDisp)})`
     document.getElementById('s-freight').textContent = fmtK(freightTotal + insuranceTotal)
     document.getElementById('s-pack').textContent = fmtK(packTotal)
     document.getElementById('s-extras').textContent = fmtK(commTotal + otherTotal + bankTotal)
     document.getElementById('s-totalcost').textContent = fmtK(totalCost)
-    document.getElementById('s-costpkg').textContent = fmt(costPerKg) + '/kg'
-    document.getElementById('s-revenue').textContent = fmtK(revenue) + ` (${fmt(sell)}/kg)`
-    document.getElementById('s-breakeven').textContent = fmt(costPerKg) + '/kg'
+    document.getElementById('s-costpkg').textContent = fmtPerKg(costPerKg)
+    document.getElementById('s-revenue').textContent = fmtK(revenue) + ` (${fmtPerKg(sellDisp)})`
+    document.getElementById('s-breakeven').textContent = fmtPerKg(costPerKg)
 
     const profitEl = document.getElementById('s-profit')
     profitEl.textContent = (profit >= 0 ? '+' : '') + fmtK(profit)
     profitEl.className = 'sum-val ' + (profit >= 0 ? 'c-green' : 'c-red')
 
-    const clampedMargin = Math.max(0, Math.min(100, margin))
     const bar = document.getElementById('bar')
-    bar.style.width = clampedMargin + '%'
+    bar.style.width = Math.max(0, Math.min(100, margin)) + '%'
     bar.style.background = margin >= 15 ? 'var(--green)' : margin >= 5 ? 'var(--yellow)' : '#e74c3c'
     document.getElementById('s-margin').textContent = `Margin: ${margin.toFixed(1)}%`
     document.getElementById('s-margin').className = 'bar-label ' + (margin >= 15 ? 'c-green' : margin >= 5 ? 'c-yellow' : 'c-red')
@@ -499,7 +593,6 @@
     document.getElementById('quot-section').scrollIntoView({ behavior: 'smooth' })
   }
 
-  // ── Auto-generate quote ref on load ──
   function genRef() {
     const d = new Date()
     const yy = d.getFullYear()
@@ -523,6 +616,8 @@
     const other       = parseFloat(document.getElementById('other').value) || 0
     const bankPct     = parseFloat(document.getElementById('bankCharge').value) || 0
     const sell        = parseFloat(document.getElementById('sellPrice').value) || 0
+    const currLabel   = currency === 'INR' ? 'INR' : 'USD'
+    const currSym     = currency === 'INR' ? '₹' : '$'
     const pol         = document.getElementById('pol').value
     const payTerms    = document.getElementById('payTerms').value
     const validity    = document.getElementById('validity').value
@@ -567,9 +662,10 @@
       ? `CIF ${pod || '[Port of Discharge]'}`
       : `FOB ${pol}`
 
+    const fmtQ = (n) => currSym + (currency === 'INR' ? Math.round(n).toLocaleString('en-IN') : n.toFixed(2))
     const cifRows = type === 'CIF' ? `
-      <tr><td>Ocean Freight</td><td>${pol} → ${pod || '[Discharge Port]'}</td><td></td><td>$${freightMT.toFixed(2)}/MT</td><td>$${(freightPerKg*qtyKg).toFixed(2)}</td></tr>
-      <tr><td>Marine Insurance</td><td>${insPct}% of FOB value</td><td></td><td></td><td>$${(insPerKg*qtyKg).toFixed(2)}</td></tr>
+      <tr><td>Ocean Freight</td><td>${pol} → ${pod || '[Discharge Port]'}</td><td></td><td>${fmtQ(freightMT)}/MT</td><td>${fmtQ(freightPerKg*qtyKg)}</td></tr>
+      <tr><td>Marine Insurance</td><td>${insPct}% of FOB value</td><td></td><td></td><td>${fmtQ(insPerKg*qtyKg)}</td></tr>
     ` : ''
 
     const html = `
@@ -613,7 +709,7 @@
           <th>Specification</th>
           <th>Quantity</th>
           <th>Unit Price</th>
-          <th>Total (USD)</th>
+          <th>Total (${currLabel})</th>
         </tr></thead>
         <tbody>
           <tr>
@@ -621,8 +717,8 @@
             <td>Origin: Andhra Pradesh / Karnataka, India<br>
             Packaging: ${packSpec}</td>
             <td>${qtyMT.toFixed(3)} MT<br><span style="color:#888;font-size:11px;">(${qtyKg.toLocaleString()} kg)</span></td>
-            <td>$${fob.toFixed(2)}/kg<br><span style="color:#888;font-size:11px;">FOB ${pol}</span></td>
-            <td><strong>$${(fob*qtyKg).toFixed(2)}</strong></td>
+            <td>${currSym}${currency === 'INR' ? Math.round(fob).toLocaleString('en-IN') : fob.toFixed(2)}/kg<br><span style="color:#888;font-size:11px;">FOB ${pol}</span></td>
+            <td><strong>${currSym}${currency === 'INR' ? Math.round(fob*qtyKg).toLocaleString('en-IN') : (fob*qtyKg).toFixed(2)}</strong></td>
           </tr>
           ${cifRows}
         </tbody>
@@ -630,12 +726,12 @@
           <tr>
             <td colspan="3"></td>
             <td><strong>TOTAL ${type}</strong></td>
-            <td><strong>$${(sell*qtyKg).toFixed(2)}</strong></td>
+            <td><strong>${currSym}${currency === 'INR' ? Math.round(sell*qtyKg).toLocaleString('en-IN') : (sell*qtyKg).toFixed(2)}</strong></td>
           </tr>
           <tr>
             <td colspan="3"></td>
             <td style="font-weight:400;color:#555;">Per kg</td>
-            <td>$${sell.toFixed(2)}/kg</td>
+            <td>${currSym}${currency === 'INR' ? Math.round(sell).toLocaleString('en-IN') : sell.toFixed(2)}/kg</td>
           </tr>
         </tfoot>
       </table>
@@ -690,8 +786,10 @@
   }
 
   // Init
-  setShipment('FOB')
-  calc()
+  fetchRate().then(() => {
+    setShipment('FOB')
+    calc()
+  })
 </script>
 </body>
 </html>
