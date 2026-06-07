@@ -120,18 +120,30 @@
     .print-btns { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 16px; }
 
     /* ── Expense rows ── */
-    .exp-table-head { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 0 2px 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
-    .exp-row { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .exp-table-head { display: grid; grid-template-columns: 1fr 110px 90px 32px; gap: 8px; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 0 2px 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .exp-row { display: grid; grid-template-columns: 1fr 110px 90px 32px; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
     .exp-row:last-child { border-bottom: none; }
     .exp-row input[type="text"] { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; padding: 6px 9px; outline: none; width: 100%; }
     .exp-row input[type="text"]:focus { border-color: var(--red); }
     .exp-row input[type="number"] { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; padding: 6px 9px; outline: none; width: 100%; text-align: right; }
     .exp-row input[type="number"]:focus { border-color: var(--red); }
-    .exp-row select { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; padding: 6px 6px; outline: none; width: 100%; }
+    .exp-row select { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; padding: 6px 4px; outline: none; width: 100%; }
     .exp-row select:focus { border-color: var(--red); }
     .exp-row select option { background: var(--s2); }
     .exp-remove { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
     .exp-remove:hover { border-color: #e74c3c; color: #e74c3c; }
+    /* ── FOB result band ── */
+    .fob-band { display:flex; justify-content:space-between; align-items:center; background:rgba(192,57,43,0.10); border:1px solid rgba(192,57,43,0.30); border-radius:8px; padding:12px 16px; margin-top:14px; }
+    .fob-band-lbl { font-size:13px; font-weight:700; color:var(--red); }
+    .fob-band-sub { font-size:11px; color:var(--muted); display:block; margin-top:2px; }
+    .fob-band-val { font-size:20px; font-weight:800; color:var(--red); text-align:right; }
+    .fob-band-perkkg { font-size:11px; color:var(--muted); display:block; text-align:right; }
+    /* ── CIF band ── */
+    .cif-band { display:flex; justify-content:space-between; align-items:center; background:rgba(39,174,96,0.10); border:1px solid rgba(39,174,96,0.25); border-radius:8px; padding:10px 16px; margin-top:8px; display:none; }
+    .cif-band.show { display:flex; }
+    .cif-band-lbl { font-size:12px; font-weight:700; color:var(--green-lt); }
+    .cif-band-val { font-size:16px; font-weight:800; color:var(--green-lt); text-align:right; }
+    .cif-band-perkkg { font-size:11px; color:var(--muted); display:block; text-align:right; }
 
     @media print {
       body { background: #fff !important; }
@@ -214,24 +226,49 @@
         </div>
       </div>
 
-      <!-- Purchase Price -->
+      <!-- Cost Build-up to FOB -->
       <div class="card">
-        <div class="card-title">Purchase Price (FOB India)</div>
-        <div class="frow">
-          <div class="fg">
-            <label id="lbl-fob">FOB Price (USD/kg)</label>
-            <input id="fobPrice" type="number" value="2.62" min="0" step="0.01" oninput="calc()" />
-            <p class="hint" id="priceHint">Suggested for Teja S17 · Dried Chilli</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div class="card-title" style="margin-bottom:2px;">Cost Build-up to FOB</div>
+            <div style="font-size:12px;color:var(--muted);">Every cost from mandi to ship deck — FOB is calculated from these</div>
           </div>
-          <div class="fg">
-            <label id="lbl-pack">Packaging Cost (USD/kg)</label>
-            <input id="packCost" type="number" value="0.05" min="0" step="0.01" oninput="calc()" />
-            <p class="hint">25 kg jute bags ≈ $0.05/kg</p>
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="addExpenseRow()">+ Add Row</button>
+        </div>
+        <div class="exp-table-head">
+          <span>Expense Item</span><span id="exp-head-amt">Amount</span><span>Unit</span><span></span>
+        </div>
+        <div id="expense-rows"></div>
+
+        <!-- FOB result band -->
+        <div class="fob-band">
+          <div>
+            <span class="fob-band-lbl">FOB Price (Calculated)</span>
+            <span class="fob-band-sub">Sum of all items above ÷ quantity</span>
           </div>
+          <div>
+            <span class="fob-band-val" id="fob-calc-val">—</span>
+            <span class="fob-band-perkkg" id="fob-calc-perkg"></span>
+          </div>
+        </div>
+
+        <!-- CIF result band (shown when CIF mode) -->
+        <div class="cif-band" id="cif-result-band">
+          <div>
+            <span class="cif-band-lbl">CIF Price (FOB + Freight + Insurance)</span>
+          </div>
+          <div>
+            <span class="cif-band-val" id="cif-calc-val">—</span>
+            <span class="cif-band-perkkg" id="cif-calc-perkg"></span>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;">
+          Units: <strong>/kg</strong> = per kg &nbsp;·&nbsp; <strong>/MT</strong> = per metric tonne &nbsp;·&nbsp; <strong>flat</strong> = fixed total for the whole order
         </div>
       </div>
 
-      <!-- Shipment Type -->
+      <!-- Shipment Terms -->
       <div class="card">
         <div class="card-title">Shipment Terms</div>
         <div class="toggle-row">
@@ -247,7 +284,7 @@
               <p class="hint" id="hint-freight">Asia ~$25, EU ~$75, USA ~$90</p>
             </div>
             <div class="fg">
-              <label>Insurance (% of FOB)</label>
+              <label>Insurance (% of FOB cost)</label>
               <input id="insurance" type="number" value="0.5" min="0" step="0.05" oninput="calc()" />
             </div>
             <div class="fg">
@@ -257,23 +294,23 @@
           </div>
         </div>
 
-        <div id="fob-note" style="font-size:13px; color:var(--muted);">
-          Buyer arranges freight &amp; insurance. Price quoted at port of loading.
+        <div id="fob-note" style="font-size:13px;color:var(--muted);">
+          Buyer arranges freight &amp; insurance from the port of loading.
         </div>
       </div>
 
-      <!-- Expense Breakdown -->
+      <!-- Sales Charges -->
       <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div class="card-title" style="margin-bottom:0;">Expense Breakdown</div>
-          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="addExpenseRow()">+ Add Expense</button>
-        </div>
-        <div class="exp-table-head">
-          <span>Expense</span><span>Amount</span><span>Unit</span><span></span>
-        </div>
-        <div id="expense-rows"></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:10px;">
-          Units: <strong>/kg</strong> = per kg · <strong>/MT</strong> = per metric tonne · <strong>% FOB</strong> = percent of FOB value · <strong>flat</strong> = fixed total for the order
+        <div class="card-title">Sales Charges</div>
+        <div class="frow">
+          <div class="fg">
+            <label>Agent Commission (% of sell price)</label>
+            <input id="commission" type="number" value="0" min="0" step="0.1" oninput="calc()" />
+          </div>
+          <div class="fg">
+            <label>Bank / LC Charges (% of sell price)</label>
+            <input id="bankCharge" type="number" value="0" min="0" step="0.1" oninput="calc()" />
+          </div>
         </div>
       </div>
 
@@ -311,30 +348,33 @@
           <span class="sum-lbl">Quantity</span>
           <span class="sum-val" id="s-qty">—</span>
         </div>
+
         <div class="sum-row">
-          <span class="sum-lbl">Purchase Cost</span>
-          <span class="sum-val" id="s-purchase">—</span>
+          <span class="sum-lbl">Total cost to FOB</span>
+          <span class="sum-val" id="s-fob-total">—</span>
         </div>
-        <div class="sum-row" id="row-freight">
+        <div class="sum-row" style="font-size:12px;">
+          <span class="sum-lbl">FOB per kg</span>
+          <span class="sum-val c-muted" id="s-fob-perkkg">—</span>
+        </div>
+
+        <div class="sum-row" id="row-freight" style="display:none;">
           <span class="sum-lbl">Freight + Insurance</span>
           <span class="sum-val" id="s-freight">—</span>
         </div>
-        <div class="sum-row">
-          <span class="sum-lbl">Packaging</span>
-          <span class="sum-val" id="s-pack">—</span>
+        <div class="sum-row" id="row-cif-perkkg" style="display:none;font-size:12px;">
+          <span class="sum-lbl">CIF per kg</span>
+          <span class="sum-val c-muted" id="s-cif-perkkg">—</span>
         </div>
-        <div class="sum-row" id="row-extras">
-          <span class="sum-lbl">Commission / Other</span>
+
+        <div class="sum-row" id="row-sales-charges">
+          <span class="sum-lbl">Sales charges</span>
           <span class="sum-val" id="s-extras">—</span>
         </div>
 
         <div class="sum-row total">
           <span class="sum-lbl">Total Cost</span>
           <span class="sum-val" id="s-totalcost">—</span>
-        </div>
-        <div class="sum-row" style="font-size:12px;">
-          <span class="sum-lbl">Cost per kg</span>
-          <span class="sum-val c-muted" id="s-costpkg">—</span>
         </div>
 
         <div class="div"></div>
@@ -354,7 +394,7 @@
         </div>
 
         <div class="sum-row">
-          <span class="sum-lbl">Break-even Price</span>
+          <span class="sum-lbl">Break-even sell price</span>
           <span class="sum-val c-yellow" id="s-breakeven">—</span>
         </div>
 
@@ -425,13 +465,13 @@
 </div>
 
 <script>
-  // ── Price lookup table (FOB India USD/kg, June 2026) ──
-  const PRICES_USD = {
-    'Teja S17':     { 'Dried Red Chilli': 2.62, 'Chilli Powder': 3.70, 'Chilli Flakes': 3.55 },
-    'LCA-334':      { 'Dried Red Chilli': 3.00, 'Chilli Powder': 4.20, 'Chilli Flakes': 4.00 },
-    'Byadagi':      { 'Dried Red Chilli': 6.50, 'Chilli Powder': 9.00, 'Chilli Flakes': 7.75 },
-    'Wonder Hot':   { 'Dried Red Chilli': 3.00, 'Chilli Powder': 4.10, 'Chilli Flakes': 3.90 },
-    'Mahi Teja S15':{ 'Dried Red Chilli': 2.65, 'Chilli Powder': 3.75, 'Chilli Flakes': 3.45 },
+  // ── Mandi / farm buying price suggestions (USD/kg, June 2026) ──
+  const MANDI_USD = {
+    'Teja S17':      2.17,   // ₹18,000/quintal Guntur
+    'LCA-334':       2.53,   // ₹21,000/quintal AC grade Guntur
+    'Byadagi':       5.64,   // ₹46,800/quintal Byadagi APMC
+    'Wonder Hot':    2.25,
+    'Mahi Teja S15': 2.20,
   }
 
   let shipmentType = 'FOB'
@@ -440,15 +480,17 @@
   let expRowId = 0
 
   const DEFAULT_EXPENSES = [
-    { name: 'Transport to port',          amount: 0, unit: 'per_mt'  },
-    { name: 'Processing / cleaning',       amount: 0, unit: 'per_kg'  },
-    { name: 'Phytosanitary certificate',   amount: 0, unit: 'flat'    },
-    { name: 'Quality inspection / lab',    amount: 0, unit: 'flat'    },
-    { name: 'Fumigation',                  amount: 0, unit: 'flat'    },
-    { name: 'CHA charges',                 amount: 0, unit: 'flat'    },
-    { name: 'Port handling / THC',         amount: 0, unit: 'per_mt'  },
-    { name: 'Agent commission',            amount: 0, unit: 'pct_fob' },
-    { name: 'Bank / LC charges',           amount: 0, unit: 'pct_fob' },
+    { name: 'Mandi / farm buying price',   amount: 0, unit: 'per_kg' },
+    { name: 'Processing / cleaning',        amount: 0, unit: 'per_kg' },
+    { name: 'Grading & sorting',           amount: 0, unit: 'per_kg' },
+    { name: 'Packaging material',          amount: 0, unit: 'per_kg' },
+    { name: 'Phytosanitary certificate',   amount: 0, unit: 'flat'   },
+    { name: 'APEDA / export license',      amount: 0, unit: 'flat'   },
+    { name: 'Inland transport to port',    amount: 0, unit: 'per_mt' },
+    { name: 'Port handling / THC',         amount: 0, unit: 'per_mt' },
+    { name: 'CHA charges',                 amount: 0, unit: 'flat'   },
+    { name: 'Fumigation',                  amount: 0, unit: 'flat'   },
+    { name: 'Quality inspection / lab',    amount: 0, unit: 'flat'   },
   ]
 
   function addExpenseRow(name = '', amount = 0, unit = 'per_kg') {
@@ -460,10 +502,9 @@
       <input type="text" class="exp-name" value="${name}" placeholder="Expense name" />
       <input type="number" class="exp-amount" value="${amount}" min="0" step="0.01" oninput="calc()" />
       <select class="exp-unit" onchange="calc()">
-        <option value="per_kg" ${unit==='per_kg'?'selected':''}>/ kg</option>
-        <option value="per_mt" ${unit==='per_mt'?'selected':''}>/ MT</option>
-        <option value="pct_fob" ${unit==='pct_fob'?'selected':''}>% FOB</option>
-        <option value="flat" ${unit==='flat'?'selected':''}>flat</option>
+        <option value="per_kg" ${unit==='per_kg'?'selected':''}>/kg</option>
+        <option value="per_mt" ${unit==='per_mt'?'selected':''}>/MT</option>
+        <option value="flat"   ${unit==='flat'  ?'selected':''}>flat</option>
       </select>
       <button class="exp-remove" onclick="removeExpenseRow(this)" title="Remove">×</button>
     `
@@ -476,15 +517,14 @@
     calc()
   }
 
-  function getExpensesTotal(qtyKg, fobDisp) {
+  function getFOBTotal(qtyKg) {
     let total = 0
     document.querySelectorAll('.exp-row').forEach(row => {
       const amount = parseFloat(row.querySelector('.exp-amount').value) || 0
       const unit   = row.querySelector('.exp-unit').value
-      if (unit === 'per_kg')  total += amount * qtyKg
-      if (unit === 'per_mt')  total += amount * (qtyKg / 1000)
-      if (unit === 'pct_fob') total += fobDisp * qtyKg * (amount / 100)
-      if (unit === 'flat')    total += amount
+      if (unit === 'per_kg') total += amount * qtyKg
+      if (unit === 'per_mt') total += amount * (qtyKg / 1000)
+      if (unit === 'flat')   total += amount
     })
     return total
   }
@@ -527,20 +567,17 @@
     document.getElementById('tog-usd').classList.toggle('on', c === 'USD')
     document.getElementById('tog-inr').classList.toggle('on', c === 'INR')
 
-    // Convert current input values
-    const priceFields = ['fobPrice', 'packCost', 'sellPrice']
-    priceFields.forEach(id => {
-      const el = document.getElementById(id)
-      const v = parseFloat(el.value) || 0
-      if (v > 0) {
-        el.value = prev === 'USD' && c === 'INR'
-          ? Math.round(v * usdToInr)
-          : prev === 'INR' && c === 'USD'
-            ? (v / usdToInr).toFixed(2)
-            : v
-      }
-      el.step = step()
-    })
+    // Convert sell price field
+    const sellEl = document.getElementById('sellPrice')
+    const sv = parseFloat(sellEl.value) || 0
+    if (sv > 0) {
+      sellEl.value = prev === 'USD' && c === 'INR'
+        ? Math.round(sv * usdToInr)
+        : prev === 'INR' && c === 'USD'
+          ? (sv / usdToInr).toFixed(2)
+          : sv
+    }
+    sellEl.step = step()
 
     // Convert expense rows (skip % FOB rows — they're dimensionless)
     document.querySelectorAll('.exp-row').forEach(row => {
@@ -571,10 +608,9 @@
 
     // Update labels
     const cLabel = c === 'INR' ? '₹' : 'USD'
-    document.getElementById('lbl-fob').textContent = `FOB Price (${cLabel}/kg)`
-    document.getElementById('lbl-pack').textContent = `Packaging Cost (${cLabel}/kg)`
     document.getElementById('lbl-freight').textContent = `Ocean Freight (${cLabel}/MT)`
     document.getElementById('lbl-sell').textContent = `Sell Price (${cLabel}/kg)`
+    document.getElementById('exp-head-amt').textContent = `Amount (${cLabel})`
 
     if (c === 'INR') {
       document.getElementById('hint-freight').textContent = 'Asia ~₹2,100, EU ~₹6,300, USA ~₹7,600'
@@ -587,14 +623,15 @@
     calc()
   }
 
-  function onVarietyChange(updateHint = true) {
+  function onVarietyChange() {
     const v = document.getElementById('variety').value
-    const p = document.getElementById('productType').value
-    const suggestedUSD = PRICES_USD[v]?.[p] ?? 2.62
+    const suggestedUSD = MANDI_USD[v] ?? 2.17
     const suggested = toDisplay(suggestedUSD)
-    document.getElementById('fobPrice').value = currency === 'INR' ? Math.round(suggested) : suggested.toFixed(2)
-    document.getElementById('fobPrice').step = step()
-    if (updateHint) document.getElementById('priceHint').textContent = `Suggested for ${v} · ${p}`
+    // Set the first expense row (mandi price) to the suggested value
+    const firstAmtEl = document.querySelector('.exp-row .exp-amount')
+    if (firstAmtEl) {
+      firstAmtEl.value = currency === 'INR' ? Math.round(suggested) : suggested.toFixed(2)
+    }
     calc()
   }
 
@@ -613,37 +650,60 @@
     const qtyUnit = document.getElementById('qtyUnit').value
     const qtyKg   = qtyUnit === 'MT' ? qtyRaw * 1000 : qtyRaw
 
-    // All inputs are in display currency; convert to USD for internal calc
-    const fobDisp  = parseFloat(document.getElementById('fobPrice').value) || 0
-    const packDisp = parseFloat(document.getElementById('packCost').value) || 0
     const sellDisp = parseFloat(document.getElementById('sellPrice').value) || 0
+    const commPct  = parseFloat(document.getElementById('commission').value) || 0
+    const bankPct  = parseFloat(document.getElementById('bankCharge').value) || 0
 
-    const purchaseTotal = qtyKg * fobDisp
+    // FOB = sum of all cost build-up rows
+    const fobTotal = getFOBTotal(qtyKg)
+    const fobPerKg = qtyKg > 0 ? fobTotal / qtyKg : 0
+
+    // Freight + Insurance (CIF only)
     let freightTotal = 0, insuranceTotal = 0
     if (shipmentType === 'CIF') {
       const freightMTDisp = parseFloat(document.getElementById('freight').value) || 0
       const insPct        = parseFloat(document.getElementById('insurance').value) || 0
       freightTotal   = (qtyKg / 1000) * freightMTDisp
-      insuranceTotal = purchaseTotal * (insPct / 100)
+      insuranceTotal = fobTotal * (insPct / 100)
     }
-    const packTotal    = qtyKg * packDisp
-    const extrasTotal  = getExpensesTotal(qtyKg, fobDisp)
-    const totalCost    = purchaseTotal + freightTotal + insuranceTotal + packTotal + extrasTotal
-    const costPerKg    = qtyKg > 0 ? totalCost / qtyKg : 0
+    const cifTotal = fobTotal + freightTotal + insuranceTotal
+    const cifPerKg = qtyKg > 0 ? cifTotal / qtyKg : 0
 
-    const revenue    = qtyKg * sellDisp
-    const profit     = revenue - totalCost
-    const margin     = revenue > 0 ? (profit / revenue) * 100 : 0
+    // Sales charges (% of sell revenue)
+    const sellRevenue = qtyKg * sellDisp
+    const commTotal   = sellRevenue * (commPct / 100)
+    const bankTotal   = sellRevenue * (bankPct / 100)
+    const extrasTotal = commTotal + bankTotal
 
+    const totalCost = cifTotal + extrasTotal
+    const costPerKg = qtyKg > 0 ? totalCost / qtyKg : 0
+    const profit    = sellRevenue - totalCost
+    const margin    = sellRevenue > 0 ? (profit / sellRevenue) * 100 : 0
+
+    // ── FOB/CIF bands inside the card ──
+    document.getElementById('fob-calc-val').textContent = fmtK(fobTotal)
+    document.getElementById('fob-calc-perkg').textContent = qtyKg > 0 ? fmtPerKg(fobPerKg) + '/kg' : ''
+    const cifBand = document.getElementById('cif-result-band')
+    if (shipmentType === 'CIF') {
+      cifBand.classList.add('show')
+      document.getElementById('cif-calc-val').textContent = fmtK(cifTotal)
+      document.getElementById('cif-calc-perkg').textContent = qtyKg > 0 ? fmtPerKg(cifPerKg) + '/kg' : ''
+    } else {
+      cifBand.classList.remove('show')
+    }
+
+    // ── Summary ──
     const qLabel = qtyUnit === 'MT' ? `${qtyRaw} MT (${qtyKg.toLocaleString()} kg)` : `${qtyRaw} kg`
     document.getElementById('s-qty').textContent = qLabel
-    document.getElementById('s-purchase').textContent = fmtK(purchaseTotal) + ` (${fmtPerKg(fobDisp)})`
+    document.getElementById('s-fob-total').textContent = fmtK(fobTotal)
+    document.getElementById('s-fob-perkkg').textContent = fmtPerKg(fobPerKg)
     document.getElementById('s-freight').textContent = fmtK(freightTotal + insuranceTotal)
-    document.getElementById('s-pack').textContent = fmtK(packTotal)
-    document.getElementById('s-extras').textContent = fmtK(extrasTotal)
+    document.getElementById('s-cif-perkkg').textContent = fmtPerKg(cifPerKg)
+    document.getElementById('row-freight').style.display = shipmentType === 'CIF' ? '' : 'none'
+    document.getElementById('row-cif-perkkg').style.display = shipmentType === 'CIF' ? '' : 'none'
+    document.getElementById('s-extras').textContent = extrasTotal > 0 ? fmtK(extrasTotal) : '—'
     document.getElementById('s-totalcost').textContent = fmtK(totalCost)
-    document.getElementById('s-costpkg').textContent = fmtPerKg(costPerKg)
-    document.getElementById('s-revenue').textContent = fmtK(revenue) + ` (${fmtPerKg(sellDisp)})`
+    document.getElementById('s-revenue').textContent = fmtK(sellRevenue) + ` (${fmtPerKg(sellDisp)})`
     document.getElementById('s-breakeven').textContent = fmtPerKg(costPerKg)
 
     const profitEl = document.getElementById('s-profit')
@@ -678,9 +738,7 @@
     const qtyUnit     = document.getElementById('qtyUnit').value
     const qtyKg       = qtyUnit === 'MT' ? qtyRaw * 1000 : qtyRaw
     const qtyMT       = qtyKg / 1000
-    const fob         = parseFloat(document.getElementById('fobPrice').value) || 0
-    const pack        = parseFloat(document.getElementById('packCost').value) || 0
-    const extrasTotal = getExpensesTotal(qtyKg, fob)
+    const fob         = qtyKg > 0 ? getFOBTotal(qtyKg) / qtyKg : 0  // calculated FOB per kg
     const sell        = parseFloat(document.getElementById('sellPrice').value) || 0
     const currLabel   = currency === 'INR' ? 'INR' : 'USD'
     const currSym     = currency === 'INR' ? '₹' : '$'
@@ -702,7 +760,7 @@
     const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })
     const validUntil = new Date(Date.now() + parseInt(validity)*86400000).toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })
 
-    const totalCostPerKg = qtyKg > 0 ? (fob * qtyKg + pack * qtyKg + extrasTotal) / qtyKg : fob + pack
+    const totalCostPerKg = fob
 
     let freightPerKg = 0, insPerKg = 0, cifPerKg = 0
     if (type === 'CIF') {
