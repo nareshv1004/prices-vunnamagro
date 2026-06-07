@@ -293,9 +293,21 @@
 <script>
 /* ── Product config ───────────────────────────────────────────────────── */
 const PRODUCTS = {
-  'dry-chilli':    { pill:'🌶 Teja S17 · Dried Red Chilli',    fn:'price-data',           fobSub:'Stemmed, 10-12% moisture' },
-  'chilli-powder': { pill:'🌶 Teja S17 · Chilli Powder',        fn:'chilli-powder-prices', fobSub:'80-100 ASTA grade, food-grade' },
-  'chilli-flakes': { pill:'🌶 Teja S17 · Chilli Flakes',        fn:'chilli-flakes-prices', fobSub:'3-5mm crushed, stemmed & deseeded' },
+  'dry-chilli':        { pill:'🌶 Teja S17 · Dried Red Chilli',        fn:'price-data',           variety:'Teja S17',       fobSub:'Stemmed, 10-12% moisture' },
+  'chilli-powder':     { pill:'🌶 Teja S17 · Chilli Powder',            fn:'chilli-powder-prices', variety:'Teja S17',       fobSub:'80-100 ASTA grade, food-grade' },
+  'chilli-flakes':     { pill:'🌶 Teja S17 · Chilli Flakes',            fn:'chilli-flakes-prices', variety:'Teja S17',       fobSub:'3-5mm crushed, stemmed & deseeded' },
+  'lca334-dry':        { pill:'🌶 LCA-334 · Dried Red Chilli',          fn:'price-data',           variety:'LCA-334',        fobSub:'Stemmed, 10-12% moisture' },
+  'lca334-powder':     { pill:'🌶 LCA-334 · Chilli Powder',             fn:'chilli-powder-prices', variety:'LCA-334',        fobSub:'80-100 ASTA grade, food-grade' },
+  'lca334-flakes':     { pill:'🌶 LCA-334 · Chilli Flakes',             fn:'chilli-flakes-prices', variety:'LCA-334',        fobSub:'3-5mm crushed, stemmed & deseeded' },
+  'byadagi-dry':       { pill:'🌶 Byadagi · Dried Red Chilli',          fn:'price-data',           variety:'Byadagi',        fobSub:'Stemmed, 10-12% moisture' },
+  'byadagi-powder':    { pill:'🌶 Byadagi · Chilli Powder',             fn:'chilli-powder-prices', variety:'Byadagi',        fobSub:'Deep red colour, food-grade' },
+  'byadagi-flakes':    { pill:'🌶 Byadagi · Chilli Flakes',             fn:'chilli-flakes-prices', variety:'Byadagi',        fobSub:'3-5mm crushed, stemmed & deseeded' },
+  'wonderhot-dry':     { pill:'🌶 Wonder Hot · Dried Red Chilli',       fn:'price-data',           variety:'Wonder Hot',     fobSub:'Stemmed, 10-12% moisture' },
+  'wonderhot-powder':  { pill:'🌶 Wonder Hot · Chilli Powder',          fn:'chilli-powder-prices', variety:'Wonder Hot',     fobSub:'High heat, food-grade' },
+  'wonderhot-flakes':  { pill:'🌶 Wonder Hot · Chilli Flakes',          fn:'chilli-flakes-prices', variety:'Wonder Hot',     fobSub:'3-5mm crushed, stemmed & deseeded' },
+  'mahiteja-dry':      { pill:'🌶 Mahi Teja S15 · Dried Red Chilli',    fn:'price-data',           variety:'Mahi Teja S15',  fobSub:'Stemmed, 10-12% moisture' },
+  'mahiteja-powder':   { pill:'🌶 Mahi Teja S15 · Chilli Powder',       fn:'chilli-powder-prices', variety:'Mahi Teja S15',  fobSub:'80-100 ASTA grade, food-grade' },
+  'mahiteja-flakes':   { pill:'🌶 Mahi Teja S15 · Chilli Flakes',       fn:'chilli-flakes-prices', variety:'Mahi Teja S15',  fobSub:'3-5mm crushed, stemmed & deseeded' },
 }
 const productKey = new URLSearchParams(window.location.search).get('product') || 'dry-chilli'
 const cfg = PRODUCTS[productKey] || PRODUCTS['dry-chilli']
@@ -331,7 +343,7 @@ function unit() { return currency === 'INR' ? '₹/kg' : 'USD/kg' }
 
 /* ── Fetch from Netlify function ──────────────────────────────────────── */
 async function fetchPriceData(bustCache) {
-  const url = `/${cfg.fn}?date=${todayISO}${bustCache ? '&t=' + Date.now() : ''}`
+  const url = `/${cfg.fn}?date=${todayISO}&variety=${encodeURIComponent(cfg.variety)}${bustCache ? '&t=' + Date.now() : ''}`
   const res = await fetch(url)
   if (!res.ok) throw new Error('Service error ' + res.status)
   const data = await res.json()

@@ -4,53 +4,17 @@ const CORS = {
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
 
-const PROMPT = `You are a commodity spice trade analyst with deep expertise in Indian chilli exports.
-
-Provide realistic, accurate price data for Indian Teja S17 Chilli Powder (80-100 ASTA grade) based on your knowledge. This is processed powder exported from Andhra Pradesh/Telangana, India.
-
-Return ONLY a raw JSON object — nothing before { or after }, no markdown, no backticks. Keep all string values under 90 characters.
-
-{
-  "reportDate": "Mid-2025",
-  "variety": "Teja S17 Chilli Powder",
-  "india": {
-    "flag": "🇮🇳",
-    "domesticMarketPriceUSD": 2.20,
-    "fobPriceUSD": 2.60,
-    "priceRange": "2.40-2.90",
-    "trend": "stable",
-    "notes": "80-100 ASTA grade, Guntur processed, moisture 10%, food-grade",
-    "source": "Spices Board India / APEDA"
-  },
-  "countries": [
-    {
-      "country": "China",
-      "flag": "🇨🇳",
-      "avgPriceUSD": 3.10,
-      "priceRange": "2.80-3.40",
-      "trend": "stable",
-      "notes": "Used in food processing and seasoning industry",
-      "source": "Tridge / APEDA"
-    }
-  ],
-  "globalAverage": 3.20,
-  "marketSummary": "2-3 sentences on Indian chilli powder global market.",
-  "supplyContext": "1-2 sentences on Indian chilli powder processing and supply.",
-  "sources": [
-    {"name": "APEDA AgriExchange", "url": "https://agriexchange.apeda.gov.in"},
-    {"name": "Spices Board India", "url": "https://indianspices.com"},
-    {"name": "Tridge", "url": "https://www.tridge.com"}
-  ],
-  "keyFactors": ["factor 1", "factor 2", "factor 3", "factor 4"]
+const VARIETY_INFO = {
+  'Teja S17':       'Teja S17 chilli powder (80-100 ASTA grade) is processed in Andhra Pradesh and Telangana. High pungency, widely used in spice blends and food processing.',
+  'LCA-334':        'LCA-334 chilli powder is processed in Andhra Pradesh and Telangana. Medium-high pungency with good colour, used in food processing and seasoning blends.',
+  'Byadagi':        'Byadagi chilli powder is processed in Karnataka. Prized for deep red colour and mild heat. Premium grade used for colour-rich powders, paprika, and natural food colouring.',
+  'Wonder Hot':     'Wonder Hot chilli powder is high-pungency, processed in Andhra Pradesh. Used for hot seasoning blends, oleoresin-grade applications, and industrial spice processing.',
+  'Mahi Teja S15':  'Mahi Teja S15 chilli powder is processed in Andhra Pradesh and Telangana. Medium-high pungency hybrid gaining export market share in global spice markets.',
 }
 
-Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, Vietnam, Thailand, Philippines, Myanmar, Nepal, Pakistan, Japan, South Korea, UAE, USA, UK, Germany, Spain.
-trend: rising | falling | stable
-All prices in USD per kg for Teja S17 chilli powder (80-100 ASTA grade).`
-
-const TOOL = {
+const SCHEMA = {
   name: 'submit_price_data',
-  description: 'Submit the Teja S17 Chilli Powder global price report',
+  description: 'Submit the chilli powder global price report',
   input_schema: {
     type: 'object',
     properties: {
@@ -109,9 +73,22 @@ export async function onRequest({ request, env }) {
   try {
     const url = new URL(request.url)
     const dateParam = url.searchParams.get('date')
+    const variety = url.searchParams.get('variety') || 'Teja S17'
+    const varietyDesc = VARIETY_INFO[variety] || `${variety} chilli powder is processed in India.`
+
     const dateLabel = dateParam
       ? new Date(dateParam + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
       : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+
+    const prompt = `You are a commodity spice trade analyst with deep expertise in Indian chilli exports.
+
+Provide realistic, accurate price data for ${variety} Chilli Powder (80-100 ASTA grade) based on your knowledge. ${varietyDesc}
+
+Return ONLY a raw JSON object — nothing before { or after }, no markdown, no backticks. Keep all string values under 90 characters.
+
+Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, Vietnam, Thailand, Philippines, Myanmar, Nepal, Pakistan, Japan, South Korea, UAE, USA, UK, Germany, Spain.
+trend: rising | falling | stable
+All prices in USD per kg for ${variety} chilli powder (80-100 ASTA grade).`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -123,9 +100,9 @@ export async function onRequest({ request, env }) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 4096,
-        tools: [TOOL],
+        tools: [SCHEMA],
         tool_choice: { type: 'tool', name: 'submit_price_data' },
-        messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${PROMPT}` }],
+        messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${prompt}` }],
       }),
     })
 

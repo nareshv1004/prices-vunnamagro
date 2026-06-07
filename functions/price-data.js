@@ -4,53 +4,17 @@ const CORS = {
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
 
-const PROMPT = `You are a commodity spice trade analyst with deep expertise in Indian chilli exports.
-
-Provide realistic, accurate price data for Teja S17 dried red chilli based on your knowledge. Teja (also called S17) is India's most exported chilli variety, primarily grown in Andhra Pradesh and Telangana.
-
-Return ONLY a raw JSON object — nothing before { or after }, no markdown, no backticks. Keep all string values under 90 characters.
-
-{
-  "reportDate": "Mid-2025",
-  "variety": "Teja S17",
-  "india": {
-    "flag": "🇮🇳",
-    "domesticMarketPriceUSD": 1.80,
-    "fobPriceUSD": 2.05,
-    "priceRange": "1.75-2.20",
-    "trend": "stable",
-    "notes": "Guntur/Khammam mandi price, moisture 10-12%, stemmed",
-    "source": "Agmarknet / Spices Board India"
-  },
-  "countries": [
-    {
-      "country": "China",
-      "flag": "🇨🇳",
-      "avgPriceUSD": 2.40,
-      "priceRange": "2.10-2.70",
-      "trend": "rising",
-      "notes": "Largest importer of Indian Teja, mainly for oleoresin",
-      "source": "Tridge / APEDA"
-    }
-  ],
-  "globalAverage": 2.25,
-  "marketSummary": "2-3 sentences on Teja S17 global market.",
-  "supplyContext": "1-2 sentences on Indian Teja S17 crop and supply.",
-  "sources": [
-    {"name": "APEDA AgriExchange", "url": "https://agriexchange.apeda.gov.in"},
-    {"name": "Spices Board India", "url": "https://indianspices.com"},
-    {"name": "Tridge", "url": "https://www.tridge.com"}
-  ],
-  "keyFactors": ["factor 1", "factor 2", "factor 3", "factor 4"]
+const VARIETY_INFO = {
+  'Teja S17':       'Teja (S17) is India\'s most exported chilli, grown in Andhra Pradesh and Telangana. High pungency (80,000-100,000 SHU), widely used for oleoresin extraction and spice blends.',
+  'LCA-334':        'LCA-334 is a high-yielding variety grown in Andhra Pradesh and Telangana, with medium-high pungency and good colour. Widely traded in domestic and export markets.',
+  'Byadagi':        'Byadagi is grown in Karnataka\'s Byadagi region. Known for deep red colour and mild heat. Primarily used for paprika, natural colour extraction, and Indian cooking.',
+  'Wonder Hot':     'Wonder Hot is a high-pungency variety from Andhra Pradesh used for oleoresin extraction and hot spice blends. Commands premium pricing in export markets.',
+  'Mahi Teja S15':  'Mahi Teja S15 is a high-yield hybrid from Andhra Pradesh and Telangana with medium-high pungency. Gaining significant share in export markets.',
 }
 
-Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, Vietnam, Thailand, Philippines, Myanmar, Nepal, Pakistan, Japan, South Korea, UAE, USA, UK, Germany, Spain.
-trend values: rising | falling | stable
-Provide your best estimates based on typical Teja S17 trade patterns. All prices in USD per kg.`
-
-const TOOL = {
+const SCHEMA = {
   name: 'submit_price_data',
-  description: 'Submit the Teja S17 global price report',
+  description: 'Submit the dried red chilli global price report',
   input_schema: {
     type: 'object',
     properties: {
@@ -109,9 +73,22 @@ export async function onRequest({ request, env }) {
   try {
     const url = new URL(request.url)
     const dateParam = url.searchParams.get('date')
+    const variety = url.searchParams.get('variety') || 'Teja S17'
+    const varietyDesc = VARIETY_INFO[variety] || `${variety} is an Indian chilli variety exported from India.`
+
     const dateLabel = dateParam
       ? new Date(dateParam + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
       : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+
+    const prompt = `You are a commodity spice trade analyst with deep expertise in Indian chilli exports.
+
+Provide realistic, accurate price data for ${variety} dried red chilli based on your knowledge. ${varietyDesc}
+
+Return ONLY a raw JSON object — nothing before { or after }, no markdown, no backticks. Keep all string values under 90 characters.
+
+Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, Vietnam, Thailand, Philippines, Myanmar, Nepal, Pakistan, Japan, South Korea, UAE, USA, UK, Germany, Spain.
+trend values: rising | falling | stable
+All prices in USD per kg for ${variety} dried red chilli.`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -123,9 +100,9 @@ export async function onRequest({ request, env }) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 4096,
-        tools: [TOOL],
+        tools: [SCHEMA],
         tool_choice: { type: 'tool', name: 'submit_price_data' },
-        messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${PROMPT}` }],
+        messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${prompt}` }],
       }),
     })
 

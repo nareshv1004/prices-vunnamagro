@@ -247,33 +247,33 @@ const PRICE_VARIETIES = [
   {
     variety: 'LCA-334',
     products: [
-      { type: 'Dried Red Chilli', href: '#' },
-      { type: 'Chilli Flakes', href: '#' },
-      { type: 'Chilli Powder', href: '#' },
+      { type: 'Dried Red Chilli', href: '/price-list.html?product=lca334-dry' },
+      { type: 'Chilli Flakes',    href: '/price-list.html?product=lca334-flakes' },
+      { type: 'Chilli Powder',    href: '/price-list.html?product=lca334-powder' },
     ],
   },
   {
     variety: 'Byadagi',
     products: [
-      { type: 'Dried Red Chilli', href: '#' },
-      { type: 'Chilli Flakes', href: '#' },
-      { type: 'Chilli Powder', href: '#' },
+      { type: 'Dried Red Chilli', href: '/price-list.html?product=byadagi-dry' },
+      { type: 'Chilli Flakes',    href: '/price-list.html?product=byadagi-flakes' },
+      { type: 'Chilli Powder',    href: '/price-list.html?product=byadagi-powder' },
     ],
   },
   {
     variety: 'Wonder Hot',
     products: [
-      { type: 'Dried Red Chilli', href: '#' },
-      { type: 'Chilli Flakes', href: '#' },
-      { type: 'Chilli Powder', href: '#' },
+      { type: 'Dried Red Chilli', href: '/price-list.html?product=wonderhot-dry' },
+      { type: 'Chilli Flakes',    href: '/price-list.html?product=wonderhot-flakes' },
+      { type: 'Chilli Powder',    href: '/price-list.html?product=wonderhot-powder' },
     ],
   },
   {
     variety: 'Mahi Teja - S15',
     products: [
-      { type: 'Dried Red Chilli', href: '#' },
-      { type: 'Chilli Flakes', href: '#' },
-      { type: 'Chilli Powder', href: '#' },
+      { type: 'Dried Red Chilli', href: '/price-list.html?product=mahiteja-dry' },
+      { type: 'Chilli Flakes',    href: '/price-list.html?product=mahiteja-flakes' },
+      { type: 'Chilli Powder',    href: '/price-list.html?product=mahiteja-powder' },
     ],
   },
 ]
