@@ -50,15 +50,16 @@ Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, 
 trend: rising | falling | stable
 All prices in USD per kg for Teja S17 chilli powder (80-100 ASTA grade).`
 
-export const handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS, body: '' }
+export async function onRequest({ request, env }) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers: CORS })
   }
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
 
-    const dateParam = event.queryStringParameters?.date
+    const url = new URL(request.url)
+    const dateParam = url.searchParams.get('date')
     const dateLabel = dateParam
       ? new Date(dateParam + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
       : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -99,7 +100,7 @@ export const handler = async (event) => {
                   country:     { type: 'string' },
                   flag:        { type: 'string' },
                   avgPriceUSD: { type: 'number' },
-                  priceRange:  { type: 'string' },
+                  rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
                   trend:       { type: 'string' },
                   notes:       { type: 'string' },
                   source:      { type: 'string' },
@@ -135,17 +136,15 @@ export const handler = async (event) => {
       }
     } catch (_) {}
 
-    return {
-      statusCode: 200,
+    return new Response(JSON.stringify({ ...data, usdToInr }), {
+      status: 200,
       headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
-      body: JSON.stringify({ ...data, usdToInr }),
-    }
+    })
   } catch (err) {
     console.error(err)
-    return {
-      statusCode: 500,
+    return new Response(JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }), {
+      status: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }),
-    }
+    })
   }
 }

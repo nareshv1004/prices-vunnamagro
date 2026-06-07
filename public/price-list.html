@@ -331,7 +331,7 @@ function unit() { return currency === 'INR' ? '₹/kg' : 'USD/kg' }
 
 /* ── Fetch from Netlify function ──────────────────────────────────────── */
 async function fetchPriceData(bustCache) {
-  const url = `/.netlify/functions/${cfg.fn}?date=${todayISO}${bustCache ? '&t=' + Date.now() : ''}`
+  const url = `/${cfg.fn}?date=${todayISO}${bustCache ? '&t=' + Date.now() : ''}`
   const res = await fetch(url)
   if (!res.ok) throw new Error('Service error ' + res.status)
   const data = await res.json()

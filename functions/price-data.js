@@ -50,15 +50,16 @@ Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, 
 trend values: rising | falling | stable
 Provide your best estimates based on typical Teja S17 trade patterns. All prices in USD per kg.`
 
-export const handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS, body: '' }
+export async function onRequest({ request, env }) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers: CORS })
   }
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
 
-    const dateParam = event.queryStringParameters?.date
+    const url = new URL(request.url)
+    const dateParam = url.searchParams.get('date')
     const dateLabel = dateParam
       ? new Date(dateParam + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
       : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -96,13 +97,13 @@ export const handler = async (event) => {
               items: {
                 type: 'object',
                 properties: {
-                  country:    { type: 'string' },
-                  flag:       { type: 'string' },
-                  avgPriceUSD:{ type: 'number' },
+                  country:     { type: 'string' },
+                  flag:        { type: 'string' },
+                  avgPriceUSD: { type: 'number' },
                   rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
-                  trend:      { type: 'string' },
-                  notes:      { type: 'string' },
-                  source:     { type: 'string' },
+                  trend:       { type: 'string' },
+                  notes:       { type: 'string' },
+                  source:      { type: 'string' },
                 },
                 required: ['country','flag','avgPriceUSD','rangeMin','rangeMax','trend','notes','source'],
               },
@@ -126,7 +127,6 @@ export const handler = async (event) => {
     if (!toolUse) throw new Error('No tool use in response')
     const data = toolUse.input
 
-    // Fetch live USD→INR rate server-side
     let usdToInr = 84.0
     try {
       const rateRes = await fetch('https://open.er-api.com/v6/latest/USD')
@@ -136,21 +136,15 @@ export const handler = async (event) => {
       }
     } catch (_) {}
 
-    return {
-      statusCode: 200,
-      headers: {
-        ...CORS,
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600',
-      },
-      body: JSON.stringify({ ...data, usdToInr }),
-    }
+    return new Response(JSON.stringify({ ...data, usdToInr }), {
+      status: 200,
+      headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
+    })
   } catch (err) {
     console.error(err)
-    return {
-      statusCode: 500,
+    return new Response(JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }), {
+      status: 500,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Failed to fetch price data. Please try again.' }),
-    }
+    })
   }
 }
