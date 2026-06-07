@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cost &amp; Quotation Calculator — Vunnam Agro Exports</title>
+  <link rel="icon" href="/vae_logo.png" />
+  <style>
+    :root {
+      --red: #c0392b; --red-dk: #962d22;
+      --bg: #0d0d0d; --s1: #181818; --s2: #222; --s3: #2a2a2a;
+      --border: #303030; --text: #f0f0f0; --muted: #7a7a7a;
+      --green: #27ae60; --green-lt: #2ecc71; --yellow: #f39c12; --blue: #2980b9;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Header ── */
+    .hdr { background: var(--s1); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+    .hdr img { height: 34px; width: 34px; border-radius: 6px; object-fit: contain; }
+    .hdr-brand { font-weight: 700; font-size: 15px; }
+    .hdr-brand span { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+    /* ── Layout ── */
+    .main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 60px; }
+    .page-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .page-sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+    .calc-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+    @media (max-width: 760px) { .calc-grid { grid-template-columns: 1fr; } }
+
+    /* ── Card ── */
+    .card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 14px; }
+
+    /* ── Form ── */
+    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .frow.col3 { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 500px) { .frow { grid-template-columns: 1fr; } .frow.col3 { grid-template-columns: 1fr 1fr; } }
+    .fg { display: flex; flex-direction: column; gap: 5px; }
+    .fg label { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .fg input, .fg select { background: var(--s2); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-size: 14px; padding: 8px 11px; outline: none; transition: border-color 0.15s; width: 100%; }
+    .fg input:focus, .fg select:focus { border-color: var(--red); }
+    .fg select option { background: var(--s2); }
+    .input-unit { display: flex; }
+    .input-unit input { border-radius: 7px 0 0 7px; flex: 1; min-width: 0; }
+    .input-unit .unit-sel { border-radius: 0 7px 7px 0; border-left: none; width: 64px; flex-shrink: 0; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Toggle ── */
+    .toggle-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tog { padding: 7px 18px; border-radius: 7px; border: 1px solid var(--border); background: var(--s2); color: var(--text); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+    .tog.on { background: var(--red); border-color: var(--red); color: #fff; }
+
+    /* ── Divider ── */
+    .div { height: 1px; background: var(--border); margin: 14px 0; }
+
+    /* ── Summary ── */
+    .summary { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: sticky; top: 20px; }
+    .sum-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 14px; }
+    .sum-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .sum-row:last-child { border-bottom: none; }
+    .sum-row.total { font-weight: 700; font-size: 15px; padding-top: 11px; margin-top: 4px; border-top: 2px solid var(--border); border-bottom: none; }
+    .sum-lbl { color: var(--muted); }
+    .sum-val { font-weight: 600; text-align: right; }
+    .c-green { color: var(--green-lt); }
+    .c-red { color: #e74c3c; }
+    .c-yellow { color: var(--yellow); }
+    .c-muted { color: var(--muted); }
+
+    .bar-wrap { margin: 10px 0 14px; }
+    .bar-bg { height: 7px; border-radius: 4px; background: var(--s3); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+    .bar-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: right; }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.15s; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { background: var(--red-dk); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { background: #219a52; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--red); color: var(--red); }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn-full { width: 100%; justify-content: center; margin-top: 12px; }
+
+    /* ── Quotation section ── */
+    .quot-section { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; }
+
+    /* ── Overlay ── */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; overflow-y: auto; padding: 20px; }
+    .overlay.show { display: flex; justify-content: center; align-items: flex-start; }
+    .overlay-close { position: fixed; top: 16px; right: 16px; background: #fff; border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 18px; cursor: pointer; z-index: 1001; display: flex; align-items: center; justify-content: center; }
+
+    /* ── Quotation document (white) ── */
+    .qdoc { background: #fff; color: #111; max-width: 780px; width: 100%; border-radius: 8px; padding: 48px 48px 36px; font-family: Georgia, 'Times New Roman', serif; line-height: 1.5; }
+    .qhdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #c0392b; padding-bottom: 16px; margin-bottom: 22px; }
+    .qbrand h2 { font-size: 21px; color: #c0392b; font-weight: 800; font-family: -apple-system, sans-serif; margin-bottom: 3px; }
+    .qbrand p { font-size: 11.5px; color: #555; }
+    .qmeta { text-align: right; }
+    .qmeta h3 { font-size: 20px; font-weight: 700; color: #333; font-family: -apple-system, sans-serif; }
+    .qmeta p { font-size: 11.5px; color: #555; }
+    .qparties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 22px; }
+    .qparty h4 { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: #999; margin-bottom: 6px; font-family: -apple-system, sans-serif; }
+    .qparty p { font-size: 12.5px; color: #333; }
+    .qparty strong { font-family: -apple-system, sans-serif; }
+    table.qt { width: 100%; border-collapse: collapse; margin-bottom: 22px; font-size: 12.5px; }
+    table.qt th { background: #c0392b; color: #fff; padding: 9px 12px; text-align: left; font-family: -apple-system, sans-serif; }
+    table.qt td { padding: 9px 12px; border-bottom: 1px solid #eee; color: #333; }
+    table.qt tfoot td { border-top: 2px solid #c0392b; border-bottom: none; font-weight: 700; background: #fdf5f5; font-family: -apple-system, sans-serif; font-size: 13px; }
+    .qterms { font-size: 12px; color: #444; margin-bottom: 22px; }
+    .qterms h4 { font-size: 12.5px; font-weight: 700; color: #222; margin-bottom: 6px; font-family: -apple-system, sans-serif; }
+    .qterms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .qterm-item { margin-bottom: 6px; }
+    .qterm-item span { color: #888; font-size: 11px; display: block; font-family: -apple-system, sans-serif; }
+    .qfooter { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 32px; padding-top: 14px; border-top: 1px solid #ddd; font-size: 11px; color: #999; font-family: -apple-system, sans-serif; }
+    .qsign { text-align: right; }
+    .qsign-line { border-top: 1px solid #555; padding-top: 5px; margin-top: 44px; font-size: 12px; color: #333; font-weight: 700; font-family: -apple-system, sans-serif; }
+    .qnote { font-size: 11px; color: #888; font-style: italic; margin-top: 14px; border-top: 1px solid #eee; padding-top: 10px; }
+    .print-btns { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 16px; }
+
+    @media print {
+      body { background: #fff !important; }
+      .overlay { position: static !important; background: none !important; padding: 0 !important; display: block !important; }
+      .overlay-close, .print-btns { display: none !important; }
+      .qdoc { border-radius: 0; max-width: 100%; box-shadow: none; padding: 24px; }
+      .main, .hdr { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <img src="/vae_logo.png" alt="logo" />
+  <div class="hdr-brand">Vunnam Agro Exports <span>Cost &amp; Quotation Calculator</span></div>
+</header>
+
+<div class="main">
+  <div class="page-title">Cost &amp; Profit Calculator</div>
+  <p class="page-sub">Enter order details to calculate landed cost, margins, and generate a formal quotation.</p>
+
+  <div class="calc-grid">
+
+    <!-- ── LEFT: Inputs ── -->
+    <div>
+
+      <!-- Order Details -->
+      <div class="card">
+        <div class="card-title">Order Details</div>
+        <div class="frow">
+          <div class="fg">
+            <label>Variety</label>
+            <select id="variety" onchange="onVarietyChange()">
+              <option value="Teja S17">Teja S17</option>
+              <option value="LCA-334">LCA-334</option>
+              <option value="Byadagi">Byadagi</option>
+              <option value="Wonder Hot">Wonder Hot</option>
+              <option value="Mahi Teja S15">Mahi Teja S15</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Product Type</label>
+            <select id="productType" onchange="onVarietyChange()">
+              <option value="Dried Red Chilli">Dried Red Chilli (Whole)</option>
+              <option value="Chilli Powder">Chilli Powder (80-100 ASTA)</option>
+              <option value="Chilli Flakes">Chilli Flakes (3-5mm)</option>
+            </select>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label>Order Quantity</label>
+            <div class="input-unit">
+              <input id="qty" type="number" value="1" min="0.001" step="0.1" oninput="calc()" />
+              <select id="qtyUnit" class="unit-sel" onchange="calc()">
+                <option value="MT">MT</option>
+                <option value="kg">kg</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Port of Loading</label>
+            <select id="pol">
+              <option value="Krishnapatnam Port (INNPT)">Krishnapatnam (INNPT)</option>
+              <option value="Nhava Sheva / JNPT (INNSA)">Nhava Sheva / JNPT (INNSA)</option>
+              <option value="Chennai Port (INMAA)">Chennai (INMAA)</option>
+              <option value="Mundra Port (INMUN)">Mundra (INMUN)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Purchase Price -->
+      <div class="card">
+        <div class="card-title">Purchase Price (FOB India)</div>
+        <div class="frow">
+          <div class="fg">
+            <label>FOB Price (USD/kg)</label>
+            <input id="fobPrice" type="number" value="2.62" min="0" step="0.01" oninput="calc()" />
+            <p class="hint" id="priceHint">Suggested for Teja S17 · Dried Chilli</p>
+          </div>
+          <div class="fg">
+            <label>Packaging Cost (USD/kg)</label>
+            <input id="packCost" type="number" value="0.05" min="0" step="0.01" oninput="calc()" />
+            <p class="hint">25 kg jute bags ≈ $0.05/kg</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipment Type -->
+      <div class="card">
+        <div class="card-title">Shipment Terms</div>
+        <div class="toggle-row">
+          <button class="tog on" id="tog-fob" onclick="setShipment('FOB')">FOB</button>
+          <button class="tog" id="tog-cif" onclick="setShipment('CIF')">CIF</button>
+        </div>
+
+        <div id="cif-fields" style="display:none;">
+          <div class="frow col3">
+            <div class="fg">
+              <label>Ocean Freight (USD/MT)</label>
+              <input id="freight" type="number" value="60" min="0" step="1" oninput="calc()" />
+              <p class="hint">Asia ~$25, EU ~$75, USA ~$90</p>
+            </div>
+            <div class="fg">
+              <label>Insurance (% of FOB)</label>
+              <input id="insurance" type="number" value="0.5" min="0" step="0.05" oninput="calc()" />
+            </div>
+            <div class="fg">
+              <label>Port of Discharge</label>
+              <input id="pod" type="text" placeholder="e.g. Shanghai" oninput="calc()" />
+            </div>
+          </div>
+        </div>
+
+        <div id="fob-note" style="font-size:13px; color:var(--muted);">
+          Buyer arranges freight &amp; insurance. Price quoted at port of loading.
+        </div>
+      </div>
+
+      <!-- Other Costs -->
+      <div class="card">
+        <div class="card-title">Additional Costs</div>
+        <div class="frow col3">
+          <div class="fg">
+            <label>Commission / Agent (%)</label>
+            <input id="commission" type="number" value="0" min="0" step="0.1" oninput="calc()" />
+          </div>
+          <div class="fg">
+            <label>Other Charges (USD/kg)</label>
+            <input id="other" type="number" value="0" min="0" step="0.01" oninput="calc()" />
+            <p class="hint">Inspection, fumigation, etc.</p>
+          </div>
+          <div class="fg">
+            <label>Bank / LC Charges (%)</label>
+            <input id="bankCharge" type="number" value="0" min="0" step="0.1" oninput="calc()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Selling Price -->
+      <div class="card">
+        <div class="card-title">Target Selling Price</div>
+        <div class="frow">
+          <div class="fg">
+            <label>Sell Price (USD/kg)</label>
+            <input id="sellPrice" type="number" value="3.00" min="0" step="0.01" oninput="calc()" />
+            <p class="hint">Your quoted price to the buyer</p>
+          </div>
+          <div class="fg">
+            <label>Payment Terms</label>
+            <select id="payTerms">
+              <option value="100% TT in advance">100% TT in Advance</option>
+              <option value="50% advance, 50% BL copy">50% Advance, 50% on BL Copy</option>
+              <option value="Irrevocable LC at sight">Irrevocable LC at Sight</option>
+              <option value="30 days LC">30-day LC</option>
+              <option value="60 days LC">60-day LC</option>
+              <option value="TT within 30 days of BL">TT within 30 Days of BL</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end left -->
+
+    <!-- ── RIGHT: Summary ── -->
+    <div>
+      <div class="summary">
+        <div class="sum-title">Order Summary</div>
+
+        <div class="sum-row">
+          <span class="sum-lbl">Quantity</span>
+          <span class="sum-val" id="s-qty">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Purchase Cost</span>
+          <span class="sum-val" id="s-purchase">—</span>
+        </div>
+        <div class="sum-row" id="row-freight">
+          <span class="sum-lbl">Freight + Insurance</span>
+          <span class="sum-val" id="s-freight">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Packaging</span>
+          <span class="sum-val" id="s-pack">—</span>
+        </div>
+        <div class="sum-row" id="row-extras">
+          <span class="sum-lbl">Commission / Other</span>
+          <span class="sum-val" id="s-extras">—</span>
+        </div>
+
+        <div class="sum-row total">
+          <span class="sum-lbl">Total Cost</span>
+          <span class="sum-val" id="s-totalcost">—</span>
+        </div>
+        <div class="sum-row" style="font-size:12px;">
+          <span class="sum-lbl">Cost per kg</span>
+          <span class="sum-val c-muted" id="s-costpkg">—</span>
+        </div>
+
+        <div class="div"></div>
+
+        <div class="sum-row">
+          <span class="sum-lbl">Selling Revenue</span>
+          <span class="sum-val" id="s-revenue">—</span>
+        </div>
+        <div class="sum-row total" id="row-profit">
+          <span class="sum-lbl">Gross Profit</span>
+          <span class="sum-val" id="s-profit">—</span>
+        </div>
+
+        <div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill" id="bar" style="width:0%;background:var(--green)"></div></div>
+          <div class="bar-label" id="s-margin">Margin: —</div>
+        </div>
+
+        <div class="sum-row">
+          <span class="sum-lbl">Break-even Price</span>
+          <span class="sum-val c-yellow" id="s-breakeven">—</span>
+        </div>
+
+        <button class="btn btn-red btn-full" onclick="scrollToQuot()">Generate Quotation ↓</button>
+      </div>
+    </div>
+
+  </div><!-- end calc-grid -->
+
+  <!-- ── Quotation Generator ── -->
+  <div class="quot-section" id="quot-section">
+    <div class="card-title" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:16px;">Quotation Details</div>
+
+    <div class="frow">
+      <div class="fg">
+        <label>Buyer / Importer Name</label>
+        <input id="buyerName" type="text" placeholder="Mr. / Ms. Full Name" />
+      </div>
+      <div class="fg">
+        <label>Company Name</label>
+        <input id="buyerCo" type="text" placeholder="Buyer's Company Ltd." />
+      </div>
+    </div>
+    <div class="frow col3">
+      <div class="fg">
+        <label>Country</label>
+        <input id="buyerCountry" type="text" placeholder="e.g. United Kingdom" />
+      </div>
+      <div class="fg">
+        <label>Email</label>
+        <input id="buyerEmail" type="email" placeholder="buyer@company.com" />
+      </div>
+      <div class="fg">
+        <label>Phone / WhatsApp</label>
+        <input id="buyerPhone" type="text" placeholder="+44 ..." />
+      </div>
+    </div>
+    <div class="frow col3">
+      <div class="fg">
+        <label>Validity (days)</label>
+        <input id="validity" type="number" value="15" min="1" />
+      </div>
+      <div class="fg">
+        <label>Minimum Order Qty</label>
+        <input id="moq" type="text" placeholder="e.g. 1 MT" value="1 MT" />
+      </div>
+      <div class="fg">
+        <label>Quote Reference</label>
+        <input id="quoteRef" type="text" id="quoteRef" placeholder="auto-generated" readonly style="color:var(--muted);" />
+      </div>
+    </div>
+
+    <div class="div"></div>
+    <div class="btn-row">
+      <button class="btn btn-red" onclick="generateQuot('FOB')">Generate FOB Quotation</button>
+      <button class="btn btn-green" onclick="generateQuot('CIF')">Generate CIF Quotation</button>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<!-- ── Quotation overlay ── -->
+<div class="overlay" id="overlay">
+  <button class="overlay-close" onclick="closeOverlay()" title="Close">✕</button>
+  <div class="qdoc" id="qdoc">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<script>
+  // ── Price lookup table (FOB India $/kg, June 2026) ──
+  const PRICES = {
+    'Teja S17':     { 'Dried Red Chilli': 2.62, 'Chilli Powder': 3.70, 'Chilli Flakes': 3.55 },
+    'LCA-334':      { 'Dried Red Chilli': 3.00, 'Chilli Powder': 4.20, 'Chilli Flakes': 4.00 },
+    'Byadagi':      { 'Dried Red Chilli': 6.50, 'Chilli Powder': 9.00, 'Chilli Flakes': 7.75 },
+    'Wonder Hot':   { 'Dried Red Chilli': 3.00, 'Chilli Powder': 4.10, 'Chilli Flakes': 3.90 },
+    'Mahi Teja S15':{ 'Dried Red Chilli': 2.65, 'Chilli Powder': 3.75, 'Chilli Flakes': 3.45 },
+  }
+
+  let shipmentType = 'FOB'
+
+  function fmt(n) { return '$' + n.toFixed(2) }
+  function fmtK(n) { return n >= 1000 ? '$' + (n/1000).toFixed(2) + 'k' : fmt(n) }
+
+  function onVarietyChange() {
+    const v = document.getElementById('variety').value
+    const p = document.getElementById('productType').value
+    const suggested = PRICES[v]?.[p] ?? 2.62
+    document.getElementById('fobPrice').value = suggested.toFixed(2)
+    document.getElementById('priceHint').textContent = `Suggested for ${v} · ${p}`
+    calc()
+  }
+
+  function setShipment(type) {
+    shipmentType = type
+    document.getElementById('tog-fob').classList.toggle('on', type === 'FOB')
+    document.getElementById('tog-cif').classList.toggle('on', type === 'CIF')
+    document.getElementById('cif-fields').style.display = type === 'CIF' ? '' : 'none'
+    document.getElementById('fob-note').style.display = type === 'FOB' ? '' : 'none'
+    document.getElementById('row-freight').style.display = type === 'CIF' ? '' : 'none'
+    calc()
+  }
+
+  function calc() {
+    const qtyRaw  = parseFloat(document.getElementById('qty').value) || 0
+    const qtyUnit = document.getElementById('qtyUnit').value
+    const qtyKg   = qtyUnit === 'MT' ? qtyRaw * 1000 : qtyRaw
+
+    const fob     = parseFloat(document.getElementById('fobPrice').value) || 0
+    const pack    = parseFloat(document.getElementById('packCost').value) || 0
+    const commPct = parseFloat(document.getElementById('commission').value) || 0
+    const other   = parseFloat(document.getElementById('other').value) || 0
+    const bankPct = parseFloat(document.getElementById('bankCharge').value) || 0
+    const sell    = parseFloat(document.getElementById('sellPrice').value) || 0
+
+    const purchaseTotal = qtyKg * fob
+    let freightTotal = 0
+    let insuranceTotal = 0
+    if (shipmentType === 'CIF') {
+      const freightMT  = parseFloat(document.getElementById('freight').value) || 0
+      const insPct     = parseFloat(document.getElementById('insurance').value) || 0
+      freightTotal  = (qtyKg / 1000) * freightMT
+      insuranceTotal = purchaseTotal * (insPct / 100)
+    }
+    const packTotal  = qtyKg * pack
+    const commTotal  = purchaseTotal * (commPct / 100)
+    const otherTotal = qtyKg * other
+    const bankTotal  = purchaseTotal * (bankPct / 100)
+    const totalCost  = purchaseTotal + freightTotal + insuranceTotal + packTotal + commTotal + otherTotal + bankTotal
+    const costPerKg  = qtyKg > 0 ? totalCost / qtyKg : 0
+
+    const revenue    = qtyKg * sell
+    const profit     = revenue - totalCost
+    const margin     = revenue > 0 ? (profit / revenue) * 100 : 0
+
+    // Update UI
+    const qLabel = qtyUnit === 'MT' ? `${qtyRaw} MT (${(qtyKg).toLocaleString()} kg)` : `${qtyRaw} kg`
+    document.getElementById('s-qty').textContent = qLabel
+    document.getElementById('s-purchase').textContent = fmtK(purchaseTotal) + ` (${fmt(fob)}/kg)`
+    document.getElementById('s-freight').textContent = fmtK(freightTotal + insuranceTotal)
+    document.getElementById('s-pack').textContent = fmtK(packTotal)
+    document.getElementById('s-extras').textContent = fmtK(commTotal + otherTotal + bankTotal)
+    document.getElementById('s-totalcost').textContent = fmtK(totalCost)
+    document.getElementById('s-costpkg').textContent = fmt(costPerKg) + '/kg'
+    document.getElementById('s-revenue').textContent = fmtK(revenue) + ` (${fmt(sell)}/kg)`
+    document.getElementById('s-breakeven').textContent = fmt(costPerKg) + '/kg'
+
+    const profitEl = document.getElementById('s-profit')
+    profitEl.textContent = (profit >= 0 ? '+' : '') + fmtK(profit)
+    profitEl.className = 'sum-val ' + (profit >= 0 ? 'c-green' : 'c-red')
+
+    const clampedMargin = Math.max(0, Math.min(100, margin))
+    const bar = document.getElementById('bar')
+    bar.style.width = clampedMargin + '%'
+    bar.style.background = margin >= 15 ? 'var(--green)' : margin >= 5 ? 'var(--yellow)' : '#e74c3c'
+    document.getElementById('s-margin').textContent = `Margin: ${margin.toFixed(1)}%`
+    document.getElementById('s-margin').className = 'bar-label ' + (margin >= 15 ? 'c-green' : margin >= 5 ? 'c-yellow' : 'c-red')
+  }
+
+  function scrollToQuot() {
+    document.getElementById('quot-section').scrollIntoView({ behavior: 'smooth' })
+  }
+
+  // ── Auto-generate quote ref on load ──
+  function genRef() {
+    const d = new Date()
+    const yy = d.getFullYear()
+    const mm = String(d.getMonth()+1).padStart(2,'0')
+    const dd = String(d.getDate()).padStart(2,'0')
+    const rnd = String(Math.floor(100 + Math.random() * 900))
+    return `VAE-${yy}${mm}${dd}-${rnd}`
+  }
+  document.getElementById('quoteRef').value = genRef()
+
+  function generateQuot(type) {
+    const variety     = document.getElementById('variety').value
+    const product     = document.getElementById('productType').value
+    const qtyRaw      = parseFloat(document.getElementById('qty').value) || 0
+    const qtyUnit     = document.getElementById('qtyUnit').value
+    const qtyKg       = qtyUnit === 'MT' ? qtyRaw * 1000 : qtyRaw
+    const qtyMT       = qtyKg / 1000
+    const fob         = parseFloat(document.getElementById('fobPrice').value) || 0
+    const pack        = parseFloat(document.getElementById('packCost').value) || 0
+    const commPct     = parseFloat(document.getElementById('commission').value) || 0
+    const other       = parseFloat(document.getElementById('other').value) || 0
+    const bankPct     = parseFloat(document.getElementById('bankCharge').value) || 0
+    const sell        = parseFloat(document.getElementById('sellPrice').value) || 0
+    const pol         = document.getElementById('pol').value
+    const payTerms    = document.getElementById('payTerms').value
+    const validity    = document.getElementById('validity').value
+    const moq         = document.getElementById('moq').value
+    const ref         = document.getElementById('quoteRef').value
+    const buyerName   = document.getElementById('buyerName').value || 'To Whom It May Concern'
+    const buyerCo     = document.getElementById('buyerCo').value || ''
+    const buyerCtry   = document.getElementById('buyerCountry').value || ''
+    const buyerEmail  = document.getElementById('buyerEmail').value || ''
+    const buyerPhone  = document.getElementById('buyerPhone').value || ''
+    const pod         = (document.getElementById('pod').value || '').trim()
+
+    const freightMT   = parseFloat(document.getElementById('freight').value) || 0
+    const insPct      = parseFloat(document.getElementById('insurance').value) || 0.5
+
+    const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })
+    const validUntil = new Date(Date.now() + parseInt(validity)*86400000).toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })
+
+    const purchasePerKg = fob
+    const packPerKg     = pack
+    const commPerKg     = fob * (commPct / 100)
+    const otherPerKg    = other
+    const bankPerKg     = fob * (bankPct / 100)
+    const totalCostPerKg = purchasePerKg + packPerKg + commPerKg + otherPerKg + bankPerKg
+
+    let freightPerKg = 0, insPerKg = 0, cifPerKg = 0
+    if (type === 'CIF') {
+      freightPerKg = freightMT / 1000
+      insPerKg     = fob * (insPct / 100)
+      cifPerKg     = totalCostPerKg + freightPerKg + insPerKg
+    }
+
+    const quotedPerKg = type === 'CIF' ? cifPerKg : sell
+    const totalValue  = qtyKg * sell
+
+    // Packaging spec
+    let packSpec = '25 kg natural fibre jute bags'
+    if (product === 'Chilli Powder') packSpec = '25 kg multi-layer kraft paper bags or as per buyer requirement'
+    if (product === 'Chilli Flakes') packSpec = '10 kg or 25 kg HDPE inner + jute outer bags'
+
+    const incoterm = type === 'CIF'
+      ? `CIF ${pod || '[Port of Discharge]'}`
+      : `FOB ${pol}`
+
+    const cifRows = type === 'CIF' ? `
+      <tr><td>Ocean Freight</td><td>${pol} → ${pod || '[Discharge Port]'}</td><td></td><td>$${freightMT.toFixed(2)}/MT</td><td>$${(freightPerKg*qtyKg).toFixed(2)}</td></tr>
+      <tr><td>Marine Insurance</td><td>${insPct}% of FOB value</td><td></td><td></td><td>$${(insPerKg*qtyKg).toFixed(2)}</td></tr>
+    ` : ''
+
+    const html = `
+      <div class="print-btns" style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:16px;">
+        <button onclick="window.print()" style="padding:8px 18px;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;">Print / Save PDF</button>
+        <button onclick="closeOverlay()" style="padding:8px 18px;background:#eee;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Close</button>
+      </div>
+      <div class="qhdr">
+        <div class="qbrand">
+          <h2>Vunnam Agro Exports</h2>
+          <p>Premium Indian Chilli Products &amp; Spices<br>
+          Andhra Pradesh, India<br>
+          Email: nareshv@vunnamagroexports.net<br>
+          Web: prices.vunnamagroexports.net</p>
+        </div>
+        <div class="qmeta">
+          <h3>QUOTATION</h3>
+          <p>Ref: <strong>${ref}</strong><br>
+          Date: ${today}<br>
+          Valid until: ${validUntil}<br>
+          <span style="display:inline-block;margin-top:4px;padding:3px 10px;background:#c0392b;color:#fff;border-radius:4px;font-size:11px;font-weight:700;font-family:sans-serif;">${incoterm}</span></p>
+        </div>
+      </div>
+
+      <div class="qparties">
+        <div class="qparty">
+          <h4>From (Exporter)</h4>
+          <p><strong>Vunnam Agro Exports</strong><br>
+          Andhra Pradesh, India<br>
+          nareshv@vunnamagroexports.net</p>
+        </div>
+        <div class="qparty">
+          <h4>To (Importer)</h4>
+          <p><strong>${buyerName}</strong>${buyerCo ? '<br>' + buyerCo : ''}${buyerCtry ? '<br>' + buyerCtry : ''}${buyerEmail ? '<br>' + buyerEmail : ''}${buyerPhone ? '<br>' + buyerPhone : ''}</p>
+        </div>
+      </div>
+
+      <table class="qt">
+        <thead><tr>
+          <th>Description</th>
+          <th>Specification</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total (USD)</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>${variety} ${product}</strong></td>
+            <td>Origin: Andhra Pradesh / Karnataka, India<br>
+            Packaging: ${packSpec}</td>
+            <td>${qtyMT.toFixed(3)} MT<br><span style="color:#888;font-size:11px;">(${qtyKg.toLocaleString()} kg)</span></td>
+            <td>$${fob.toFixed(2)}/kg<br><span style="color:#888;font-size:11px;">FOB ${pol}</span></td>
+            <td><strong>$${(fob*qtyKg).toFixed(2)}</strong></td>
+          </tr>
+          ${cifRows}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3"></td>
+            <td><strong>TOTAL ${type}</strong></td>
+            <td><strong>$${(sell*qtyKg).toFixed(2)}</strong></td>
+          </tr>
+          <tr>
+            <td colspan="3"></td>
+            <td style="font-weight:400;color:#555;">Per kg</td>
+            <td>$${sell.toFixed(2)}/kg</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="qterms">
+        <div class="qterms-grid">
+          <div>
+            <div class="qterm-item"><span>Incoterms 2020</span><strong>${incoterm}</strong></div>
+            <div class="qterm-item"><span>Payment Terms</span><strong>${payTerms}</strong></div>
+            <div class="qterm-item"><span>Minimum Order</span><strong>${moq}</strong></div>
+            <div class="qterm-item"><span>Lead Time</span><strong>10–15 working days from order confirmation</strong></div>
+          </div>
+          <div>
+            <div class="qterm-item"><span>Port of Loading</span><strong>${pol}</strong></div>
+            ${type === 'CIF' ? `<div class="qterm-item"><span>Port of Discharge</span><strong>${pod || 'As per buyer'}</strong></div>` : ''}
+            <div class="qterm-item"><span>Phytosanitary</span><strong>Certificate provided</strong></div>
+            <div class="qterm-item"><span>Origin Certificate</span><strong>Certificate of Origin provided (CoO)</strong></div>
+            <div class="qterm-item"><span>Quality Standards</span><strong>FSSAI, APEDA compliant. Lab test on request.</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qterms" style="border-top:1px solid #eee;padding-top:12px;">
+        <h4>Product Specifications</h4>
+        <p><strong>${variety} ${product}</strong> — Grown and processed in ${variety === 'Byadagi' ? 'Karnataka' : 'Andhra Pradesh'}, India.
+        ${product === 'Dried Red Chilli' ? 'Whole sun-dried red chillies. Moisture ≤12%, ASTA colour 100+, free from pesticide residues.' : ''}
+        ${product === 'Chilli Powder' ? '80–100 ASTA grade ground chilli powder. Moisture ≤10%, granularity 60–80 mesh.' : ''}
+        ${product === 'Chilli Flakes' ? '3–5 mm crushed, stemmed & deseeded chilli flakes. Moisture ≤11%.' : ''}
+        Samples available on request.</p>
+      </div>
+
+      <div class="qfooter">
+        <div>
+          <p>This quotation is valid until <strong>${validUntil}</strong>.</p>
+          <p>Prices are subject to change after validity period. All values in USD.</p>
+        </div>
+        <div class="qsign">
+          <div class="qsign-line">Naresh Vunnam<br>
+          <span style="font-weight:400;font-size:11px;">Vunnam Agro Exports</span></div>
+        </div>
+      </div>
+
+      <p class="qnote">This is a commercial quotation and not a binding contract. Final terms subject to order confirmation and buyer credit approval. Prices and availability subject to market conditions.</p>
+    `
+
+    document.getElementById('qdoc').innerHTML = html
+    document.getElementById('overlay').classList.add('show')
+  }
+
+  function closeOverlay() {
+    document.getElementById('overlay').classList.remove('show')
+  }
+
+  // Init
+  setShipment('FOB')
+  calc()
+</script>
+</body>
+</html>

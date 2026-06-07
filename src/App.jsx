@@ -85,7 +85,7 @@ const PRODUCTS = [
   },
 ]
 
-const NAV_LINKS = ['Products', 'Prices', 'About', 'Contact']
+const NAV_LINKS = ['Products', 'Prices', 'Calculator', 'About', 'Contact']
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -97,8 +97,12 @@ function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const scrollTo = (id) => {
-    document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
+  const handleNav = (link) => {
+    if (link === 'Calculator') {
+      window.open('/calculator.html', '_blank', 'noopener,noreferrer')
+    } else {
+      document.getElementById(link.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
+    }
     setMenuOpen(false)
   }
 
@@ -116,11 +120,11 @@ function Navbar() {
       <ul className={`navbar__links ${menuOpen ? 'navbar__links--open' : ''}`}>
         {NAV_LINKS.map((link) => (
           <li key={link}>
-            <button onClick={() => scrollTo(link)}>{link}</button>
+            <button onClick={() => handleNav(link)}>{link}</button>
           </li>
         ))}
         <li>
-          <button className="navbar__cta" onClick={() => scrollTo('Contact')}>
+          <button className="navbar__cta" onClick={() => handleNav('Contact')}>
             Get a Quote
           </button>
         </li>
@@ -467,7 +471,10 @@ function Footer() {
         </div>
         <div className="footer__links">
           {NAV_LINKS.map((link) => (
-            <button key={link} onClick={() => document.getElementById(link.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}>
+            <button key={link} onClick={() => {
+              if (link === 'Calculator') window.open('/calculator.html', '_blank', 'noopener,noreferrer')
+              else document.getElementById(link.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
+            }}>
               {link}
             </button>
           ))}
