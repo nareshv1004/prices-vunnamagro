@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
-
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
@@ -50,80 +48,89 @@ Include ALL these countries: China, Bangladesh, Sri Lanka, Malaysia, Indonesia, 
 trend: rising | falling | stable
 All prices in USD per kg for Teja S17 chilli flakes (3-5mm crushed, stemmed & deseeded).`
 
+const TOOL = {
+  name: 'submit_price_data',
+  description: 'Submit the Teja S17 Chilli Flakes global price report',
+  input_schema: {
+    type: 'object',
+    properties: {
+      reportDate:    { type: 'string' },
+      variety:       { type: 'string' },
+      globalAverage: { type: 'number' },
+      marketSummary: { type: 'string' },
+      supplyContext: { type: 'string' },
+      keyFactors:    { type: 'array', items: { type: 'string' } },
+      india: {
+        type: 'object',
+        properties: {
+          flag:                   { type: 'string' },
+          domesticMarketPriceUSD: { type: 'number' },
+          fobPriceUSD:            { type: 'number' },
+          rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
+          trend:  { type: 'string' },
+          notes:  { type: 'string' },
+          source: { type: 'string' },
+        },
+        required: ['flag','domesticMarketPriceUSD','fobPriceUSD','rangeMin','rangeMax','trend','notes','source'],
+      },
+      countries: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            country:     { type: 'string' },
+            flag:        { type: 'string' },
+            avgPriceUSD: { type: 'number' },
+            rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
+            trend:   { type: 'string' },
+            notes:   { type: 'string' },
+            source:  { type: 'string' },
+          },
+          required: ['country','flag','avgPriceUSD','rangeMin','rangeMax','trend','notes','source'],
+        },
+      },
+      sources: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { name: { type: 'string' }, url: { type: 'string' } },
+        },
+      },
+    },
+    required: ['reportDate','variety','india','countries','globalAverage','marketSummary','supplyContext','sources','keyFactors'],
+  },
+}
+
 export async function onRequest({ request, env }) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: CORS })
   }
 
   try {
-    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
-
     const url = new URL(request.url)
     const dateParam = url.searchParams.get('date')
     const dateLabel = dateParam
       ? new Date(dateParam + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
       : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
 
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
-      tools: [{
-        name: 'submit_price_data',
-        description: 'Submit the Teja S17 Chilli Flakes global price report',
-        input_schema: {
-          type: 'object',
-          properties: {
-            reportDate:    { type: 'string' },
-            variety:       { type: 'string' },
-            globalAverage: { type: 'number' },
-            marketSummary: { type: 'string' },
-            supplyContext: { type: 'string' },
-            keyFactors:    { type: 'array', items: { type: 'string' } },
-            india: {
-              type: 'object',
-              properties: {
-                flag:                   { type: 'string' },
-                domesticMarketPriceUSD: { type: 'number' },
-                fobPriceUSD:            { type: 'number' },
-                rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
-                trend:                  { type: 'string' },
-                notes:                  { type: 'string' },
-                source:                 { type: 'string' },
-              },
-              required: ['flag','domesticMarketPriceUSD','fobPriceUSD','rangeMin','rangeMax','trend','notes','source'],
-            },
-            countries: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  country:     { type: 'string' },
-                  flag:        { type: 'string' },
-                  avgPriceUSD: { type: 'number' },
-                  rangeMin: { type: 'number' }, rangeMax: { type: 'number' },
-                  trend:       { type: 'string' },
-                  notes:       { type: 'string' },
-                  source:      { type: 'string' },
-                },
-                required: ['country','flag','avgPriceUSD','rangeMin','rangeMax','trend','notes','source'],
-              },
-            },
-            sources: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: { name: { type: 'string' }, url: { type: 'string' } },
-              },
-            },
-          },
-          required: ['reportDate','variety','india','countries','globalAverage','marketSummary','supplyContext','sources','keyFactors'],
-        },
-      }],
-      tool_choice: { type: 'tool', name: 'submit_price_data' },
-      messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${PROMPT}` }],
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4096,
+        tools: [TOOL],
+        tool_choice: { type: 'tool', name: 'submit_price_data' },
+        messages: [{ role: 'user', content: `Today's date is ${dateLabel}. Provide price data as of this date.\n\n${PROMPT}` }],
+      }),
     })
 
-    const toolUse = message.content.find(c => c.type === 'tool_use')
+    const message = await res.json()
+    const toolUse = message.content?.find(c => c.type === 'tool_use')
     if (!toolUse) throw new Error('No tool use in response')
     const data = toolUse.input
 
