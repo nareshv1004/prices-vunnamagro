@@ -126,7 +126,7 @@
   animation: logo-pulse 1.4s ease-in-out 0.6s 1;
 }
 
-/* ── VAE logo collapse animation ─────────────────────────────────────────── */
+/* ── VAE logo collapse / expand animation ────────────────────────────────── */
 .logo-anim {
   display: inline-flex;
   align-items: baseline;
@@ -140,10 +140,14 @@
 .la-k {
   display: inline-block;
   font-weight: 800;
+  font-size: 1em;
+  font-family: 'Inter', sans-serif;
   letter-spacing: 0;
-  transition: letter-spacing 0.45s cubic-bezier(0.4, 0, 0.2, 1) 0.35s,
-              color 0.4s ease 0.35s;
   color: inherit;
+  transition: font-family 0s ease 0.28s,
+              font-size    0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.28s,
+              letter-spacing 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.28s,
+              color        0.3s ease 0.28s;
 }
 
 .la-f {
@@ -155,36 +159,47 @@
   vertical-align: baseline;
   font-weight: 400;
   transition: max-width 0.48s cubic-bezier(0.65, 0, 0.35, 1),
-              opacity   0.32s ease;
+              opacity   0.30s ease;
 }
 
 .la-sp { max-width: 0.45em; }
 
+/* ── Collapsed: VAE in calligraphy ── */
 .logo-anim--vae .la-f {
   max-width: 0 !important;
   opacity: 0;
 }
 
 .logo-anim--vae .la-k {
-  letter-spacing: 0.06em;
-  color: #e8604a;
-  animation: vae-settle 0.9s ease 0.45s forwards;
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.55em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #fff;
 }
 
-@keyframes vae-settle {
-  0%   { color: inherit; letter-spacing: 0; }
-  35%  { color: #e8604a; letter-spacing: 0.08em; }
-  100% { color: inherit; letter-spacing: 0.04em; }
+/* Subtle red flash as letters arrive */
+.logo-anim--vae .la-k:nth-child(1) { animation: vae-arrive 0.7s ease 0.12s both; }
+.logo-anim--vae .la-k:nth-child(4) { animation: vae-arrive 0.7s ease 0.28s both; }
+.logo-anim--vae .la-k:nth-child(7) { animation: vae-arrive 0.7s ease 0.46s both; }
+
+@keyframes vae-arrive {
+  0%   { color: inherit; }
+  45%  { color: #e8604a; }
+  100% { color: #fff; }
 }
 
-.navbar--scrolled .logo-anim--vae .la-k {
-  animation: vae-settle-dark 0.9s ease 0.45s forwards;
+/* Dark navbar variant */
+.navbar--scrolled .logo-anim--vae .la-k { color: var(--text-dark); }
+.navbar--scrolled .logo-anim--vae .la-k:nth-child(1),
+.navbar--scrolled .logo-anim--vae .la-k:nth-child(4),
+.navbar--scrolled .logo-anim--vae .la-k:nth-child(7) {
+  animation: vae-arrive-dark 0.7s ease both;
 }
-
-@keyframes vae-settle-dark {
-  0%   { color: inherit; letter-spacing: 0; }
-  35%  { color: #c0392b; letter-spacing: 0.08em; }
-  100% { color: inherit; letter-spacing: 0.04em; }
+@keyframes vae-arrive-dark {
+  0%   { color: inherit; }
+  45%  { color: #c0392b; }
+  100% { color: var(--text-dark); }
 }
 
 /* ─── Edge chilli rain ───────────────────────────────────────────────── */

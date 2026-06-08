@@ -87,22 +87,44 @@ const PRODUCTS = [
 
 function LogoText() {
   const [vae, setVae] = useState(false)
+  const initialized = useRef(false)
 
   useEffect(() => {
-    const t = setTimeout(() => setVae(true), 1100)
-    return () => clearTimeout(t)
+    // Initial collapse animation after 1.1s on load
+    const initTimer = setTimeout(() => {
+      initialized.current = true
+      setVae(window.scrollY > 50)
+    }, 1100)
+
+    // Scroll: collapse when scrolled, expand when back at top
+    const onScroll = () => {
+      if (!initialized.current) return
+      setVae(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => {
+      clearTimeout(initTimer)
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [])
+
+  // Collapse delays: stagger left→right so A arrives at V first, then E
+  // Expand delays: stagger right→left so it unfurls naturally
+  const collapseDelay = ['0ms', '70ms', '160ms', '230ms', '320ms']
+  const expandDelay   = ['300ms', '200ms', '100ms', '60ms', '0ms']
+  const d = (i) => vae ? collapseDelay[i] : expandDelay[i]
 
   return (
     <span className={`logo-anim${vae ? ' logo-anim--vae' : ''}`}>
       <span className="la-k">V</span>
-      <span className="la-f" style={{ transitionDelay: vae ? '0ms'   : '0ms' }}>unnam</span>
-      <span className="la-f la-sp" style={{ transitionDelay: vae ? '70ms'  : '0ms' }}>&nbsp;</span>
+      <span className="la-f" style={{ transitionDelay: d(0) }}>unnam</span>
+      <span className="la-f la-sp" style={{ transitionDelay: d(1) }}>&nbsp;</span>
       <span className="la-k">A</span>
-      <span className="la-f" style={{ transitionDelay: vae ? '160ms' : '0ms' }}>gro</span>
-      <span className="la-f la-sp" style={{ transitionDelay: vae ? '230ms' : '0ms' }}>&nbsp;</span>
+      <span className="la-f" style={{ transitionDelay: d(2) }}>gro</span>
+      <span className="la-f la-sp" style={{ transitionDelay: d(3) }}>&nbsp;</span>
       <span className="la-k">E</span>
-      <span className="la-f" style={{ transitionDelay: vae ? '320ms' : '0ms' }}>xports</span>
+      <span className="la-f" style={{ transitionDelay: d(4) }}>xports</span>
     </span>
   )
 }
