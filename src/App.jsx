@@ -85,6 +85,28 @@ const PRODUCTS = [
   },
 ]
 
+function LogoText() {
+  const [vae, setVae] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setVae(true), 1100)
+    return () => clearTimeout(t)
+  }, [])
+
+  return (
+    <span className={`logo-anim${vae ? ' logo-anim--vae' : ''}`}>
+      <span className="la-k">V</span>
+      <span className="la-f" style={{ transitionDelay: vae ? '0ms'   : '0ms' }}>unnam</span>
+      <span className="la-f la-sp" style={{ transitionDelay: vae ? '70ms'  : '0ms' }}>&nbsp;</span>
+      <span className="la-k">A</span>
+      <span className="la-f" style={{ transitionDelay: vae ? '160ms' : '0ms' }}>gro</span>
+      <span className="la-f la-sp" style={{ transitionDelay: vae ? '230ms' : '0ms' }}>&nbsp;</span>
+      <span className="la-k">E</span>
+      <span className="la-f" style={{ transitionDelay: vae ? '320ms' : '0ms' }}>xports</span>
+    </span>
+  )
+}
+
 const NAV_LINKS = ['Products', 'Prices', 'Calculator', 'About', 'Contact']
 
 function Navbar() {
@@ -110,9 +132,7 @@ function Navbar() {
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <a className="navbar__logo" href="#hero" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
         <img src="/vae_logo.png" alt="Vunnam Agro Exports logo" className="navbar__logo-img" />
-        <span className="navbar__logo-text">
-          <strong>Vunnam</strong> Agro Exports
-        </span>
+        <LogoText />
       </a>
       <button className="navbar__hamburger" aria-label="Toggle menu" onClick={() => setMenuOpen(!menuOpen)}>
         <span /><span /><span />
