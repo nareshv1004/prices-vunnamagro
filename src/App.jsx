@@ -232,27 +232,44 @@ function Hero() {
 }
 
 function ProductCard({ product }) {
+  const [flipped, setFlipped] = useState(false)
   return (
-    <article className="product-card">
-      <div className="product-card__header" style={{ background: product.image ? 'none' : product.gradient }}>
-        {product.image
-          ? <img src={product.image} alt={product.name} className="product-card__img" />
-          : <span className="product-card__emoji" role="img" aria-label={product.name}>{product.emoji}</span>
-        }
-      </div>
-      <div className="product-card__body">
-        <span className="product-card__tagline">{product.tagline}</span>
-        <h3 className="product-card__name">{product.name}</h3>
-        <p className="product-card__desc">{product.description}</p>
-        <ul className="product-card__specs">
-          {product.specs.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ul>
-
-        <button className="btn btn--outline-red" onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}>
-          Request Sample
-        </button>
+    <article
+      className={`product-card${flipped ? ' product-card--flipped' : ''}`}
+      onClick={() => setFlipped(f => !f)}
+    >
+      <div className="product-card__inner">
+        {/* Front face */}
+        <div className="product-card__front">
+          {product.image
+            ? <img src={product.image} alt={product.name} className="product-card__img" />
+            : <div className="product-card__img-fallback" style={{ background: product.gradient }}>
+                <span className="product-card__emoji" role="img" aria-label={product.name}>{product.emoji}</span>
+              </div>
+          }
+          <div className="product-card__front-overlay">
+            <span className="product-card__tagline">{product.tagline}</span>
+            <h3 className="product-card__name">{product.name}</h3>
+          </div>
+        </div>
+        {/* Back face */}
+        <div className="product-card__back">
+          <span className="product-card__back-emoji" aria-hidden="true">{product.emoji}</span>
+          <h3 className="product-card__back-name">{product.name}</h3>
+          <p className="product-card__desc">{product.description}</p>
+          <ul className="product-card__specs">
+            {product.specs.map((s) => <li key={s}>{s}</li>)}
+          </ul>
+          <button
+            className="btn btn--outline-white"
+            onClick={(e) => {
+              e.stopPropagation()
+              document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+            }}
+          >
+            Request Sample
+          </button>
+        </div>
       </div>
     </article>
   )
@@ -262,13 +279,15 @@ function Products() {
   return (
     <section className="products" id="products">
       <div className="container">
-        <div className="section-header">
-          <span className="section-label">Our Products</span>
-          <h2 className="section-title">Finest Chilli Products<br />for Global Markets</h2>
-          <p className="section-subtitle">
-            Every batch is tested for quality, purity, and consistency before export.
-          </p>
-        </div>
+        <FadeIn className="fade-in--block">
+          <div className="section-header">
+            <span className="section-label">Our Products</span>
+            <h2 className="section-title">Finest Chilli Products<br />for Global Markets</h2>
+            <p className="section-subtitle">
+              Every batch is tested for quality, purity, and consistency before export.
+            </p>
+          </div>
+        </FadeIn>
         <div className="products__grid">
           {PRODUCTS.map((p, i) => (
             <FadeIn key={p.id} delay={i * 150}>
@@ -328,13 +347,15 @@ function Prices() {
   return (
     <section className="prices" id="prices">
       <div className="container">
-        <div className="section-header">
-          <span className="section-label">Price Lists</span>
-          <h2 className="section-title">2026 Export Prices<br />by Variety</h2>
-          <p className="section-subtitle">
-            View current FOB / CIF pricing for each product variety.
-          </p>
-        </div>
+        <FadeIn className="fade-in--block">
+          <div className="section-header">
+            <span className="section-label">Price Lists</span>
+            <h2 className="section-title">2026 Export Prices<br />by Variety</h2>
+            <p className="section-subtitle">
+              View current FOB / CIF pricing for each product variety.
+            </p>
+          </div>
+        </FadeIn>
         <div className="prices__varieties">
           {PRICE_VARIETIES.map(({ variety, products }) => (
             <div className="prices__variety-row" key={variety}>
