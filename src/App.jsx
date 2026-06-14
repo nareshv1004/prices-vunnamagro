@@ -54,8 +54,10 @@ const PRODUCTS = [
     id: 'dry-red-chilli',
     emoji: '🌶️',
     image: '/product-dry-chilli.jpg',
+    hoverImage: null,
     name: 'Dry Red Chillies',
     tagline: 'Whole Dried Chillies',
+    category: 'Chillies',
     description:
       'Sun-dried whole red chillies with intense colour, rich aroma, and bold heat. Sourced from the finest chilli-growing regions of Andhra Pradesh.',
     specs: ['Moisture: ≤ 12%', 'Pungency: 20,000–50,000 SHU', 'Colour: ASTA 100+', 'Packaging: 25 kg jute bags'],
@@ -65,8 +67,10 @@ const PRODUCTS = [
     id: 'chilli-powder',
     emoji: '🧂',
     image: '/product-dry-chilli-powder.jpg',
+    hoverImage: null,
     name: 'Chilli Powder',
     tagline: 'Ground Red Chilli',
+    category: 'Chillies',
     description:
       'Finely milled from select dried red chillies, our chilli powder delivers consistent heat, vibrant red colour, and deep flavour to every dish.',
     specs: ['Moisture: ≤ 10%', 'Granularity: 60–80 mesh', 'Colour: ASTA 120+', 'Packaging: 1 kg / 5 kg / 25 kg'],
@@ -76,12 +80,170 @@ const PRODUCTS = [
     id: 'chilli-flakes',
     emoji: '✨',
     image: '/product-chilli-flakes.jpg',
+    hoverImage: null,
     name: 'Chilli Flakes',
     tagline: 'Crushed Red Chilli',
+    category: 'Chillies',
     description:
       'Coarsely crushed dried chillies with seeds intact, offering bursts of heat and texture. A favourite for pizzas, marinades, and culinary applications worldwide.',
     specs: ['Moisture: ≤ 11%', 'Particle size: 3–5 mm', 'Colour: ASTA 90+', 'Packaging: 500 g / 5 kg / 20 kg'],
     gradient: 'linear-gradient(135deg, #6E1A00 0%, #922B21 60%, #B03A2E 100%)',
+  },
+  {
+    id: 'kabuli-chana',
+    emoji: '🫘',
+    image: '/products/kabuli-chana-bowl.jpg',
+    hoverImage: '/products/kabuli-chana.png',
+    name: 'Kabuli Chana',
+    tagline: 'White Chickpeas',
+    category: 'Whole Pulses',
+    description:
+      'Premium white chickpeas with firm texture and mild, nutty flavour. Widely used in hummus, curries, and salads — a staple across Middle Eastern, Mediterranean, and Asian cuisines.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 24%', 'Purity: 99%+', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #7A6020 0%, #B08A30 60%, #C9A84C 100%)',
+  },
+  {
+    id: 'kala-chana',
+    emoji: '🫘',
+    image: '/products/kala-chana-bowl.jpg',
+    hoverImage: '/products/kala-chana.webp',
+    name: 'Kala Chana',
+    tagline: 'Black Chickpeas',
+    category: 'Whole Pulses',
+    description:
+      'Small, dark brown black chickpeas (Bengal gram) with rough coat and nutty flavour. High protein content makes them a staple across South Asian, African, and Middle Eastern cuisines.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 17.7%', 'Purity: 98%+', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #3A2010 0%, #6A4020 60%, #8A5830 100%)',
+  },
+  {
+    id: 'mung-whole',
+    emoji: '🌿',
+    image: '/products/mung-whole-bowl.jpg',
+    hoverImage: '/products/mung-whole.webp',
+    name: 'Mung Whole',
+    tagline: 'Whole Green Gram',
+    category: 'Whole Pulses',
+    description:
+      'Whole mung beans — flat, smooth, and vivid green throughout. A versatile legume used for sprouting, cooking, and food processing. High demand across Asian and health food export markets.',
+    specs: ['Dry Matter: 89.7%', 'Protein: 24.6%', 'Fibre: 3.2%', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #1A5020 0%, #2D7A30 60%, #3A9040 100%)',
+  },
+  {
+    id: 'urad-whole',
+    emoji: '🫘',
+    image: '/products/urad-whole-bowl.png',
+    hoverImage: '/products/urad-whole.png',
+    name: 'Urad Whole',
+    tagline: 'Whole Black Gram',
+    category: 'Whole Pulses',
+    description:
+      'Uniformly flat black whole urad (black gram) with a very slight visibility of brown beans. A key ingredient in Indian cuisine and a high-value export commodity across Asia.',
+    specs: ['Dry Matter: 89.7%', 'Protein: 24.6%', 'Fibre: 3.2%', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #1A0A05 0%, #3A2010 60%, #5A3020 100%)',
+  },
+  {
+    id: 'chana-dal',
+    emoji: '🫘',
+    image: '/products/chana-dal-bowl.jpg',
+    hoverImage: '/products/chana-dal.png',
+    name: 'Chana Dal',
+    tagline: 'Split Bengal Gram',
+    category: 'Dal',
+    description:
+      'Split and polished chickpeas with a mild, nutty flavour and firm texture. Typical yellow colour with a hard, free-flowing texture — a staple dal across South Asian and global markets.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 22.2%', 'Fat: 5.8%', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #8B6914 0%, #C9941A 60%, #E8B84B 100%)',
+  },
+  {
+    id: 'toor-dal',
+    emoji: '🫘',
+    image: '/products/split-pigeon-bowl.jpg',
+    hoverImage: '/products/split-pigeon-peas.jpg',
+    name: 'Toor Dal',
+    tagline: 'Split Pigeon Peas',
+    category: 'Dal',
+    description:
+      'A staple of Indian cuisine and key export commodity. Machine-cleaned toor dal with uniform split, available in oily and dry varieties to suit diverse culinary markets worldwide.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 18%', 'Fibre: 20%', 'Packaging: 1 kg / 5 kg / 25 kg'],
+    gradient: 'linear-gradient(135deg, #7A5010 0%, #B07820 60%, #D4A030 100%)',
+  },
+  {
+    id: 'moong-dal',
+    emoji: '🌿',
+    image: '/products/mung-dal-bowl.jpg',
+    hoverImage: '/products/mung-dal.jpg',
+    name: 'Moong Dal',
+    tagline: 'Split Green Gram',
+    category: 'Dal',
+    description:
+      'Light, easily digestible moong dal with creamy yellow colour and mild flavour. A favourite for health-conscious consumers globally and a key ingredient in Asian cuisine.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 26%', 'Purity: 99%+', 'Packaging: 500 g / 1 kg / 25 kg'],
+    gradient: 'linear-gradient(135deg, #1A5020 0%, #2D7A30 60%, #40A040 100%)',
+  },
+  {
+    id: 'mung-chilka',
+    emoji: '🌿',
+    image: '/products/mung-chilka-bowl.jpg',
+    hoverImage: '/products/mung-chilka.jpg',
+    name: 'Mung Chilka',
+    tagline: 'Split Green Gram with Husk',
+    category: 'Dal',
+    description:
+      'Byproduct of whole mung, Mung Chilka Dal includes the husk for a slightly coarse texture and added nutrition. Mixed green and light yellow colour with high fibre content.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 26%', 'Fibre: 4%', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #2A5015 0%, #4A7825 60%, #6A9A35 100%)',
+  },
+  {
+    id: 'urad-dal',
+    emoji: '🫘',
+    image: '/products/urad-dal-bowl.jpg',
+    hoverImage: '/products/urad-dal.jpg',
+    name: 'Urad Dal',
+    tagline: 'Black Gram Lentil',
+    category: 'Dal',
+    description:
+      'Premium huskless urad dal processed through gravity separation and Sortex cleaning. Key ingredient in idli, dosa, and vada — popular across Asian and diaspora markets worldwide.',
+    specs: ['Moisture: ≤ 12%', 'Protein: 50%', 'Purity: 99%+', 'Packaging: 1 kg / 5 kg / 25 kg'],
+    gradient: 'linear-gradient(135deg, #2A1A0A 0%, #5A4020 60%, #8A6030 100%)',
+  },
+  {
+    id: 'urad-chilka',
+    emoji: '🫘',
+    image: '/products/urad-chilka-bowl.jpg',
+    hoverImage: '/products/urad-chilka.jpg',
+    name: 'Urad Chilka',
+    tagline: 'Split Black Gram with Husk',
+    category: 'Dal',
+    description:
+      'Whole urad beans split with the black skin intact, offering a rich flavour and enhanced nutrition. The combination of black skin and creamy white interior adds distinctive taste to dishes.',
+    specs: ['Dry Matter: 91%', 'Protein: 50%', 'Fibre: 64%', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #1A0A05 0%, #3A1A0A 60%, #5A2A10 100%)',
+  },
+  {
+    id: 'black-eyed-beans',
+    emoji: '🫘',
+    image: '/products/black-eye-bean-bowl.jpg',
+    hoverImage: '/products/black-eyed-beans.jpg',
+    name: 'Cow Peas',
+    tagline: 'Black-Eyed Beans',
+    category: 'Beans',
+    description:
+      'Nutritious and versatile black-eyed beans (cow peas) used in curries, salads, and soups. A key export crop with strong demand in African, European, and American markets.',
+    specs: ['Moisture: ≤ 13%', 'Protein: 24%', 'Purity: 98%+', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #3A5010 0%, #5A7820 60%, #7A9A30 100%)',
+  },
+  {
+    id: 'red-cow-peas',
+    emoji: '🫘',
+    image: '/products/red-cow-peas-bowl.jpg',
+    hoverImage: '/products/red-cow-peas.jpg',
+    name: 'Red Cow Peas',
+    tagline: 'Red Legumes',
+    category: 'Beans',
+    description:
+      'Small, oval-shaped red cow peas with a reddish-brown smooth texture. Commonly used in Indian and African cuisines, and popular in wellness and health food markets globally.',
+    specs: ['Moisture: ≤ 13%', 'Protein: 23.5%', 'Purity: 98%+', 'Packaging: 25 kg / 50 kg bags'],
+    gradient: 'linear-gradient(135deg, #7B1A0A 0%, #A83020 60%, #C04030 100%)',
   },
 ]
 
@@ -239,20 +401,27 @@ function ProductCard({ product }) {
       onClick={() => setFlipped(f => !f)}
     >
       <div className="product-card__inner">
-        {/* Front face */}
         <div className="product-card__front">
-          {product.image
-            ? <img src={product.image} alt={product.name} className="product-card__img" />
-            : <div className="product-card__img-fallback" style={{ background: product.gradient }}>
+          <div className="product-card__img-wrap">
+            {product.image ? (
+              <>
+                <img src={product.image} alt={product.name} className="product-card__img-default" />
+                {product.hoverImage && (
+                  <img src={product.hoverImage} alt={`${product.name} raw`} className="product-card__img-raw" />
+                )}
+              </>
+            ) : (
+              <div className="product-card__img-fallback" style={{ background: product.gradient }}>
                 <span className="product-card__emoji" role="img" aria-label={product.name}>{product.emoji}</span>
               </div>
-          }
-          <div className="product-card__front-overlay">
-            <span className="product-card__tagline">{product.tagline}</span>
-            <h3 className="product-card__name">{product.name}</h3>
+            )}
+          </div>
+          <div className="product-card__front-info">
+            <span className="product-card__category">{product.category}</span>
+            <h3 className="product-card__front-name">{product.name}</h3>
+            <span className="product-card__tap-hint">Tap for details</span>
           </div>
         </div>
-        {/* Back face */}
         <div className="product-card__back">
           <span className="product-card__back-emoji" aria-hidden="true">{product.emoji}</span>
           <h3 className="product-card__back-name">{product.name}</h3>
@@ -275,22 +444,40 @@ function ProductCard({ product }) {
   )
 }
 
+const PRODUCT_CATEGORIES = ['All', 'Chillies', 'Whole Pulses', 'Dal', 'Beans']
+
 function Products() {
+  const [activeFilter, setActiveFilter] = useState('All')
+  const filtered = activeFilter === 'All' ? PRODUCTS : PRODUCTS.filter(p => p.category === activeFilter)
+
   return (
     <section className="products" id="products">
       <div className="container">
         <FadeIn className="fade-in--block">
           <div className="section-header">
             <span className="section-label">Our Products</span>
-            <h2 className="section-title">Finest Chilli Products<br />for Global Markets</h2>
+            <h2 className="section-title">Premium Agro Exports<br />for Global Markets</h2>
             <p className="section-subtitle">
               Every batch is tested for quality, purity, and consistency before export.
             </p>
           </div>
         </FadeIn>
+        <FadeIn className="fade-in--block">
+          <div className="products__filter">
+            {PRODUCT_CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                className={`products__filter-btn${activeFilter === cat ? ' products__filter-btn--active' : ''}`}
+                onClick={() => setActiveFilter(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </FadeIn>
         <div className="products__grid">
-          {PRODUCTS.map((p, i) => (
-            <FadeIn key={p.id} delay={i * 150}>
+          {filtered.map((p, i) => (
+            <FadeIn key={p.id} delay={i * 100}>
               <ProductCard product={p} />
             </FadeIn>
           ))}
@@ -383,50 +570,92 @@ function Prices() {
 function About() {
   return (
     <section className="about" id="about">
-      <div className="container about__inner">
-        <FadeIn className="about__visual">
-          <div className="about__icon-grid">
-            <div className="about__icon-cell">🌱</div>
-            <div className="about__icon-cell">🌶️</div>
-            <div className="about__icon-cell">☀️</div>
-            <div className="about__icon-cell">🚢</div>
+      <div className="container">
+
+        <FadeIn className="fade-in--block">
+          <div className="section-header">
+            <span className="section-label">About Us</span>
+            <h2 className="section-title">Built on Quality,<br />Driven by Trust</h2>
+            <p className="section-subtitle">
+              A dedicated chilli exporter rooted in Andhra Pradesh — connecting India's finest farms to global markets.
+            </p>
           </div>
         </FadeIn>
-        <div className="about__content">
-          <FadeIn delay={100}>
-            <span className="section-label">About Us</span>
-            <h2 className="section-title">From Farm to<br />World Markets</h2>
+
+        <FadeIn className="fade-in--block">
+          <div className="about__story">
+            <h3 className="about__story-title">Our Story</h3>
             <p>
-              Vunnam Agro Exports is a dedicated exporter of premium Indian chilli
-              products. We work directly with experienced farmers in Andhra Pradesh —
-              India's largest chilli-growing belt — to source the best produce each
-              season.
+              Vunnam Agro Exports was founded with a clear purpose — to bring the finest Indian
+              chilli products to global markets with transparency, quality, and reliability at every
+              step. Rooted in Andhra Pradesh, India's largest chilli-growing belt, we work directly
+              with experienced farmers who have cultivated these crops for generations.
             </p>
             <p>
-              Our focus is on quality at every step: proper sun-drying and processing,
-              hygienic packaging, and timely delivery. We serve importers, spice
-              traders, and food manufacturers across Asia, the Middle East, Europe,
-              and the Americas.
+              From careful farm-level sourcing to hygienic processing, lab-verified quality testing,
+              and timely shipment — every stage is handled with precision. We serve importers, spice
+              traders, and food manufacturers across Asia, the Middle East, Europe, and the Americas.
             </p>
-          </FadeIn>
-          <div className="about__pillars">
+          </div>
+        </FadeIn>
+
+        <FadeIn className="fade-in--block">
+          <div className="about__stats-strip">
             {[
-              { icon: '✅', label: 'Quality Tested', desc: 'Every lot lab-verified for moisture, pungency, and colour.' },
-              { icon: '📦', label: 'Flexible Packaging', desc: 'Retail packs to bulk containers — we accommodate your needs.' },
-              { icon: '🤝', label: 'Direct Sourcing', desc: 'No middlemen. We work with farmers for fair pricing.' },
-            ].map(({ icon, label, desc }, i) => (
-              <FadeIn key={label} delay={200 + i * 120}>
-                <div className="about__pillar">
-                  <span>{icon}</span>
-                  <div>
-                    <strong>{label}</strong>
-                    <p>{desc}</p>
-                  </div>
-                </div>
-              </FadeIn>
+              { value: '5+',     label: 'Chilli Varieties' },
+              { value: '3',      label: 'Product Lines' },
+              { value: '100%',   label: 'Natural & Pure' },
+              { value: 'Global', label: 'Export Reach' },
+            ].map(({ value, label }) => (
+              <div className="about__stat-item" key={label}>
+                <strong>{value}</strong>
+                <span>{label}</span>
+              </div>
             ))}
           </div>
+        </FadeIn>
+
+        <div className="about__vm-grid">
+          <FadeIn>
+            <div className="about__vm-card about__vm-card--vision">
+              <span className="about__vm-icon">🎯</span>
+              <h3>Our Vision</h3>
+              <p>To become a globally recognized name in premium Indian spice exports — built on consistent quality, ethical sourcing, and trusted long-term partnerships across every continent we serve.</p>
+            </div>
+          </FadeIn>
+          <FadeIn delay={150}>
+            <div className="about__vm-card about__vm-card--mission">
+              <span className="about__vm-icon">🌿</span>
+              <h3>Our Mission</h3>
+              <p>To connect the rich agricultural heritage of Andhra Pradesh with international buyers by delivering lab-certified, farm-fresh chilli products with full traceability and on-time delivery.</p>
+            </div>
+          </FadeIn>
         </div>
+
+        <FadeIn className="fade-in--block">
+          <h3 className="about__whyus-title">Why Choose Us</h3>
+        </FadeIn>
+        <div className="about__pillars">
+          {[
+            { icon: '✅', label: 'Quality Certified',      desc: 'Every lot lab-verified for moisture, pungency, colour (ASTA), and contamination before shipment.' },
+            { icon: '🌾', label: 'Farm Direct',            desc: 'We source directly from experienced farmers in Andhra Pradesh — no middlemen, fair pricing.' },
+            { icon: '📜', label: 'Export Compliant',       desc: 'APEDA registered, phytosanitary certified, and compliant with international food safety standards.' },
+            { icon: '📦', label: 'Flexible Packaging',     desc: 'Retail packs to bulk containers — custom options to suit your market and logistics requirements.' },
+            { icon: '⏱️', label: 'On-Time Delivery',       desc: 'Pre-booked container slots and streamlined CHA processes ensure reliable, punctual shipments.' },
+            { icon: '🤝', label: 'Long-Term Partnerships', desc: 'We build relationships, not just transactions. Consistent quality keeps our clients coming back.' },
+          ].map(({ icon, label, desc }, i) => (
+            <FadeIn key={label} delay={i * 70}>
+              <div className="about__pillar">
+                <span>{icon}</span>
+                <div>
+                  <strong>{label}</strong>
+                  <p>{desc}</p>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
       </div>
     </section>
   )
