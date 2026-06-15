@@ -291,7 +291,43 @@ function LogoText() {
   )
 }
 
+const TICKER_ITEMS = [
+  'Teja S17 Chilli', 'Toor Dal', 'Chana Dal', 'Kabuli Chana', 'Urad Dal',
+  'Moong Dal', 'Red Cow Peas', 'Mung Whole', 'Chilli Flakes', 'Chilli Powder',
+  'Kala Chana', 'Urad Chilka', 'Black-Eyed Beans', 'Mung Chilka', 'Urad Whole',
+]
+
+const FTP_STEPS = [
+  { icon: '🌱', label: 'Farm Sourcing',      desc: 'Direct from Andhra Pradesh farms' },
+  { icon: '🧹', label: 'Sorting & Cleaning', desc: 'Machine & hand sorted' },
+  { icon: '🔬', label: 'Lab Testing',        desc: 'Moisture, pungency & purity verified' },
+  { icon: '📦', label: 'Packing',            desc: 'Custom sizes for every market' },
+  { icon: '🚚', label: 'Inland Transport',   desc: 'Reefer logistics to port' },
+  { icon: '🚢', label: 'Port & Export',      desc: 'Timely container shipment' },
+]
+
+const CERTS = [
+  { code: 'APEDA',  name: 'Agri Export Development Authority', icon: '🏛️' },
+  { code: 'FSSAI',  name: 'Food Safety & Standards Certified', icon: '🍃' },
+  { code: 'PHYTO',  name: 'Phyto-Sanitary Certificate',        icon: '🌿' },
+  { code: 'ISO',    name: 'Quality Management Compliant',      icon: '🎖️' },
+]
+
 const NAV_LINKS = ['Products', 'Prices', 'Calculator', 'About', 'Contact']
+
+function Ticker() {
+  return (
+    <div className="ticker" aria-hidden="true">
+      <div className="ticker__track">
+        {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+          <span key={i} className="ticker__item">
+            <span className="ticker__sep">⬤</span>{item}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -349,9 +385,17 @@ const EDGE_CHILLIS = [
 ]
 
 function Hero() {
+  const bgRef = useRef(null)
+  useEffect(() => {
+    const onScroll = () => {
+      if (bgRef.current) bgRef.current.style.transform = `translateY(${window.scrollY * 0.3}px)`
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
   return (
     <section className="hero" id="hero">
-      <div className="hero__bg" />
+      <div className="hero__bg" ref={bgRef} />
       <div className="hero__overlay" />
       <div className="hero__edge-rain" aria-hidden="true">
         {EDGE_CHILLIS.map((c, i) => (
@@ -381,7 +425,7 @@ function Hero() {
             </button>
           </div>
           <div className="hero__stats">
-            <div className="hero__stat"><CountUp to={3} suffix="+" /><span>Product Lines</span></div>
+            <div className="hero__stat"><CountUp to={4} /><span>Product Lines</span></div>
             <div className="hero__stat-divider" />
             <div className="hero__stat"><CountUp to={100} suffix="%" /><span>Natural</span></div>
             <div className="hero__stat-divider" />
@@ -395,10 +439,26 @@ function Hero() {
 
 function ProductCard({ product }) {
   const [flipped, setFlipped] = useState(false)
+
+  const handleMouseMove = (e) => {
+    if (flipped) return
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    card.style.transform = `perspective(1200px) rotateY(${x * 10}deg) rotateX(${-y * 6}deg)`
+  }
+
+  const handleMouseLeave = (e) => {
+    e.currentTarget.style.transform = ''
+  }
+
   return (
     <article
       className={`product-card${flipped ? ' product-card--flipped' : ''}`}
       onClick={() => setFlipped(f => !f)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       <div className="product-card__inner">
         <div className="product-card__front">
@@ -602,13 +662,13 @@ function About() {
         <FadeIn className="fade-in--block">
           <div className="about__stats-strip">
             {[
-              { value: '5+',     label: 'Chilli Varieties' },
-              { value: '3',      label: 'Product Lines' },
-              { value: '100%',   label: 'Natural & Pure' },
-              { value: 'Global', label: 'Export Reach' },
-            ].map(({ value, label }) => (
+              { to: 15,  suffix: '+', label: 'Products Exported' },
+              { to: 10,  suffix: '+', label: 'Countries Served' },
+              { to: 100, suffix: '%', label: 'Natural & Pure' },
+              { text: 'Global',       label: 'Export Reach' },
+            ].map(({ to, suffix, text, label }) => (
               <div className="about__stat-item" key={label}>
-                <strong>{value}</strong>
+                {text ? <strong>{text}</strong> : <CountUp to={to} suffix={suffix} />}
                 <span>{label}</span>
               </div>
             ))}
@@ -651,6 +711,23 @@ function About() {
                   <strong>{label}</strong>
                   <p>{desc}</p>
                 </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+
+        <FadeIn className="fade-in--block">
+          <h3 className="about__whyus-title" style={{ marginTop: '64px' }}>Certifications</h3>
+        </FadeIn>
+        <div className="about__certs">
+          {CERTS.map((cert, i) => (
+            <FadeIn key={cert.code} delay={i * 80}>
+              <div className="cert-stamp">
+                <div className="cert-stamp__ring">
+                  <span className="cert-stamp__icon">{cert.icon}</span>
+                  <strong className="cert-stamp__code">{cert.code}</strong>
+                </div>
+                <p className="cert-stamp__name">{cert.name}</p>
               </div>
             </FadeIn>
           ))}
@@ -720,27 +797,33 @@ function Contact() {
             </div>
           ) : (
             <>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="name">Your Name *</label>
-                  <input id="name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="John Smith" />
+              <FadeIn delay={50} className="fade-in--block">
+                <div className="form-row">
+                  <div className="form-group form-group--float">
+                    <input id="name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder=" " />
+                    <label htmlFor="name">Your Name *</label>
+                  </div>
+                  <div className="form-group form-group--float">
+                    <input id="email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder=" " />
+                    <label htmlFor="email">Email Address *</label>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email Address *</label>
-                  <input id="email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="john@company.com" />
+              </FadeIn>
+              <FadeIn delay={150} className="fade-in--block">
+                <div className="form-group form-group--float">
+                  <input id="company" name="company" type="text" value={form.company} onChange={handleChange} placeholder=" " />
+                  <label htmlFor="company">Company / Organisation</label>
                 </div>
-              </div>
-              <div className="form-group">
-                <label htmlFor="company">Company / Organisation</label>
-                <input id="company" name="company" type="text" value={form.company} onChange={handleChange} placeholder="Your company name" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="message">Message *</label>
-                <textarea id="message" name="message" required rows={5} value={form.message} onChange={handleChange} placeholder="Tell us about your requirements — product, quantity, destination..." />
-              </div>
+              </FadeIn>
+              <FadeIn delay={250} className="fade-in--block">
+                <div className="form-group form-group--float">
+                  <textarea id="message" name="message" required rows={5} value={form.message} onChange={handleChange} placeholder=" " />
+                  <label htmlFor="message">Message *</label>
+                </div>
+              </FadeIn>
               {error && <p className="contact__error">Something went wrong. Please try again or email us directly.</p>}
               <button type="submit" className="btn btn--primary btn--full" disabled={submitting}>
-                {submitting ? 'Sending…' : 'Send Inquiry →'}
+                {submitting ? <><span className="btn-spinner" aria-hidden="true" /> Sending…</> : 'Send Inquiry →'}
               </button>
             </>
           )}
@@ -753,6 +836,7 @@ function Contact() {
 function Footer() {
   return (
     <footer className="footer">
+      <Ticker />
       <div className="container footer__inner">
         <div className="footer__brand">
           <div className="footer__logo">
@@ -779,6 +863,33 @@ function Footer() {
   )
 }
 
+function FarmToPort() {
+  return (
+    <section className="ftp" id="process">
+      <div className="container">
+        <FadeIn className="fade-in--block">
+          <div className="section-header">
+            <span className="section-label">Our Process</span>
+            <h2 className="section-title">Farm to Port</h2>
+            <p className="section-subtitle">Every stage quality-controlled for consistent export standards.</p>
+          </div>
+        </FadeIn>
+        <div className="ftp__steps">
+          {FTP_STEPS.map((step, i) => (
+            <FadeIn key={step.label} delay={i * 100}>
+              <div className="ftp__step">
+                <div className="ftp__step-num">{step.icon}</div>
+                <strong className="ftp__label">{step.label}</strong>
+                <p className="ftp__desc">{step.desc}</p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function App() {
   return (
     <>
@@ -788,6 +899,7 @@ export default function App() {
         <Products />
         <Prices />
         <About />
+        <FarmToPort />
         <Contact />
       </main>
       <Footer />
