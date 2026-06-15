@@ -1428,6 +1428,201 @@
   margin: 0 auto;
 }
 
+/* ─── Scroll progress bar ────────────────────────────────────────────── */
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red) 0%, #e67e22 100%);
+  z-index: 200;
+  transition: width 0.08s linear;
+  pointer-events: none;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─── Section nav dots ───────────────────────────────────────────────── */
+
+.section-nav {
+  position: fixed;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.section-nav__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.45);
+  border: 1.5px solid rgba(0,0,0,0.18);
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,0.3);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+
+.section-nav__dot::after {
+  content: attr(title);
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dark);
+  background: white;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.section-nav__dot:hover::after { opacity: 1; }
+
+.section-nav__dot--active {
+  background: var(--red);
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.22);
+  transform: scale(1.45);
+}
+
+@media (max-width: 768px) {
+  .section-nav { display: none; }
+}
+
+/* ─── Product modal (lightbox) ───────────────────────────────────────── */
+
+@keyframes pmodal-enter {
+  from { opacity: 0; transform: scale(0.92) translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pmodal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.74);
+  backdrop-filter: blur(5px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pmodal {
+  background: white;
+  border-radius: 20px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  animation: pmodal-enter 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+}
+
+.pmodal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.09);
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: background 0.2s;
+  color: var(--text-dark);
+}
+.pmodal__close:hover { background: rgba(0,0,0,0.18); }
+
+.pmodal__img-wrap {
+  border-radius: 20px 0 0 20px;
+  overflow: hidden;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pmodal__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pmodal__emoji { font-size: 90px; }
+
+.pmodal__body {
+  padding: 32px 32px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pmodal__name {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: var(--text-dark);
+  margin: 4px 0 0;
+  line-height: 1.2;
+}
+.pmodal__tagline {
+  font-size: 13px;
+  color: var(--text-mid);
+  margin: 0;
+  font-style: italic;
+}
+.pmodal__desc {
+  font-size: 13.5px;
+  color: var(--text-light);
+  line-height: 1.72;
+  margin: 0;
+}
+.pmodal__specs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pmodal__specs li {
+  font-size: 12px;
+  color: var(--text-light);
+  padding: 5px 12px;
+  background: var(--cream);
+  border-radius: 6px;
+  border-left: 3px solid var(--red);
+}
+
+@media (max-width: 640px) {
+  .pmodal {
+    grid-template-columns: 1fr;
+    max-height: 88vh;
+  }
+  .pmodal__img-wrap {
+    border-radius: 20px 20px 0 0;
+    min-height: 200px;
+  }
+  .pmodal__body { padding: 24px; }
+}
+
 /* ─── Reduced motion ─────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1484,4 +1679,7 @@
   .btn-spinner { animation: none; }
   .contact__thanks { animation: none; opacity: 1; }
   .ticker__track { animation: none; }
+  .pmodal { animation: none; }
+  .scroll-progress { transition: none; }
+  .section-nav__dot { transition-duration: 0.01ms !important; }
 }
