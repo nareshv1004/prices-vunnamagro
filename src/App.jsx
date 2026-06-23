@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { ComposableMap, Geographies, Geography, Marker, Line } from 'react-simple-maps'
 import './App.css'
 
 function CountUp({ to, suffix = '', duration = 1800 }) {
@@ -333,9 +334,210 @@ const SECTIONS = [
   { id: 'products', label: 'Products' },
   { id: 'prices',   label: 'Prices' },
   { id: 'about',    label: 'About' },
+  { id: 'reach',    label: 'Global Reach' },
   { id: 'process',  label: 'Process' },
   { id: 'contact',  label: 'Contact' },
 ]
+
+const GEO_URL    = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+const INDIA_COORDS = [78.9629, 20.5937]
+
+const W = [72.8, 18.9]
+const E = [80.0, 13.0]
+const GULF = [[67,20],[62,22],[58,22.5],[56.5,24]]
+const SUEZ = [[68,14],[57,12],[44.8,11.8],[43,13],[40.5,17],[38,22],[34.5,27.5],[32.5,30.5],[32.3,31.2]]
+const MED  = [[24,34],[15,36],[7,37.5]]
+const GRIB = [[7,37.5],[-1,37.5],[-5.5,36]]
+const BOB  = [[84,10],[88,7],[92,4.5],[96.5,4],[100,2.5],[103.8,1.3]]
+
+function mkr(name, flag, numId, coords, ship, products) {
+  return { name, flag, numId, coords, ship, products }
+}
+
+const EXPORT_ROUTES = [
+  mkr('UAE',         '🇦🇪','784',[53.8,23.4], [W,...GULF,[54.5,24.5],[53.8,25.2]], ['Red Chilli (Teja S17)','Toor Dal','Turmeric']),
+  mkr('Oman',        '🇴🇲','512',[57.6,21.5],  [W,[67,20],[62,22],[59,23],[58.5,23.6]], ['Red Chilli','Spices','Toor Dal']),
+  mkr('Kuwait',      '🇰🇼','414',[47.5,29.3],  [W,...GULF,[55,25.5],[51,26.5],[48.5,29],[47.7,29.3]], ['Chilli Powder','Turmeric','Pulses']),
+  mkr('Iraq',        '🇮🇶','368',[43.7,33.2],  [W,...GULF,[55,25.5],[51,26.5],[48.5,29],[47.5,29.8],[48,30]], ['Red Chilli','Turmeric','Agricultural Products']),
+  mkr('Saudi Arabia','🇸🇦','682',[45.1,23.9],  [W,[68,14],[57,12],[44.8,11.8],[43,13],[40.5,17],[39.5,20],[39.2,21.5]], ['Red Chilli','Spices','Pulses']),
+  mkr('Egypt',       '🇪🇬','818',[30.8,26.8],  [W,...SUEZ], ['Chilli','Turmeric','Agricultural Products']),
+  mkr('Pakistan',    '🇵🇰','586',[67.7,30.4],  [W,[69,21],[67,23],[67.1,24.9]], ['Red Chilli','Toor Dal','Cumin']),
+  mkr('Bangladesh',  '🇧🇩','50',[90.4,23.7],   [E,[84,18],[87,19],[90,22],[90.4,23.7]], ['Red Chilli','Turmeric','Pulses']),
+  mkr('Sri Lanka',   '🇱🇰','144',[80.7,7.9],   [[80,10],[80.2,8.5],[79.9,7.9]], ['Red Chilli','Toor Dal','Spices']),
+  mkr('Singapore',   '🇸🇬','702',[103.8,1.4],  [E,...BOB], ['Pulses','Red Chilli','Agricultural Products']),
+  mkr('Thailand',    '🇹🇭','764',[101.0,15.9], [E,...BOB,[100.5,6],[101,13.5]], ['Chilli','Turmeric','Agricultural Products']),
+  mkr('Malaysia',    '🇲🇾','458',[109.7,4.2],  [E,...BOB,[104,2],[107,4],[109.7,4.2]], ['Chilli Varieties','Toor Dal']),
+  mkr('Indonesia',   '🇮🇩','360',[113.9,-0.8], [E,...BOB,[106,-5],[106.8,-6.2],[110,-7.5],[113,-7]], ['Red Chilli','Spices','Agricultural Products']),
+  mkr('Vietnam',     '🇻🇳','704',[108.3,14.1], [E,...BOB,[104,4],[106,9],[106.7,10.8]], ['Chilli','Turmeric','Pulses']),
+  mkr('Philippines', '🇵🇭','608',[121.8,12.9], [E,...BOB,[107,5],[113,10],[118,12],[120.9,14.6]], ['Chilli','Agricultural Products']),
+  mkr('China',       '🇨🇳','156',[104.2,35.9], [E,...BOB,[108,12],[114,20],[118,26],[121.5,30.5]], ['Red Chilli','Turmeric','Pulses','Spices']),
+  mkr('Japan',       '🇯🇵','392',[138.3,36.2], [E,...BOB,[108,12],[114,20],[120,28],[128,32],[135,34],[139.7,35.7]], ['Turmeric','Spices','Organic Products']),
+  mkr('Turkey',      '🇹🇷','792',[35.2,38.9],  [W,...SUEZ,[30,35],[28,38],[28.9,41]], ['Red Chilli','Spices','Pulses']),
+  mkr('France',      '🇫🇷','250',[2.2,46.2],   [W,...SUEZ,...MED,[5.5,42],[5.3,43.3]], ['Turmeric','Spice Blends','Agricultural Products']),
+  mkr('Spain',       '🇪🇸','724',[-3.7,40.5],  [W,...SUEZ,...MED,[2.5,40.5],[2.2,41.4]], ['Red Chilli','Spices']),
+  mkr('Morocco',     '🇲🇦','504',[-7.1,31.8],  [W,...SUEZ,...GRIB,[-7.6,33.6]], ['Red Chilli','Spices','Agricultural Products']),
+  mkr('Senegal',     '🇸🇳','686',[-14.5,14.5], [W,...SUEZ,...GRIB,[-10,28],[-17.4,14.7]], ['Chilli','Agricultural Products']),
+  mkr('Ghana',       '🇬🇭','288',[-1.0,7.9],   [W,...SUEZ,...GRIB,[-10,20],[-10,10],[-3,6],[-0.2,5.6]], ['Red Chilli','Pulses']),
+  mkr('Nigeria',     '🇳🇬','566',[8.7,9.1],    [W,...SUEZ,...GRIB,[-10,20],[-10,10],[0,5],[3.4,6.5]], ['Red Chilli','Turmeric','Agricultural Products']),
+  mkr('Germany',     '🇩🇪','276',[10.5,51.2],  [W,...SUEZ,...GRIB,[-9,40],[0,50],[5,54],[9,54],[10,53.6]], ['Turmeric','Spice Blends','Organic Products']),
+  mkr('UK',          '🇬🇧','826',[-3.4,55.4],  [W,...SUEZ,...GRIB,[-9,40],[-10,44],[-7,50],[-3.5,55.4]], ['Spice Mixes','Red Chilli Powder','Turmeric']),
+  mkr('Kenya',       '🇰🇪','404',[37.9,-0.0],  [W,[68,12],[60,8],[53,5],[45,-1],[40,-3],[39.7,-4.1]], ['Red Chilli','Spices','Pulses']),
+  mkr('South Africa','🇿🇦','710',[22.9,-30.6], [W,[68,12],[60,5],[50,-5],[40,-15],[30,-25],[25,-32],[18.4,-33.9]], ['Chilli','Turmeric','Agricultural Products']),
+  mkr('USA',         '🇺🇸','840',[-95.7,37.1], [W,...SUEZ,...GRIB,[-18,38],[-35,38],[-55,38],[-72,40],[-74,40.7]], ['Turmeric Powder','Spice Blends','Chilli Powder']),
+  mkr('Canada',      '🇨🇦','124',[-96.8,56.1], [W,...SUEZ,...GRIB,[-18,38],[-35,38],[-50,40],[-60,44],[-63.6,44.6]], ['Turmeric','Spice Blends']),
+  mkr('Mexico',      '🇲🇽','484',[-102.6,23.6],[W,...SUEZ,...GRIB,[-18,38],[-40,32],[-60,22],[-85,20],[-90,20],[-97,19.5]], ['Red Chilli','Spices']),
+  mkr('Venezuela',   '🇻🇪','862',[-66.6,6.4],  [W,...SUEZ,...GRIB,[-15,30],[-30,18],[-55,12],[-65,10.5],[-66.9,10.5]], ['Agricultural Products','Spices']),
+  mkr('Brazil',      '🇧🇷','76',[-51.9,-14.2], [W,...SUEZ,...GRIB,[-10,28],[-15,15],[-25,0],[-38,-8],[-45,-20],[-46.6,-23.5]], ['Red Chilli','Turmeric','Agricultural Products']),
+  mkr('Argentina',   '🇦🇷','32',[-63.6,-38.4], [W,...SUEZ,...GRIB,[-10,28],[-20,10],[-30,-5],[-40,-15],[-50,-28],[-58.4,-34.6]], ['Chilli','Agricultural Products']),
+  mkr('Australia',   '🇦🇺','36',[133.8,-25.3], [E,[87,0],[90,-8],[96,-16],[104,-20],[112,-22],[120,-26],[128,-26],[133.8,-25.3]], ['Organic Chilli','Turmeric','Pulses']),
+  mkr('New Zealand', '🇳🇿','554',[174.9,-40.9],[E,[87,0],[90,-8],[96,-16],[104,-20],[112,-22],[120,-26],[138,-37],[150,-40],[168,-45],[174.8,-40.9]], ['Organic Products','Spices']),
+]
+
+const DEST_IDS = new Set(EXPORT_ROUTES.map(r => r.numId))
+
+function GlobalReach() {
+  const sectionRef = useRef(null)
+  const [visible, setVisible] = useState(false)
+  const [tooltip, setTooltip] = useState(null)
+  const [mouse, setMouse] = useState({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold: 0.15 }
+    )
+    if (sectionRef.current) obs.observe(sectionRef.current)
+    return () => obs.disconnect()
+  }, [])
+
+  return (
+    <section className="reach" id="reach">
+      <div className="container">
+        <FadeIn className="fade-in--block">
+          <div className="section-header">
+            <span className="section-label">Global Presence</span>
+            <h2 className="section-title">From Andhra Pradesh<br />to the World</h2>
+            <p className="section-subtitle">
+              Trusted agro exports across 5 continents.{' '}
+              <span className="reach__hint">Hover a country to see what we ship there.</span>
+            </p>
+          </div>
+        </FadeIn>
+
+        <div
+          ref={sectionRef}
+          className="reach__map"
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect()
+            setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+          }}
+          onMouseLeave={() => setTooltip(null)}
+        >
+          <ComposableMap
+            projection="geoNaturalEarth1"
+            projectionConfig={{ scale: 148, center: [10, 5] }}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+          >
+            <Geographies geography={GEO_URL}>
+              {({ geographies }) =>
+                geographies.map((geo) => {
+                  const id = String(geo.id ?? '')
+                  const isIndia = id === '356'
+                  const isDest  = DEST_IDS.has(id)
+                  const route   = EXPORT_ROUTES.find(r => r.numId === id)
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={isIndia ? 'rgba(220,70,35,0.82)' : '#1e3e6e'}
+                      stroke="rgba(255,255,255,0.07)"
+                      strokeWidth={0.4}
+                      style={{
+                        default: { outline: 'none' },
+                        hover: {
+                          fill: isIndia ? 'rgba(235,85,45,1)' : '#2a5490',
+                          outline: 'none',
+                          cursor: (isIndia || isDest) ? 'pointer' : 'default',
+                        },
+                        pressed: { outline: 'none' },
+                      }}
+                      onMouseEnter={() => {
+                        if (isIndia) setTooltip({ name: 'India', flag: '🇮🇳', isOrigin: true })
+                        else if (isDest) setTooltip(route)
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
+                    />
+                  )
+                })
+              }
+            </Geographies>
+
+            {visible && EXPORT_ROUTES.map((r, i) => (
+              <Line
+                key={r.name}
+                coordinates={r.ship}
+                stroke="rgba(255,255,255,0.55)"
+                strokeWidth={1.4}
+                strokeLinecap="butt"
+                className="reach__route"
+                style={{ animationDelay: `${i * 0.08}s` }}
+              />
+            ))}
+
+            {visible && EXPORT_ROUTES.map((r, i) => (
+              <Marker key={r.name} coordinates={r.coords}>
+                <circle
+                  r={5}
+                  fill="rgba(255,130,45,0.95)"
+                  stroke="rgba(255,255,255,0.55)"
+                  strokeWidth={1}
+                  className="reach__dest-dot"
+                  style={{ animationDelay: `${i * 0.08 + 2.0}s` }}
+                  onMouseEnter={() => setTooltip(r)}
+                  onMouseLeave={() => setTooltip(null)}
+                />
+                <circle
+                  r={11}
+                  fill="none"
+                  stroke="rgba(255,130,45,0.35)"
+                  strokeWidth={1.2}
+                  className="reach__dest-ring"
+                  style={{ animationDelay: `${i * 0.08 + 2.3}s` }}
+                />
+              </Marker>
+            ))}
+
+            <Marker coordinates={INDIA_COORDS}>
+              <circle r={7} fill="rgba(220,70,35,1)" stroke="rgba(255,255,255,0.7)" strokeWidth={1.5}/>
+              <circle r={15} fill="none" stroke="rgba(220,70,35,0.45)" strokeWidth={1.5} className="reach__source-ring"/>
+              <text
+                textAnchor="middle" y={-14}
+                style={{ fontSize: '10px', fontFamily: 'Inter,sans-serif', fontWeight: 700, fill: 'rgba(255,255,255,0.95)', letterSpacing: '0.5px', pointerEvents: 'none' }}
+              >INDIA</text>
+            </Marker>
+          </ComposableMap>
+
+          {tooltip && (
+            <div className="reach__tooltip" style={{ left: mouse.x, top: mouse.y }}>
+              <div className="reach__tt-header">
+                <span>{tooltip.flag}</span>
+                <strong>{tooltip.name}</strong>
+              </div>
+              {tooltip.isOrigin
+                ? <p className="reach__tt-origin">Export Origin — Andhra Pradesh, India</p>
+                : (
+                  <ul className="reach__tt-list">
+                    {tooltip.products.map(p => <li key={p}>{p}</li>)}
+                  </ul>
+                )
+              }
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function SectionNav() {
   const [active, setActive] = useState('hero')
@@ -993,6 +1195,7 @@ export default function App() {
         <Products />
         <Prices />
         <About />
+        <GlobalReach />
         <FarmToPort />
         <Contact />
       </main>
