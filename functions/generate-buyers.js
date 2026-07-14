@@ -73,35 +73,28 @@ async function jinaSearch(query) {
 function buildDirectoryUrls(product, country) {
   const slugs = productSlugs(product)
   const cs = countrySlug(country)
+  // Prefer singular slug for Volza/Cybex — those sites index by singular form
+  const singularSlug = slugs.find(s => !s.endsWith('ies') && !s.endsWith('es')) || slugs[0]
   const urls = []
 
-  // Prefer the singular form for Volza/Cybex — those sites use singular slugs
-  const singularSlug = slugs.find(s => !s.endsWith('ies') && !s.endsWith('es')) || slugs[0]
+  // ── Tier 1: Sites that show company names (even behind partial paywall) ──
+  urls.push(`https://www.volza.com/p/${singularSlug}/import/import-in-${cs}/`)
+  urls.push(`https://www.cybex.in/import-export/${singularSlug}-importers-in-${cs}.aspx`)
+  if (isUAE(country)) {
+    urls.push('https://yellowpages.ae/en/search/food-stuff-importers-exporters-dubai')
+    urls.push('https://yellowpages.ae/en/search/spices-herbs-importers-dubai')
+  }
+  urls.push(`https://www.tradekey.com/products-buyer-lead/productname-${singularSlug}/`)
 
-  for (const s of slugs) {
-    // exportimportdata.in — static HTML blogs, reliably public
+  // ── Tier 2: exportimportdata.in — limit to 3 slug variants only ──────────
+  for (const s of slugs.slice(0, 3)) {
     urls.push(`https://www.exportimportdata.in/blogs/${s}-importers-in-${cs}.aspx`)
     if (isUAE(country)) {
       urls.push(`https://www.exportimportdata.in/blogs/${s}-importers-in-dubai.aspx`)
-      urls.push(`https://www.exportimportdata.in/blogs/${s}-buyers-in-uae.aspx`)
     }
   }
 
-  // Volza — shows preview company names before paywall (use singular slug)
-  urls.push(`https://www.volza.com/p/${singularSlug}/import/import-in-${cs}/`)
-  // Cybex — shows preview table before login (use singular slug)
-  urls.push(`https://www.cybex.in/import-export/${singularSlug}-importers-in-${cs}.aspx`)
-
-  if (isUAE(country)) {
-    // UAE Yellow Pages — public business directory with phone numbers
-    urls.push('https://yellowpages.ae/en/search/food-stuff-importers-exporters-dubai')
-    urls.push('https://yellowpages.ae/en/search/spices-traders-dubai')
-  }
-
-  // TradeKey buyer leads
-  urls.push(`https://www.tradekey.com/products-buyer-lead/productname-${singularSlug}/`)
-
-  return [...new Set(urls)].slice(0, 14)
+  return [...new Set(urls)]  // No slice — all are high-value
 }
 
 async function crawlViaJina(url) {
@@ -355,14 +348,17 @@ export async function onRequestGet({ request, env }) {
 
       // ── C: Directory crawls ──────────────────────────────────────────────
       // Skip known subscription-gated databases from Brave results.
-      // Crawl actual company websites, government portals, and open directories.
+      // dirUrls are already priority-ordered (Volza first, exportimportdata last).
+      // Take up to 12 more non-database Brave URLs to crawl actual company pages.
       const DB_DOMAINS = ['volza.com','cybex.in','exportgenius.com','panjiva.com',
-        'importyeti.com','seair.co.in','zauba.com','tradeford.com','kompass.com',
-        'linkedin.com','facebook.com','twitter.com','instagram.com']
+        'importyeti.com','seair.co.in','zauba.com','tradeford.com',
+        'linkedin.com','facebook.com','twitter.com','instagram.com',
+        'alibaba.com','indiamart.com','tradeindia.com']
       const bravePageTargets = braveUrls
         .filter(u => !DB_DOMAINS.some(d => u.includes(d)))
-        .slice(0, 10)
-      const crawlTargets = [...new Set([...dirUrls, ...bravePageTargets])].slice(0, 16)
+        .slice(0, 12)
+      const crawlTargets = [...new Set([...dirUrls, ...bravePageTargets])]
+      await send({ type: 'debug', message: `Crawling ${crawlTargets.length} pages (${dirUrls.length} directories + ${bravePageTargets.length} from Brave)` })
       await send({ type: 'status', message: `Crawling ${crawlTargets.length} pages…` })
 
       await Promise.all(crawlTargets.map(async pageUrl => {
@@ -370,11 +366,13 @@ export async function onRequestGet({ request, env }) {
         const text = await crawlViaJina(pageUrl)
         if (!text || text.length < 50) {
           await send({ type: 'page_status', url: pageUrl, phase: 'failed', found: 0 })
+          await send({ type: 'debug', message: `✗ ${pageUrl.replace(/^https?:\/\//, '').slice(0, 60)} → empty/failed` })
           return
         }
         await send({ type: 'page_status', url: pageUrl, phase: 'extracting' })
         const buyers = await extract(text, pageUrl, product, country, apiKey)
         await send({ type: 'page_status', url: pageUrl, phase: 'done', found: buyers.length })
+        await send({ type: 'debug', message: `${buyers.length > 0 ? '✓' : '○'} ${pageUrl.replace(/^https?:\/\//, '').slice(0, 60)} → ${text.length} chars → ${buyers.length} companies` })
         for (const b of buyers) rawBuyers.push({ buyer: b, source: pageUrl })
       }))
 
