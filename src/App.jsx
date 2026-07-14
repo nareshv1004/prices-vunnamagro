@@ -667,15 +667,38 @@ function BuyersModal({ onClose }) {
   const handleGenerate = async () => {
     if (!country || !product) return
     setView('loading')
+    setBuyers([])
+    setDemoNote('')
+
+    const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
     try {
-      const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
       const resp = await fetch(url)
       const ct = resp.headers.get('content-type') || ''
-      if (!ct.includes('application/json')) throw new Error('unavailable')
-      const data = await resp.json()
-      setBuyers(data.buyers || [])
-      if (data.demo) setDemoNote(data.note || '')
-      setView('results')
+      if (!ct.includes('text/event-stream')) throw new Error('unavailable')
+
+      const reader = resp.body.getReader()
+      const decoder = new TextDecoder()
+      let buf = ''
+      let isFirst = true
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buf += decoder.decode(value, { stream: true })
+        const lines = buf.split('\n')
+        buf = lines.pop()
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const data = line.slice(6).trim()
+          if (data === '[DONE]') continue
+          try {
+            const buyer = JSON.parse(data)
+            if (isFirst) { setView('results'); isFirst = false }
+            setBuyers((prev) => [...prev, buyer])
+          } catch (_) {}
+        }
+      }
+      if (isFirst) throw new Error('no buyers received')
     } catch (_err) {
       setBuyers(DEMO_BUYERS)
       setDemoNote('Showing sample data — add ANTHROPIC_API_KEY in Cloudflare Pages for live AI-generated leads.')
