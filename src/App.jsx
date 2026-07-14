@@ -656,7 +656,9 @@ function BuyersModal({ onClose }) {
   const [errorMsg, setErrorMsg] = useState('')
   const [noResults, setNoResults] = useState(false)
   const [noResultsMsg, setNoResultsMsg] = useState('')
-  const [searchMode, setSearchMode] = useState('') // 'web_search' | 'knowledge' | ''
+  const [searchMode, setSearchMode] = useState('')
+  const [debugLines, setDebugLines] = useState([])   // debug / info messages
+  const [pages, setPages] = useState([])             // { url, phase, found }
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -678,6 +680,8 @@ function BuyersModal({ onClose }) {
     setNoResults(false)
     setNoResultsMsg('')
     setSearchMode('')
+    setDebugLines([])
+    setPages([])
 
     const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
     try {
@@ -708,6 +712,17 @@ function BuyersModal({ onClose }) {
             const evt = JSON.parse(raw)
             if (evt.type === 'status') {
               setStatusMsg(evt.message || '')
+            } else if (evt.type === 'debug') {
+              setDebugLines((prev) => [...prev, evt.message])
+            } else if (evt.type === 'page_status') {
+              setPages((prev) => {
+                const existing = prev.findIndex((p) => p.url === evt.url)
+                const entry = { url: evt.url, phase: evt.phase, found: evt.found ?? null }
+                if (existing >= 0) {
+                  const next = [...prev]; next[existing] = entry; return next
+                }
+                return [...prev, entry]
+              })
             } else if (evt.type === 'meta') {
               setSearchMode(evt.searchMode || '')
             } else if (evt.type === 'buyer') {
@@ -743,9 +758,16 @@ function BuyersModal({ onClose }) {
   }
 
   if (view === 'loading') {
+    const phaseIcon = (phase) =>
+      phase === 'crawling'    ? '⏳'
+      : phase === 'extracting' ? '🔍'
+      : phase === 'done'       ? '✓'
+      : phase === 'failed'     ? '✗'
+      : '•'
+
     return (
       <div className="bmodal-overlay" onClick={onClose}>
-        <div className="bmodal" onClick={(e) => e.stopPropagation()}>
+        <div className="bmodal bmodal--loading" onClick={(e) => e.stopPropagation()}>
           <button className="bmodal__close" onClick={onClose}>×</button>
           <div className="bmodal__top">
             <span className="bmodal__globe" aria-hidden="true">🌍</span>
@@ -754,8 +776,27 @@ function BuyersModal({ onClose }) {
           </div>
           <div className="bmodal__spin-wrap">
             <div className="bmodal__spinner" />
-            <p className="bmodal__spin-txt">{statusMsg || 'Performing live web search via OpenAI…'}</p>
+            <p className="bmodal__spin-txt">{statusMsg || 'Starting search…'}</p>
           </div>
+          {debugLines.length > 0 && (
+            <div className="bmodal__debug">
+              {debugLines.map((l, i) => <p key={i} className="bmodal__debug-line">{l}</p>)}
+            </div>
+          )}
+          {pages.length > 0 && (
+            <div className="bmodal__pages">
+              <p className="bmodal__pages-hd">Pages being crawled</p>
+              {pages.map((p, i) => (
+                <div key={i} className={`bmodal__page bmodal__page--${p.phase}`}>
+                  <span className="bmodal__page-icon">{phaseIcon(p.phase)}</span>
+                  <span className="bmodal__page-url">{p.url}</span>
+                  {p.found != null && (
+                    <span className="bmodal__page-cnt">{p.found > 0 ? `${p.found} lead${p.found > 1 ? 's' : ''}` : 'none'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )

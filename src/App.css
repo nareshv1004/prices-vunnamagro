@@ -2179,6 +2179,38 @@ a.brow__src:hover { background: #e8e0d8; color: #333; }
   margin-bottom: 16px;
 }
 .bmodal__gen--sm { padding: 10px 20px; font-size: 13px; }
+/* Loading modal — wider so URLs fit */
+.bmodal--loading { max-width: 640px; max-height: 80vh; overflow-y: auto; }
+/* Debug info lines */
+.bmodal__debug {
+  margin: 0 20px 10px;
+  background: #f8f6f3;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.bmodal__debug-line { font-size: 11px; color: #888; font-family: monospace; margin: 2px 0; }
+/* Crawled pages list */
+.bmodal__pages { margin: 0 20px 20px; }
+.bmodal__pages-hd { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 6px; }
+.bmodal__page {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0ece8;
+  font-size: 11.5px;
+}
+.bmodal__page:last-child { border-bottom: none; }
+.bmodal__page-icon { flex-shrink: 0; width: 14px; text-align: center; }
+.bmodal__page-url { flex: 1; color: #555; word-break: break-all; }
+.bmodal__page-cnt { flex-shrink: 0; font-weight: 700; font-size: 11px; white-space: nowrap; }
+.bmodal__page--done    .bmodal__page-icon { color: #2e7d32; }
+.bmodal__page--done    .bmodal__page-url  { color: #333; }
+.bmodal__page--failed  .bmodal__page-icon { color: #c62828; }
+.bmodal__page--failed  .bmodal__page-url  { color: #bbb; text-decoration: line-through; }
+.bmodal__page--done    .bmodal__page-cnt  { color: #2e7d32; }
+.bmodal__page--crawling .bmodal__page-icon { animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
 
 @media (max-width: 640px) {
   .bmodal--wide { max-width: 100%; max-height: 92vh; }

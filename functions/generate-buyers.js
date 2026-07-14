@@ -12,16 +12,21 @@ function sig(ms) {
   return c.signal
 }
 
+function shortUrl(url) {
+  try { return new URL(url).hostname + new URL(url).pathname.slice(0, 40) } catch (_) { return url.slice(0, 50) }
+}
+
 // ── Stage 1: Collect candidate URLs ───────────────────────────────────────
-// Tries Brave Search → Serper → known trade directories (in that order).
-// All three are additive: known dirs are always appended as a baseline.
 
 async function braveSearch(query, key) {
   const r = await fetch(
-    `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=6`,
+    `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=6&result_filter=web`,
     { signal: sig(8000), headers: { Accept: 'application/json', 'X-Subscription-Token': key } },
   )
-  if (!r.ok) return []
+  if (!r.ok) {
+    const body = await r.text().catch(() => '')
+    throw new Error(`Brave ${r.status}: ${body.slice(0, 120)}`)
+  }
   const d = await r.json()
   return (d.web?.results || []).map((x) => x.url).filter(Boolean)
 }
@@ -33,46 +38,77 @@ async function serperSearch(query, key) {
     headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
     body: JSON.stringify({ q: query, num: 6 }),
   })
-  if (!r.ok) return []
+  if (!r.ok) throw new Error(`Serper ${r.status}`)
   const d = await r.json()
   return (d.organic || []).map((x) => x.link).filter(Boolean)
 }
 
+// Known trade directory URL patterns — tries multiple product slug variants
 function directoryUrls(product, country) {
-  const ps = product.toLowerCase().replace(/\s+/g, '-')
+  const base = product.toLowerCase()
+  // Build slug variants: full → drop first word → last word → chilli/chillies normalisation
+  const words = base.split(/\s+/)
+  const variants = [
+    words.join('-'),
+    words.slice(1).join('-'),
+    words[words.length - 1],
+    words.join('-').replace(/chillies/, 'chilli').replace(/chilli$/, 'chilli'),
+    words.join('-').replace(/chilli$/, 'chillies'),
+  ].filter((v, i, a) => v.length > 2 && a.indexOf(v) === i).slice(0, 3)
+
   const cs = country.toLowerCase()
     .replace(/\bunited arab emirates\b/, 'uae')
     .replace(/\bunited kingdom\b/, 'uk')
     .replace(/\bunited states\b/, 'usa')
     .replace(/\s+/g, '-')
-  return [
-    `https://www.exportimportdata.in/blogs/${ps}-importers-in-${cs}.aspx`,
-    `https://www.kompass.com/t/${cs}/import/${ps}/`,
-    `https://www.tradekey.com/products-buyer-lead/productname-${ps}/`,
-  ]
+
+  const urls = []
+  for (const v of variants) {
+    urls.push(`https://www.exportimportdata.in/blogs/${v}-importers-in-${cs}.aspx`)
+  }
+  urls.push(`https://www.kompass.com/t/${cs}/import/${variants[0]}/`)
+  urls.push(`https://www.tradekey.com/products-buyer-lead/productname-${variants[0]}/`)
+  return urls
 }
 
-async function collectUrls(product, country, env) {
+async function collectUrls(product, country, env, send) {
   const queries = [
-    `"${product}" importer ${country} company contact`,
-    `${product} import buyer ${country} trade directory`,
+    `"${product}" importers list ${country}`,
+    `${product} import buyer companies ${country} contact email`,
+    `${country} "${product}" importer directory trade`,
   ]
   const urls = []
+  let braveError = null
 
   if (env.BRAVE_API_KEY) {
-    await Promise.all(
-      queries.map((q) => braveSearch(q, env.BRAVE_API_KEY).then((r) => urls.push(...r)).catch(() => {})),
-    )
+    await send({ type: 'status', message: 'Running Brave web search…' })
+    for (const q of queries.slice(0, 2)) {
+      try {
+        const r = await braveSearch(q, env.BRAVE_API_KEY)
+        urls.push(...r)
+      } catch (e) {
+        braveError = e.message
+      }
+    }
+    if (braveError && urls.length === 0) {
+      await send({ type: 'debug', message: `Brave Search error: ${braveError}` })
+    } else {
+      await send({ type: 'debug', message: `Brave Search returned ${urls.length} URLs` })
+    }
   } else if (env.SERPER_API_KEY) {
-    await Promise.all(
-      queries.map((q) => serperSearch(q, env.SERPER_API_KEY).then((r) => urls.push(...r)).catch(() => {})),
-    )
+    await send({ type: 'status', message: 'Running Google web search (Serper)…' })
+    for (const q of queries.slice(0, 2)) {
+      try { urls.push(...(await serperSearch(q, env.SERPER_API_KEY))) } catch (_) {}
+    }
   }
 
-  urls.push(...directoryUrls(product, country))
+  const dirUrls = directoryUrls(product, country)
+  urls.push(...dirUrls)
 
   const seen = new Set()
-  return urls.filter((u) => { if (seen.has(u)) return false; seen.add(u); return true }).slice(0, 7)
+  const deduped = urls.filter((u) => { if (seen.has(u)) return false; seen.add(u); return true }).slice(0, 8)
+  await send({ type: 'debug', message: `Queuing ${deduped.length} pages: ${deduped.map(shortUrl).join(' | ')}` })
+  return deduped
 }
 
 // ── Stage 2: Crawl pages ───────────────────────────────────────────────────
@@ -118,8 +154,7 @@ async function extractFromPage(text, pageUrl, product, country, apiKey) {
       messages: [
         {
           role: 'system',
-          content:
-            'Extract buyer/importer company records from web page text. Return ONLY a JSON array. Never invent data not present in the text. Unknown fields = null.',
+          content: 'Extract importer/buyer company records from web page text. Return ONLY a JSON array. Never invent data. Unknown fields = null.',
         },
         {
           role: 'user',
@@ -128,7 +163,6 @@ async function extractFromPage(text, pageUrl, product, country, apiKey) {
       ],
     }),
   })
-
   if (!r.ok) return []
   const d = await r.json()
   const raw = (d.choices?.[0]?.message?.content || '').trim().replace(/^```json?\n?/, '').replace(/\n?```$/, '')
@@ -141,15 +175,12 @@ async function extractFromPage(text, pageUrl, product, country, apiKey) {
   }
 }
 
-// ── Stage 4: JS consolidation (dedup + merge + confidence) ────────────────
+// ── Stage 4: JS consolidation ─────────────────────────────────────────────
 
 function normKey(name) {
   return name
     .toLowerCase()
-    .replace(
-      /\b(ltd|limited|sdn\.?bhd|pvt|llc|gmbh|corp|inc|co\.|company|trading|enterprise|group|holdings?|international|global|imports?|exports?|industries|services)\b/gi,
-      '',
-    )
+    .replace(/\b(ltd|limited|sdn\.?bhd|pvt|llc|gmbh|corp|inc|co\.|company|trading|enterprise|group|holdings?|international|global|imports?|exports?|industries|services)\b/gi, '')
     .replace(/[^a-z0-9]/g, '')
     .slice(0, 22)
 }
@@ -186,8 +217,6 @@ function consolidate(rawBuyers, country) {
 }
 
 // ── Stage 4b: Optional GPT-4o final consolidation ─────────────────────────
-// Tries gpt-4o first; silently falls back to the JS-consolidated list if
-// the model is unavailable (free tier) or returns unusable output.
 
 async function gpt4oClean(buyers, product, country, apiKey) {
   if (buyers.length === 0) return buyers
@@ -200,12 +229,10 @@ async function gpt4oClean(buyers, product, country, apiKey) {
         model: 'gpt-4o',
         temperature: 0,
         max_tokens: 3000,
-        messages: [
-          {
-            role: 'user',
-            content: `These are extracted ${product} importers in ${country}. Remove duplicates, fix formatting, keep all verified fields. Return as JSON array with same schema.\n\n${JSON.stringify(buyers)}\n\nReturn ONLY the JSON array.`,
-          },
-        ],
+        messages: [{
+          role: 'user',
+          content: `These are extracted ${product} importers in ${country}. Remove duplicates, fix formatting, keep all verified fields. Return as JSON array with same schema.\n\n${JSON.stringify(buyers)}\n\nReturn ONLY the JSON array.`,
+        }],
       }),
     })
     if (!r.ok) return buyers
@@ -214,11 +241,11 @@ async function gpt4oClean(buyers, product, country, apiKey) {
     const cleaned = JSON.parse(raw)
     return Array.isArray(cleaned) && cleaned.length > 0 ? cleaned : buyers
   } catch (_) {
-    return buyers // fall back silently
+    return buyers
   }
 }
 
-// ── Main Cloudflare Pages Function ─────────────────────────────────────────
+// ── Main handler ───────────────────────────────────────────────────────────
 
 export async function onRequestGet({ request, env }) {
   const u = new URL(request.url)
@@ -245,28 +272,36 @@ export async function onRequestGet({ request, env }) {
         return
       }
 
-      // ── 1. Search ─────────────────────────────────────────────────────────
-      await send({ type: 'status', message: `Finding ${product} importer pages for ${country}…` })
-      const urls = await collectUrls(product, country, env)
-      await send({ type: 'status', message: `Crawling ${urls.length} pages and extracting data…` })
+      // Stage 1: Search
+      await send({ type: 'status', message: `Searching for ${product} importer pages in ${country}…` })
+      const urls = await collectUrls(product, country, env, send)
 
-      // ── 2+3. Crawl + Extract (all pages concurrently for speed) ───────────
+      // Stage 2+3: Crawl + Extract concurrently, emit page_status per URL
+      await send({ type: 'status', message: `Crawling ${urls.length} pages…` })
+
       const rawBuyers = []
       await Promise.all(
         urls.map(async (pageUrl) => {
+          // Notify start
+          await send({ type: 'page_status', url: pageUrl, phase: 'crawling' })
+
           const text = await crawlPage(pageUrl)
-          if (!text) return
+          if (!text) {
+            await send({ type: 'page_status', url: pageUrl, phase: 'failed', found: 0 })
+            return
+          }
+
+          await send({ type: 'page_status', url: pageUrl, phase: 'extracting' })
           const buyers = await extractFromPage(text, pageUrl, product, country, apiKey)
+
+          await send({ type: 'page_status', url: pageUrl, phase: 'done', found: buyers.length })
           for (const b of buyers) rawBuyers.push({ buyer: b, source: pageUrl })
         }),
       )
 
+      // Stage 4: Consolidate
       await send({ type: 'status', message: `Consolidating ${rawBuyers.length} raw records…` })
-
-      // ── 4. Consolidate ────────────────────────────────────────────────────
       let buyers = consolidate(rawBuyers, country)
-
-      // ── 4b. GPT-4o clean pass (best-effort, free-tier safe) ───────────────
       buyers = await gpt4oClean(buyers, product, country, apiKey)
 
       const searchMode = (env.BRAVE_API_KEY || env.SERPER_API_KEY) ? 'web_search' : 'directory_crawl'
@@ -275,12 +310,11 @@ export async function onRequestGet({ request, env }) {
       if (buyers.length === 0) {
         await send({
           type: 'no_results',
-          message: `No ${product} importers extracted. Add BRAVE_API_KEY (brave.com/search/api/) for broader web coverage.`,
+          message: `No ${product} importers could be extracted from the pages found. The pages may be behind login walls or lack structured company data.`,
         })
       } else {
         for (const buyer of buyers) await send({ type: 'buyer', ...buyer })
       }
-
       await send({ type: 'done', count: buyers.length })
     } catch (err) {
       const msg = err?.name === 'AbortError' ? 'Timed out — please try again.' : (err?.message || 'Search failed.')
