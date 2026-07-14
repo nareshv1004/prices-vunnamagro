@@ -593,35 +593,55 @@ const BUYER_COUNTRIES = [
   'Japan', 'South Korea',
 ]
 
-const DEMO_BUYERS = [
-  { company_name: 'Riders Co. Inc.', city: 'Kuala Lumpur', business_type: 'Spice Importer', description: 'Established Malaysian importer of Indian spices and dried goods.' },
-  { company_name: 'Redza Mokhtar Enterprise', city: 'Petaling Jaya', business_type: 'Food Distributor', description: 'Distributor of Indian agricultural commodities to the Malaysian retail and food service sectors.' },
-  { company_name: 'HK Spice Company', city: 'George Town', business_type: 'Spice Trader', description: 'Wholesale trader of imported spices supplying food manufacturers and restaurants in Northern Malaysia.' },
-  { company_name: 'RTS Maju Global Trading', city: 'Shah Alam', business_type: 'Wholesale Trader', description: 'General trading company specialising in South Asian food commodities for the Malaysian market.' },
-  { company_name: 'World Prominence Sdn Bhd', city: 'Klang', business_type: 'Agricultural Importer', description: 'Port-based importer handling bulk shipments of Indian spices and pulses through Klang Port.' },
-  { company_name: 'Redruby Trading', city: 'Ipoh', business_type: 'Food Distributor', description: 'Regional food distributor serving Central and Northern Malaysia with a focus on Indian commodities.' },
-  { company_name: 'Syarikat Rempah Jayasakti Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', description: 'Long-established spice importer supplying traditional Malaysian markets and food processors.' },
-  { company_name: 'Middle People Management And Services', city: 'Subang Jaya', business_type: 'Trade Agent', description: 'Trade facilitation company connecting Indian exporters with Malaysian buyers.' },
-  { company_name: 'Triomas Holdings Sdn Bhd', city: 'Johor Bahru', business_type: 'Commodity Trader', description: 'Holdings company with commodity trading arm focused on South Asian agricultural imports.' },
-  { company_name: 'Sai Tech', city: 'Cyberjaya', business_type: 'Food Ingredients Supplier', description: 'Supplier of premium Indian spices and ingredients to Malaysian food manufacturers.' },
-]
-
 function BuyerRow({ buyer }) {
-  const googleUrl = `https://www.google.com/search?q=${encodeURIComponent('"' + buyer.company_name + '" importer')}`
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent('"' + buyer.company_name + '" ' + (buyer.business_type || 'importer'))}`
   const linkedinUrl = `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(buyer.company_name)}`
-  const kompassUrl = `https://www.kompass.com/s/?text=${encodeURIComponent(buyer.company_name)}`
+  const confClass = buyer.confidence >= 80 ? 'hi' : buyer.confidence >= 60 ? 'mid' : 'lo'
+
   return (
     <div className="brow">
       <div className="brow__head">
-        <span className="brow__type">{buyer.business_type}</span>
+        {buyer.business_type && <span className="brow__type">{buyer.business_type}</span>}
         <strong className="brow__name">{buyer.company_name}</strong>
-        {buyer.city && <span className="brow__city">📍 {buyer.city}</span>}
+        {(buyer.city || buyer.country) && (
+          <span className="brow__city">📍 {[buyer.city, buyer.country].filter(Boolean).join(', ')}</span>
+        )}
+        {buyer.confidence != null && (
+          <span className={`brow__conf brow__conf--${confClass}`} title="Confidence score from web search">
+            {buyer.confidence}%
+          </span>
+        )}
       </div>
-      <p className="brow__desc">{buyer.description}</p>
+
+      {(buyer.website || buyer.email || buyer.phone) && (
+        <div className="brow__contacts">
+          {buyer.website && (
+            <a className="brow__link brow__link--web" href={buyer.website} target="_blank" rel="noopener noreferrer">
+              🌐 {buyer.website.replace(/^https?:\/\//, '').split('/')[0]}
+            </a>
+          )}
+          {buyer.email && (
+            <a className="brow__link brow__link--email" href={`mailto:${buyer.email}`}>
+              ✉️ {buyer.email}
+            </a>
+          )}
+          {buyer.phone && <span className="brow__link brow__link--phone">📞 {buyer.phone}</span>}
+        </div>
+      )}
+
+      {buyer.sources && buyer.sources.length > 0 && (
+        <div className="brow__srcs">
+          {buyer.sources.slice(0, 3).map((src, i) =>
+            typeof src === 'string' && src.startsWith('http')
+              ? <a key={i} className="brow__src" href={src} target="_blank" rel="noopener noreferrer">🔗 Source</a>
+              : <span key={i} className="brow__src">{src}</span>
+          )}
+        </div>
+      )}
+
       <div className="brow__actions">
-        <a className="brow__action" href={googleUrl} target="_blank" rel="noopener noreferrer">🔍 Google</a>
+        <a className="brow__action" href={searchUrl} target="_blank" rel="noopener noreferrer">🔍 Google</a>
         <a className="brow__action" href={linkedinUrl} target="_blank" rel="noopener noreferrer">💼 LinkedIn</a>
-        <a className="brow__action" href={kompassUrl} target="_blank" rel="noopener noreferrer">🗂 Kompass</a>
       </div>
     </div>
   )
@@ -630,10 +650,12 @@ function BuyerRow({ buyer }) {
 function BuyersModal({ onClose }) {
   const [country, setCountry] = useState('')
   const [product, setProduct] = useState('')
-  const [view, setView] = useState('form') // 'form' | 'loading' | 'results'
+  const [view, setView] = useState('form') // 'form' | 'loading' | 'results' | 'error'
   const [buyers, setBuyers] = useState([])
-  const [demoNote, setDemoNote] = useState('')
-  const [dataSource, setDataSource] = useState('ai') // 'trade records' | 'ai' | 'demo'
+  const [statusMsg, setStatusMsg] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [noResults, setNoResults] = useState(false)
+  const [noResultsMsg, setNoResultsMsg] = useState('')
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -650,19 +672,25 @@ function BuyersModal({ onClose }) {
     if (!country || !product) return
     setView('loading')
     setBuyers([])
-    setDemoNote('')
-    setDataSource('ai')
+    setStatusMsg('')
+    setErrorMsg('')
+    setNoResults(false)
+    setNoResultsMsg('')
 
     const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
     try {
       const resp = await fetch(url)
       const ct = resp.headers.get('content-type') || ''
-      if (!ct.includes('text/event-stream')) throw new Error('unavailable')
+      if (!ct.includes('text/event-stream')) {
+        setErrorMsg('Search service unavailable. Ensure OPENAI_API_KEY is set in Cloudflare Pages environment variables.')
+        setView('error')
+        return
+      }
 
       const reader = resp.body.getReader()
       const decoder = new TextDecoder()
       let buf = ''
-      let isFirst = true
+      let gotResults = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -670,35 +698,44 @@ function BuyersModal({ onClose }) {
         buf += decoder.decode(value, { stream: true })
         const lines = buf.split('\n')
         buf = lines.pop()
+
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
-          const data = line.slice(6).trim()
-          if (data === '[DONE]') continue
+          const raw = line.slice(6).trim()
           try {
-            const evt = JSON.parse(data)
-            if (evt.type === 'meta') {
-              setDataSource(evt.source || 'ai')
-            } else if (evt.type === 'buyer' || evt.company_name) {
-              if (isFirst) { setView('results'); isFirst = false }
+            const evt = JSON.parse(raw)
+            if (evt.type === 'status') {
+              setStatusMsg(evt.message || '')
+            } else if (evt.type === 'buyer') {
+              if (!gotResults) { setView('results'); gotResults = true }
               const { type: _t, ...buyer } = evt
               setBuyers((prev) => [...prev, buyer])
+            } else if (evt.type === 'no_results') {
+              setNoResults(true)
+              setNoResultsMsg(evt.message || `No verified ${product} importers found in ${country}.`)
+              setView('results')
+              gotResults = true
+            } else if (evt.type === 'error') {
+              setErrorMsg(evt.message || 'Search failed. Please try again.')
+              setView('error')
+            } else if (evt.type === 'done' && !gotResults) {
+              setNoResults(true)
+              setNoResultsMsg(`No verified ${product} importers found in ${country}.`)
+              setView('results')
             }
           } catch (_) {}
         }
       }
-      if (isFirst) throw new Error('no buyers received')
     } catch (_err) {
-      setBuyers(DEMO_BUYERS)
-      setDemoNote('Showing sample data — add ANTHROPIC_API_KEY in Cloudflare Pages for live AI-generated leads.')
-      setDataSource('demo')
-      setView('results')
+      setErrorMsg('Connection error. Please check your internet connection and try again.')
+      setView('error')
     }
   }
 
   const handleBack = () => {
     setView('form')
     setBuyers([])
-    setDemoNote('')
+    setNoResults(false)
   }
 
   if (view === 'loading') {
@@ -708,12 +745,32 @@ function BuyersModal({ onClose }) {
           <button className="bmodal__close" onClick={onClose}>×</button>
           <div className="bmodal__top">
             <span className="bmodal__globe" aria-hidden="true">🌍</span>
-            <h2 className="bmodal__title">Finding Buyers…</h2>
+            <h2 className="bmodal__title">Searching…</h2>
             <p className="bmodal__sub">{product} importers in {country}</p>
           </div>
           <div className="bmodal__spin-wrap">
             <div className="bmodal__spinner" />
-            <p className="bmodal__spin-txt">Generating leads with AI…</p>
+            <p className="bmodal__spin-txt">{statusMsg || 'Performing live web search via OpenAI…'}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (view === 'error') {
+    return (
+      <div className="bmodal-overlay" onClick={onClose}>
+        <div className="bmodal" onClick={(e) => e.stopPropagation()}>
+          <button className="bmodal__close" onClick={onClose}>×</button>
+          <div className="bmodal__top">
+            <span className="bmodal__globe" aria-hidden="true">⚠️</span>
+            <h2 className="bmodal__title">Search Failed</h2>
+            <p className="bmodal__sub">{errorMsg}</p>
+          </div>
+          <div className="bmodal__form">
+            <button className="bmodal__gen bmodal__gen--active" onClick={handleBack}>
+              ← Try Again
+            </button>
           </div>
         </div>
       </div>
@@ -730,22 +787,28 @@ function BuyersModal({ onClose }) {
               <span className="bmodal__rctx-prod">{product}</span>
               <span className="bmodal__rctx-sep"> importers in </span>
               <span className="bmodal__rctx-prod">{country}</span>
-              <span className="bmodal__rctx-cnt"> · {buyers.length} leads</span>
+              {!noResults && <span className="bmodal__rctx-cnt"> · {buyers.length} verified</span>}
             </div>
             <button className="bmodal__close bmodal__close--dk" onClick={onClose}>×</button>
           </div>
           <div className="bmodal__src-bar">
-            {dataSource === 'trade records'
-              ? <span className="bmodal__src-badge bmodal__src-badge--real">✓ Company names from trade shipment records · Contact details AI-estimated</span>
-              : dataSource === 'demo'
-              ? <span className="bmodal__src-badge bmodal__src-badge--demo">ℹ️ Sample data — configure ANTHROPIC_API_KEY for live leads</span>
-              : <span className="bmodal__src-badge bmodal__src-badge--ai">⚠️ AI-generated leads — verify company names before contacting</span>
+            {noResults
+              ? <span className="bmodal__src-badge bmodal__src-badge--empty">🔍 Live web search completed — no verified buyers found</span>
+              : <span className="bmodal__src-badge bmodal__src-badge--live">✓ Verified by live web search · OpenAI</span>
             }
           </div>
-          {demoNote && <div className="bmodal__demo-note">ℹ️ {demoNote}</div>}
-          <div className="bmodal__rlist">
-            {buyers.map((b, i) => <BuyerRow key={i} buyer={b} />)}
-          </div>
+          {noResults ? (
+            <div className="bmodal__empty">
+              <span className="bmodal__empty-icon">🔍</span>
+              <p className="bmodal__empty-txt">No verified buyers were found for this search.</p>
+              <p className="bmodal__empty-sub">{noResultsMsg || 'Try a different country or product combination.'}</p>
+              <button className="bmodal__gen bmodal__gen--active bmodal__gen--sm" onClick={handleBack}>← New Search</button>
+            </div>
+          ) : (
+            <div className="bmodal__rlist">
+              {buyers.map((b, i) => <BuyerRow key={i} buyer={b} />)}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -758,7 +821,7 @@ function BuyersModal({ onClose }) {
         <div className="bmodal__top">
           <span className="bmodal__globe" aria-hidden="true">🌍</span>
           <h2 className="bmodal__title">Find Buyers</h2>
-          <p className="bmodal__sub">Generate potential importers by country and product.</p>
+          <p className="bmodal__sub">Live web search for verified importers by country and product.</p>
         </div>
         <div className="bmodal__form">
           <label className="bmodal__label" htmlFor="bm-country">Importing Country</label>
@@ -780,7 +843,7 @@ function BuyersModal({ onClose }) {
             onClick={handleGenerate}
             disabled={!country || !product}
           >
-            Generate Buyer List
+            Search Verified Buyers
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
