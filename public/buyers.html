@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buyer Leads — Vunnam Agro Exports</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --deep: #2D1B0E;
+      --red: #C0392B;
+      --border: #E8E0D8;
+      --bg: #F8F6F3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1a1a1a; min-height: 100vh; }
+
+    /* ── Header ─────────────────────────────────────── */
+    .ph { background: var(--deep); color: #fff; padding: 36px 24px 32px; }
+    .ph__inner { max-width: 1120px; margin: 0 auto; }
+    .ph__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; text-decoration: none; }
+    .ph__logo { height: 28px; }
+    .ph__name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.02em; }
+    .ph__product { font-family: 'Playfair Display', serif; font-size: clamp(22px, 4vw, 34px); font-weight: 700; margin-bottom: 5px; }
+    .ph__context { font-size: 15px; color: rgba(255,255,255,0.65); margin-bottom: 18px; }
+    .ph__meta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ph__tag { background: rgba(255,255,255,0.12); border-radius: 100px; padding: 5px 14px; font-size: 12px; color: rgba(255,255,255,0.82); white-space: nowrap; }
+    .ph__tag--count { background: var(--red); color: #fff; }
+
+    /* ── Main ────────────────────────────────────────── */
+    .pm { max-width: 1120px; margin: 0 auto; padding: 36px 24px 80px; }
+
+    /* ── Loading ─────────────────────────────────────── */
+    .loading { text-align: center; padding: 80px 24px; }
+    .spinner { width: 44px; height: 44px; border: 3px solid rgba(45,27,14,0.12); border-top-color: var(--deep); border-radius: 50%; animation: spin 0.75s linear infinite; margin: 0 auto 18px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: #888; font-size: 14px; }
+    .loading small { display: block; color: #bbb; font-size: 12px; margin-top: 6px; }
+
+    /* ── Banner ──────────────────────────────────────── */
+    .banner { border-radius: 9px; padding: 12px 16px; margin-bottom: 26px; font-size: 13px; line-height: 1.5; display: flex; align-items: flex-start; gap: 10px; }
+    .banner--info { background: #EBF5FB; border: 1px solid #AED6F1; color: #1A5276; }
+    .banner--warn { background: #FEF9E7; border: 1px solid #F7DC6F; color: #7D6608; }
+    .banner__icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Grid ────────────────────────────────────────── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+
+    /* ── Card ────────────────────────────────────────── */
+    .card { background: #fff; border-radius: 14px; padding: 22px; border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: box-shadow 0.2s, transform 0.2s; display: flex; flex-direction: column; }
+    .card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.09); transform: translateY(-2px); }
+    .card__type { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); background: rgba(192,57,43,0.08); border-radius: 4px; padding: 3px 8px; margin-bottom: 9px; }
+    .card__name { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; line-height: 1.3; }
+    .card__city { font-size: 12.5px; color: #999; margin-bottom: 0; }
+    .card__div { height: 1px; background: var(--border); margin: 13px 0; }
+    .card__desc { font-size: 13px; color: #666; line-height: 1.55; margin-bottom: 14px; flex: 1; }
+    .card__rows { display: flex; flex-direction: column; gap: 8px; }
+    .card__row { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .card__ic { width: 28px; height: 28px; border-radius: 7px; background: #f3f0ec; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .card__link { font-size: 13px; color: var(--deep); font-weight: 500; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .card__link:hover { color: var(--red); text-decoration: underline; }
+    .card__copy { margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer; color: #ccc; padding: 3px 5px; border-radius: 5px; font-size: 14px; transition: all 0.15s; line-height: 1; }
+    .card__copy:hover { background: #f0ece8; color: #888; }
+    .card__wa { display: inline-flex; align-items: center; gap: 5px; background: #25D366; color: #fff; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; text-decoration: none; flex-shrink: 0; margin-left: auto; }
+    .card__wa:hover { background: #1ebe5b; }
+    .card__wa svg { width: 14px; height: 14px; fill: currentColor; }
+
+    /* ── Footer ──────────────────────────────────────── */
+    .pf { text-align: center; padding: 28px 24px; border-top: 1px solid var(--border); background: #fff; }
+    .pf p { font-size: 12px; color: #bbb; line-height: 1.6; }
+    .pf a { color: #999; text-decoration: none; }
+    .pf a:hover { color: var(--red); }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      .ph { padding: 24px 16px 22px; }
+      .pm { padding: 24px 16px 60px; }
+    }
+    @media print {
+      .ph { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .card:hover { box-shadow: none; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ph">
+    <div class="ph__inner">
+      <a class="ph__brand" href="/">
+        <img src="/vae_logo.png" alt="Vunnam Agro Exports" class="ph__logo" onerror="this.style.display='none'">
+        <span class="ph__name">Vunnam Agro Exports</span>
+      </a>
+      <h1 class="ph__product" id="hp-product">Loading…</h1>
+      <p class="ph__context" id="hp-context"></p>
+      <div class="ph__meta">
+        <span class="ph__tag ph__tag--count" id="hp-count">Generating…</span>
+        <span class="ph__tag">Buyer Intelligence Report</span>
+        <span class="ph__tag" id="hp-date"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="pm">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Generating buyer leads…</p>
+      <small>This may take a few seconds</small>
+    </div>
+    <div id="banner-area"></div>
+    <div class="grid" id="buyer-grid"></div>
+  </main>
+
+  <footer class="pf">
+    <p>AI-generated leads — verify all contact details independently before outreach.</p>
+    <p>Powered by <a href="/">Vunnam Agro Exports</a> · <a href="https://prices.vunnamagroexports.net">prices.vunnamagroexports.net</a></p>
+  </footer>
+
+  <script>
+    var DEMO_BUYERS = [
+      { company_name: 'Gulf Agro Trading LLC', city: 'Dubai', business_type: 'Food Distributor', website: 'gulfagrotrading.ae', email: 'procurement@gulfagrotrading.ae', phone: '+971-4-355-7890', whatsapp: '+971-50-355-7890', description: 'Leading distributor of Indian pulses, spices, and grains serving the UAE wholesale and retail market.' },
+      { company_name: 'Spice Route International FZE', city: 'Sharjah', business_type: 'Spice Importer', website: 'spiceroute-intl.ae', email: 'imports@spiceroute-intl.ae', phone: '+971-6-528-4411', whatsapp: '+971-55-528-4411', description: 'Specialised importer of Indian spices and dried goods supplying GCC horeca and retail sectors.' },
+      { company_name: 'Emirates Grain & Pulse Co.', city: 'Abu Dhabi', business_type: 'Commodity Broker', website: 'emiratesgrains.com', email: 'trade@emiratesgrains.com', phone: '+971-2-622-9050', whatsapp: '+971-52-622-9050', description: 'Commodity brokerage specialising in South Asian pulses and cereals for re-export across the GCC.' },
+      { company_name: 'Al Barakah Foods Trading', city: 'Dubai', business_type: 'Wholesale Trader', website: 'albarakahfoods.ae', email: 'orders@albarakahfoods.ae', phone: '+971-4-887-3320', whatsapp: '+971-56-887-3320', description: 'Wholesale distributor of Indian grocery staples to ethnic supermarkets and restaurants.' },
+      { company_name: 'Orient Foods Distribution', city: 'Ajman', business_type: 'Food Distributor', website: 'orientfoods.ae', email: 'buying@orientfoods.ae', phone: '+971-6-742-8800', whatsapp: '+971-58-742-8800', description: 'Full-service food distribution covering all seven UAE emirates with ambient and cold-chain logistics.' },
+      { company_name: 'Global Harvest Commodities', city: 'London', business_type: 'Commodity Broker', website: 'globalharvestcommodities.co.uk', email: 'procurement@globalharvestcommodities.co.uk', phone: '+44-20-7946-0812', whatsapp: null, description: 'London-based commodity trading house sourcing Indian pulses and spices for UK wholesale buyers.' },
+      { company_name: 'Sunrise Agri Imports Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', website: 'sunriseagri.com.my', email: 'import@sunriseagri.com.my', phone: '+60-3-2785-4400', whatsapp: '+60-12-2785-4400', description: 'Malaysian importer of Indian spices and pulses for local processing and re-export to Southeast Asia.' },
+      { company_name: 'Continental Foods GmbH', city: 'Hamburg', business_type: 'Wholesale Trader', website: 'continentalfoods.de', email: 'einkauf@continentalfoods.de', phone: '+49-40-4139-7720', whatsapp: null, description: 'German wholesale trader of Asian food commodities supplying supermarkets across Central Europe.' },
+      { company_name: 'Dhaka Agro Import Ltd', city: 'Dhaka', business_type: 'Wholesale Trader', website: 'dhakaagroimport.com.bd', email: 'info@dhakaagroimport.com.bd', phone: '+880-2-9887-5531', whatsapp: '+880-17-9887-5531', description: "One of Bangladesh's largest importers of Indian pulses and spices with distribution across all divisions." },
+      { company_name: 'Pacific Rim Trading Co.', city: 'Singapore', business_type: 'Food Distributor', website: 'pacificrimtrading.sg', email: 'procurement@pacificrimtrading.sg', phone: '+65-6337-8820', whatsapp: '+65-8337-8820', description: 'Singapore-based trading house supplying Indian agricultural products to Southeast Asian food manufacturers.' },
+      { company_name: 'Indo-Gulf Foods L.L.C.', city: 'Muscat', business_type: 'Wholesale Trader', website: 'indogulffoods.om', email: 'trade@indogulffoods.om', phone: '+968-2456-7890', whatsapp: '+968-9456-7890', description: 'Oman-based importer distributing Indian pulses and spices to hypermarkets and wholesalers across Oman.' },
+      { company_name: 'Nile Valley Food Imports', city: 'Nairobi', business_type: 'Food Distributor', website: 'nilevalleyfoods.co.ke', email: 'imports@nilevalleyfoods.co.ke', phone: '+254-20-444-3388', whatsapp: '+254-722-444-338', description: "East Africa's leading importer of South Asian grocery staples serving Kenya, Tanzania, and Uganda." },
+    ]
+
+    (function () {
+      const params = new URLSearchParams(location.search)
+      const country = params.get('country') || ''
+      const product = params.get('product') || ''
+
+      // Update header
+      document.getElementById('hp-product').textContent = product || 'Unknown Product'
+      document.getElementById('hp-context').textContent = country ? 'Importers in ' + country : ''
+      document.getElementById('hp-date').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      document.title = (product && country) ? product + ' Buyers in ' + country + ' — VAE' : 'Buyer Leads — VAE'
+
+      // Copy to clipboard via event delegation
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.card__copy')
+        if (!btn) return
+        var text = btn.dataset.copy
+        if (!text) return
+        navigator.clipboard.writeText(text).then(function () {
+          var prev = btn.textContent
+          btn.textContent = '✓'
+          btn.style.color = '#27AE60'
+          setTimeout(function () { btn.textContent = prev; btn.style.color = '' }, 1400)
+        }).catch(function () {})
+      })
+
+      function esc(s) {
+        if (!s) return ''
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+      }
+
+      function waNumber(s) {
+        return s ? s.replace(/[^0-9]/g, '') : ''
+      }
+
+      function renderCards(buyers) {
+        if (!buyers || !buyers.length) {
+          document.getElementById('buyer-grid').innerHTML = '<p style="color:#999;grid-column:1/-1;text-align:center;padding:40px">No results found.</p>'
+          return
+        }
+        document.getElementById('hp-count').textContent = buyers.length + ' leads generated'
+
+        document.getElementById('buyer-grid').innerHTML = buyers.map(function (b) {
+          var waNum = waNumber(b.whatsapp)
+          return (
+            '<div class="card">' +
+              '<span class="card__type">' + esc(b.business_type) + '</span>' +
+              '<div class="card__name">' + esc(b.company_name) + '</div>' +
+              '<div class="card__city">📍 ' + esc(b.city) + (country ? ', ' + esc(country) : '') + '</div>' +
+              '<div class="card__div"></div>' +
+              '<p class="card__desc">' + esc(b.description) + '</p>' +
+              '<div class="card__rows">' +
+                (b.website ? (
+                  '<div class="card__row">' +
+                    '<span class="card__ic">🌐</span>' +
+                    '<a class="card__link" href="https://' + esc(b.website) + '" target="_blank" rel="noopener noreferrer">' + esc(b.website) + '</a>' +
+                  '</div>'
+                ) : '') +
+                (b.email ? (
+                  '<div class="card__row">' +
+                    '<span class="card__ic">✉️</span>' +
+                    '<a class="card__link" href="mailto:' + esc(b.email) + '">' + esc(b.email) + '</a>' +
+                    '<button class="card__copy" data-copy="' + esc(b.email) + '" title="Copy email">⧉</button>' +
+                  '</div>'
+                ) : '') +
+                (b.phone ? (
+                  '<div class="card__row">' +
+                    '<span class="card__ic">📞</span>' +
+                    '<a class="card__link" href="tel:' + esc(b.phone) + '">' + esc(b.phone) + '</a>' +
+                  '</div>'
+                ) : '') +
+                (b.whatsapp && waNum ? (
+                  '<div class="card__row">' +
+                    '<span class="card__ic">💬</span>' +
+                    '<a class="card__wa" href="https://wa.me/' + waNum + '" target="_blank" rel="noopener noreferrer">' +
+                      '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>' +
+                      'WhatsApp' +
+                    '</a>' +
+                  '</div>'
+                ) : '') +
+              '</div>' +
+            '</div>'
+          )
+        }).join('')
+      }
+
+      function showDemo(note) {
+        document.getElementById('loading').style.display = 'none'
+        document.getElementById('banner-area').innerHTML =
+          '<div class="banner banner--info">' +
+            '<span class="banner__icon">ℹ️</span>' +
+            '<span>' + esc(note || 'Showing sample data. Set ANTHROPIC_API_KEY in Cloudflare Pages environment variables to generate live AI leads.') + '</span>' +
+          '</div>'
+        renderCards(DEMO_BUYERS)
+      }
+
+      var apiUrl = '/generate-buyers?country=' + encodeURIComponent(country) + '&product=' + encodeURIComponent(product)
+
+      fetch(apiUrl)
+        .then(function (r) {
+          var ct = r.headers.get('content-type') || ''
+          if (!ct.includes('application/json')) throw new Error('api_unavailable')
+          return r.json()
+        })
+        .then(function (data) {
+          document.getElementById('loading').style.display = 'none'
+          if (data.demo) {
+            document.getElementById('banner-area').innerHTML =
+              '<div class="banner banner--info">' +
+                '<span class="banner__icon">ℹ️</span>' +
+                '<span>' + esc(data.note || 'Showing sample data. Configure ANTHROPIC_API_KEY in Cloudflare Pages to generate live leads.') + '</span>' +
+              '</div>'
+          }
+          renderCards(data.buyers)
+        })
+        .catch(function (err) {
+          var isLocal = err.message === 'api_unavailable' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+          if (isLocal) {
+            showDemo('Showing sample data (API runs only on Cloudflare Pages). Set ANTHROPIC_API_KEY in Cloudflare Pages environment variables for live AI-generated leads.')
+          } else {
+            showDemo('Could not generate live leads — showing sample data. ' + esc(err.message))
+          }
+        })
+    })()
+  </script>
+</body>
+</html>

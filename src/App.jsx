@@ -327,7 +327,7 @@ const CERTS = [
   { code: 'ISO',    name: 'Quality Management Compliant',      icon: '🎖️' },
 ]
 
-const NAV_LINKS = ['Products', 'Prices', 'Calculator', 'About', 'Contact']
+const NAV_LINKS = ['Products', 'Prices', 'Calculator', 'Buyers', 'About', 'Contact']
 
 const SECTIONS = [
   { id: 'hero',     label: 'Home' },
@@ -583,9 +583,81 @@ function Ticker() {
   )
 }
 
+const BUYER_COUNTRIES = [
+  'UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman',
+  'Malaysia', 'Singapore', 'Indonesia', 'Thailand', 'Vietnam',
+  'United Kingdom', 'United States', 'Canada', 'Australia',
+  'Germany', 'Netherlands', 'France', 'Italy', 'Spain',
+  'Bangladesh', 'Sri Lanka', 'Nepal',
+  'South Africa', 'Mauritius', 'Kenya', 'Tanzania',
+  'Japan', 'South Korea',
+]
+
+function BuyersModal({ onClose }) {
+  const [country, setCountry] = useState('')
+  const [product, setProduct] = useState('')
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => {
+      document.body.style.overflow = prev
+      document.removeEventListener('keydown', handler)
+    }
+  }, [onClose])
+
+  const handleGenerate = () => {
+    if (!country || !product) return
+    const p = new URLSearchParams({ country, product })
+    window.open(`/buyers.html?${p}`, '_blank', 'noopener,noreferrer')
+  }
+
+  return (
+    <div className="bmodal-overlay" onClick={onClose}>
+      <div className="bmodal" onClick={(e) => e.stopPropagation()}>
+        <button className="bmodal__close" onClick={onClose}>×</button>
+        <div className="bmodal__top">
+          <span className="bmodal__globe" aria-hidden="true">🌍</span>
+          <h2 className="bmodal__title">Find Buyers</h2>
+          <p className="bmodal__sub">Generate potential importers by country and product.</p>
+        </div>
+        <div className="bmodal__form">
+          <label className="bmodal__label" htmlFor="bm-country">Importing Country</label>
+          <div className="bmodal__sel-wrap">
+            <select id="bm-country" className="bmodal__sel" value={country} onChange={(e) => setCountry(e.target.value)}>
+              <option value="">Select country…</option>
+              {BUYER_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <label className="bmodal__label" htmlFor="bm-product">Product</label>
+          <div className="bmodal__sel-wrap">
+            <select id="bm-product" className="bmodal__sel" value={product} onChange={(e) => setProduct(e.target.value)}>
+              <option value="">Select product…</option>
+              {PRODUCTS.map((prod) => <option key={prod.id} value={prod.name}>{prod.name}</option>)}
+            </select>
+          </div>
+          <button
+            className={`bmodal__gen${country && product ? ' bmodal__gen--active' : ''}`}
+            onClick={handleGenerate}
+            disabled={!country || !product}
+          >
+            Generate Buyer List
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [buyersOpen, setBuyersOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -596,6 +668,8 @@ function Navbar() {
   const handleNav = (link) => {
     if (link === 'Calculator') {
       window.open('/calculator.html', '_blank', 'noopener,noreferrer')
+    } else if (link === 'Buyers') {
+      setBuyersOpen(true)
     } else {
       document.getElementById(link.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
     }
@@ -603,7 +677,8 @@ function Navbar() {
   }
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+    <>
+      <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <a className="navbar__logo" href="#hero" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
         <img src="/vae_logo.png" alt="Vunnam Agro Exports logo" className="navbar__logo-img" />
         <LogoText />
@@ -623,7 +698,9 @@ function Navbar() {
           </button>
         </li>
       </ul>
-    </nav>
+      </nav>
+      {buyersOpen && <BuyersModal onClose={() => setBuyersOpen(false)} />}
+    </>
   )
 }
 
@@ -1143,6 +1220,7 @@ function Footer() {
           {NAV_LINKS.map((link) => (
             <button key={link} onClick={() => {
               if (link === 'Calculator') window.open('/calculator.html', '_blank', 'noopener,noreferrer')
+              else if (link === 'Buyers') window.open('/buyers.html', '_blank', 'noopener,noreferrer')
               else document.getElementById(link.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
             }}>
               {link}
