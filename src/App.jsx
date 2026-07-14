@@ -594,53 +594,34 @@ const BUYER_COUNTRIES = [
 ]
 
 const DEMO_BUYERS = [
-  { company_name: 'Gulf Agro Trading LLC', city: 'Dubai', business_type: 'Food Distributor', website: 'gulfagrotrading.ae', email: 'procurement@gulfagrotrading.ae', phone: '+971-4-355-7890', whatsapp: '+971-50-355-7890', description: 'Leading distributor of Indian pulses, spices, and grains serving the UAE wholesale and retail market.' },
-  { company_name: 'Spice Route International FZE', city: 'Sharjah', business_type: 'Spice Importer', website: 'spiceroute-intl.ae', email: 'imports@spiceroute-intl.ae', phone: '+971-6-528-4411', whatsapp: '+971-55-528-4411', description: 'Specialised importer of Indian spices and dried goods supplying GCC horeca and retail sectors.' },
-  { company_name: 'Emirates Grain & Pulse Co.', city: 'Abu Dhabi', business_type: 'Commodity Broker', website: 'emiratesgrains.com', email: 'trade@emiratesgrains.com', phone: '+971-2-622-9050', whatsapp: '+971-52-622-9050', description: 'Commodity brokerage specialising in South Asian pulses and cereals for re-export across the GCC.' },
-  { company_name: 'Al Barakah Foods Trading', city: 'Dubai', business_type: 'Wholesale Trader', website: 'albarakahfoods.ae', email: 'orders@albarakahfoods.ae', phone: '+971-4-887-3320', whatsapp: '+971-56-887-3320', description: 'Wholesale distributor of Indian grocery staples to ethnic supermarkets and restaurants across the UAE.' },
-  { company_name: 'Orient Foods Distribution', city: 'Ajman', business_type: 'Food Distributor', website: 'orientfoods.ae', email: 'buying@orientfoods.ae', phone: '+971-6-742-8800', whatsapp: '+971-58-742-8800', description: 'Full-service food distribution covering all seven UAE emirates with ambient and cold-chain logistics.' },
-  { company_name: 'Global Harvest Commodities', city: 'London', business_type: 'Commodity Broker', website: 'globalharvestcommodities.co.uk', email: 'procurement@globalharvestcommodities.co.uk', phone: '+44-20-7946-0812', whatsapp: null, description: 'London-based commodity trading house sourcing Indian pulses and spices for UK wholesale buyers.' },
-  { company_name: 'Sunrise Agri Imports Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', website: 'sunriseagri.com.my', email: 'import@sunriseagri.com.my', phone: '+60-3-2785-4400', whatsapp: '+60-12-2785-4400', description: 'Malaysian importer of Indian spices and pulses for local processing and re-export across Southeast Asia.' },
-  { company_name: 'Continental Foods GmbH', city: 'Hamburg', business_type: 'Wholesale Trader', website: 'continentalfoods.de', email: 'einkauf@continentalfoods.de', phone: '+49-40-4139-7720', whatsapp: null, description: 'German wholesale trader of Asian food commodities supplying supermarkets across Central Europe.' },
-  { company_name: 'Dhaka Agro Import Ltd', city: 'Dhaka', business_type: 'Wholesale Trader', website: 'dhakaagroimport.com.bd', email: 'info@dhakaagroimport.com.bd', phone: '+880-2-9887-5531', whatsapp: '+880-17-9887-5531', description: "One of Bangladesh's largest importers of Indian pulses and spices with distribution across all divisions." },
-  { company_name: 'Pacific Rim Trading Co.', city: 'Singapore', business_type: 'Food Distributor', website: 'pacificrimtrading.sg', email: 'procurement@pacificrimtrading.sg', phone: '+65-6337-8820', whatsapp: '+65-8337-8820', description: 'Singapore-based trading house supplying Indian agricultural products to Southeast Asian food manufacturers.' },
-  { company_name: 'Indo-Gulf Foods L.L.C.', city: 'Muscat', business_type: 'Wholesale Trader', website: 'indogulffoods.om', email: 'trade@indogulffoods.om', phone: '+968-2456-7890', whatsapp: '+968-9456-7890', description: 'Oman-based importer distributing Indian pulses and spices to hypermarkets and wholesalers across Oman.' },
-  { company_name: 'Nile Valley Food Imports', city: 'Nairobi', business_type: 'Food Distributor', website: 'nilevalleyfoods.co.ke', email: 'imports@nilevalleyfoods.co.ke', phone: '+254-20-444-3388', whatsapp: '+254-722-444-338', description: "East Africa's leading importer of South Asian grocery staples serving Kenya, Tanzania, and Uganda." },
+  { company_name: 'Riders Co. Inc.', city: 'Kuala Lumpur', business_type: 'Spice Importer', description: 'Established Malaysian importer of Indian spices and dried goods.' },
+  { company_name: 'Redza Mokhtar Enterprise', city: 'Petaling Jaya', business_type: 'Food Distributor', description: 'Distributor of Indian agricultural commodities to the Malaysian retail and food service sectors.' },
+  { company_name: 'HK Spice Company', city: 'George Town', business_type: 'Spice Trader', description: 'Wholesale trader of imported spices supplying food manufacturers and restaurants in Northern Malaysia.' },
+  { company_name: 'RTS Maju Global Trading', city: 'Shah Alam', business_type: 'Wholesale Trader', description: 'General trading company specialising in South Asian food commodities for the Malaysian market.' },
+  { company_name: 'World Prominence Sdn Bhd', city: 'Klang', business_type: 'Agricultural Importer', description: 'Port-based importer handling bulk shipments of Indian spices and pulses through Klang Port.' },
+  { company_name: 'Redruby Trading', city: 'Ipoh', business_type: 'Food Distributor', description: 'Regional food distributor serving Central and Northern Malaysia with a focus on Indian commodities.' },
+  { company_name: 'Syarikat Rempah Jayasakti Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', description: 'Long-established spice importer supplying traditional Malaysian markets and food processors.' },
+  { company_name: 'Middle People Management And Services', city: 'Subang Jaya', business_type: 'Trade Agent', description: 'Trade facilitation company connecting Indian exporters with Malaysian buyers.' },
+  { company_name: 'Triomas Holdings Sdn Bhd', city: 'Johor Bahru', business_type: 'Commodity Trader', description: 'Holdings company with commodity trading arm focused on South Asian agricultural imports.' },
+  { company_name: 'Sai Tech', city: 'Cyberjaya', business_type: 'Food Ingredients Supplier', description: 'Supplier of premium Indian spices and ingredients to Malaysian food manufacturers.' },
 ]
 
 function BuyerRow({ buyer }) {
-  const [copied, setCopied] = useState(false)
-  const waNum = buyer.whatsapp ? buyer.whatsapp.replace(/[^0-9]/g, '') : ''
-  const copyEmail = () => {
-    navigator.clipboard.writeText(buyer.email).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1400)
-    })
-  }
+  const googleUrl = `https://www.google.com/search?q=${encodeURIComponent('"' + buyer.company_name + '" importer')}`
+  const linkedinUrl = `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(buyer.company_name)}`
+  const kompassUrl = `https://www.kompass.com/s/?text=${encodeURIComponent(buyer.company_name)}`
   return (
     <div className="brow">
       <div className="brow__head">
         <span className="brow__type">{buyer.business_type}</span>
         <strong className="brow__name">{buyer.company_name}</strong>
-        <span className="brow__city">📍 {buyer.city}</span>
+        {buyer.city && <span className="brow__city">📍 {buyer.city}</span>}
       </div>
       <p className="brow__desc">{buyer.description}</p>
-      <div className="brow__contacts">
-        {buyer.website && (
-          <a className="brow__link" href={`https://${buyer.website}`} target="_blank" rel="noopener noreferrer">🌐 {buyer.website}</a>
-        )}
-        {buyer.email && (
-          <span className="brow__email-wrap">
-            <a className="brow__link" href={`mailto:${buyer.email}`}>✉️ {buyer.email}</a>
-            <button className={`brow__copy${copied ? ' brow__copy--done' : ''}`} onClick={copyEmail}>{copied ? '✓' : '⧉'}</button>
-          </span>
-        )}
-        {buyer.phone && (
-          <a className="brow__link" href={`tel:${buyer.phone}`}>📞 {buyer.phone}</a>
-        )}
-        {waNum && (
-          <a className="brow__wa" href={`https://wa.me/${waNum}`} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
-        )}
+      <div className="brow__actions">
+        <a className="brow__action" href={googleUrl} target="_blank" rel="noopener noreferrer">🔍 Google</a>
+        <a className="brow__action" href={linkedinUrl} target="_blank" rel="noopener noreferrer">💼 LinkedIn</a>
+        <a className="brow__action" href={kompassUrl} target="_blank" rel="noopener noreferrer">🗂 Kompass</a>
       </div>
     </div>
   )

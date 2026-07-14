@@ -122,14 +122,14 @@ export async function onRequestGet({ request, env }) {
       await send(JSON.stringify({ type: 'meta', realNames: hasRealNames, source: hasRealNames ? 'trade records' : 'ai' }))
 
       const prompt = hasRealNames
-        ? `These are verified ${product} importers in ${country} sourced from trade shipment records:
+        ? `These are verified ${product} importers in ${country} from trade shipment records:
 ${realNames.map((n, i) => `${i + 1}. ${n}`).join('\n')}
 
-For each company above, research and generate their likely contact details. Output each as a JSON object on its own line (JSONL), one per company, no extra text:
-{"company_name":"<exact name above>","city":"<likely city in ${country}>","business_type":"<e.g. Spice Importer>","website":"<likely domain>","email":"<likely procurement email>","phone":"<likely phone with country code>","whatsapp":"<WhatsApp number or null>","description":"<one sentence about the business>"}`
-        : `Generate exactly 10 realistic buyer company profiles that import ${product} from India and are based in ${country}.
-Output each as a complete JSON object on its own line (JSONL). No array, no markdown, no other text:
-{"company_name":"...","city":"...","business_type":"...","website":"...","email":"...","phone":"...","whatsapp":"..." or null,"description":"one sentence"}`
+For each company above write a one-line business profile. Output as JSONL — one JSON object per line, no other text:
+{"company_name":"<exact name>","city":"<most likely city in ${country}>","business_type":"<e.g. Spice Importer, Food Distributor>","description":"<one sentence about what the business does>"}`
+        : `List 10 realistic companies that import ${product} from India and operate in ${country}.
+Output as JSONL — one JSON object per line, no other text:
+{"company_name":"...","city":"...","business_type":"...","description":"one sentence"}`
 
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -220,14 +220,14 @@ function demoStream() {
 }
 
 const DEMO_BUYERS = [
-  { company_name: 'Gulf Agro Trading LLC', city: 'Dubai', business_type: 'Food Distributor', website: 'gulfagrotrading.ae', email: 'procurement@gulfagrotrading.ae', phone: '+971-4-355-7890', whatsapp: '+971-50-355-7890', description: 'Leading distributor of Indian pulses, spices, and grains serving the UAE wholesale and retail market.' },
-  { company_name: 'Spice Route International FZE', city: 'Sharjah', business_type: 'Spice Importer', website: 'spiceroute-intl.ae', email: 'imports@spiceroute-intl.ae', phone: '+971-6-528-4411', whatsapp: '+971-55-528-4411', description: 'Specialised importer of Indian spices and dried goods supplying GCC horeca and retail sectors.' },
-  { company_name: 'Emirates Grain & Pulse Co.', city: 'Abu Dhabi', business_type: 'Commodity Broker', website: 'emiratesgrains.com', email: 'trade@emiratesgrains.com', phone: '+971-2-622-9050', whatsapp: '+971-52-622-9050', description: 'Commodity brokerage specialising in South Asian pulses and cereals for re-export across the GCC.' },
-  { company_name: 'Al Barakah Foods Trading', city: 'Dubai', business_type: 'Wholesale Trader', website: 'albarakahfoods.ae', email: 'orders@albarakahfoods.ae', phone: '+971-4-887-3320', whatsapp: '+971-56-887-3320', description: 'Wholesale distributor of Indian grocery staples to ethnic supermarkets and restaurants across the UAE.' },
-  { company_name: 'Orient Foods Distribution', city: 'Ajman', business_type: 'Food Distributor', website: 'orientfoods.ae', email: 'buying@orientfoods.ae', phone: '+971-6-742-8800', whatsapp: '+971-58-742-8800', description: 'Full-service food distribution covering all seven UAE emirates with ambient and cold-chain logistics.' },
-  { company_name: 'Global Harvest Commodities', city: 'London', business_type: 'Commodity Broker', website: 'globalharvestcommodities.co.uk', email: 'procurement@globalharvestcommodities.co.uk', phone: '+44-20-7946-0812', whatsapp: null, description: 'London-based commodity trading house sourcing Indian pulses and spices for UK wholesale buyers.' },
-  { company_name: 'Sunrise Agri Imports Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', website: 'sunriseagri.com.my', email: 'import@sunriseagri.com.my', phone: '+60-3-2785-4400', whatsapp: '+60-12-2785-4400', description: 'Malaysian importer of Indian spices and pulses for local processing and re-export across Southeast Asia.' },
-  { company_name: 'Continental Foods GmbH', city: 'Hamburg', business_type: 'Wholesale Trader', website: 'continentalfoods.de', email: 'einkauf@continentalfoods.de', phone: '+49-40-4139-7720', whatsapp: null, description: 'German wholesale trader of Asian food commodities supplying supermarkets across Central Europe.' },
-  { company_name: 'Dhaka Agro Import Ltd', city: 'Dhaka', business_type: 'Wholesale Trader', website: 'dhakaagroimport.com.bd', email: 'info@dhakaagroimport.com.bd', phone: '+880-2-9887-5531', whatsapp: '+880-17-9887-5531', description: "One of Bangladesh's largest importers of Indian pulses and spices with distribution across all divisions." },
-  { company_name: 'Pacific Rim Trading Co.', city: 'Singapore', business_type: 'Food Distributor', website: 'pacificrimtrading.sg', email: 'procurement@pacificrimtrading.sg', phone: '+65-6337-8820', whatsapp: '+65-8337-8820', description: 'Singapore-based trading house supplying Indian agricultural products to Southeast Asian food manufacturers.' },
+  { company_name: 'Riders Co. Inc.', city: 'Kuala Lumpur', business_type: 'Spice Importer', description: 'Established Malaysian importer of Indian spices and dried goods supplying retail and food service.' },
+  { company_name: 'Redza Mokhtar Enterprise', city: 'Petaling Jaya', business_type: 'Food Distributor', description: 'Distributor of Indian agricultural commodities to the Malaysian retail and food service sectors.' },
+  { company_name: 'HK Spice Company', city: 'George Town', business_type: 'Spice Trader', description: 'Wholesale trader of imported spices supplying food manufacturers and restaurants in Northern Malaysia.' },
+  { company_name: 'RTS Maju Global Trading', city: 'Shah Alam', business_type: 'Wholesale Trader', description: 'General trading company specialising in South Asian food commodities for the Malaysian market.' },
+  { company_name: 'World Prominence Sdn Bhd', city: 'Klang', business_type: 'Agricultural Importer', description: 'Port-based importer handling bulk shipments of Indian spices and pulses through Klang Port.' },
+  { company_name: 'Redruby Trading', city: 'Ipoh', business_type: 'Food Distributor', description: 'Regional food distributor serving Central and Northern Malaysia with Indian commodity products.' },
+  { company_name: 'Syarikat Rempah Jayasakti Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', description: 'Long-established spice importer supplying traditional Malaysian markets and food processors.' },
+  { company_name: 'Middle People Management And Services', city: 'Subang Jaya', business_type: 'Trade Agent', description: 'Trade facilitation company connecting Indian exporters with Malaysian wholesale buyers.' },
+  { company_name: 'Triomas Holdings Sdn Bhd', city: 'Johor Bahru', business_type: 'Commodity Trader', description: 'Holdings company with a commodity trading arm focused on South Asian agricultural imports.' },
+  { company_name: 'Sai Tech', city: 'Cyberjaya', business_type: 'Food Ingredients Supplier', description: 'Supplier of premium Indian spices and ingredients to Malaysian food manufacturers.' },
 ]
