@@ -4,146 +4,226 @@ const SSE_HEADERS = {
   'Access-Control-Allow-Origin': '*',
 }
 
-// Prompt for models with live web search (paid plan)
-function webSearchPrompt(product, country) {
-  return `Search the web right now for real companies in ${country} that actively import ${product} from India.
+// ── Utilities ──────────────────────────────────────────────────────────────
 
-STRICT RULES:
-1. Only include companies you actually find through live web search
-2. Do NOT fabricate company names, websites, emails, or phone numbers — set unknown fields to null
-3. Output ONLY valid JSONL (one JSON object per line), no other text
-
-Format per company:
-{"company_name":"Full Name","country":"${country}","city":"city or null","website":"https://url or null","email":"email or null","phone":"+num or null","business_type":"Importer|Distributor|Trader","confidence":85,"sources":["https://source-url.com"]}
-
-Confidence: 90-100 = official site + import record | 70-89 = directory + confirmed web presence | 50-69 = single directory | omit below 50
-
-If NO real companies found: {"no_results":true,"reason":"No verified ${product} importers found in ${country}"}
-
-Output ONLY JSONL.`
+function sig(ms) {
+  const c = new AbortController()
+  setTimeout(() => c.abort(), ms)
+  return c.signal
 }
 
-// Prompt for gpt-4o-mini (free tier) — uses training knowledge, not live search
-function knowledgePrompt(product, country) {
-  return `From your training knowledge, list real companies in ${country} that are known importers of ${product} from India.
+// ── Stage 1: Collect candidate URLs ───────────────────────────────────────
+// Tries Brave Search → Serper → known trade directories (in that order).
+// All three are additive: known dirs are always appended as a baseline.
 
-STRICT RULES:
-1. Only include companies you have genuinely seen in your training data
-2. Do NOT invent company names, emails, phone numbers, or websites
-3. Set any field you are not confident about to null
-4. Output ONLY valid JSONL (one JSON object per line), no other text
-
-Format per company:
-{"company_name":"Full Name","country":"${country}","city":"city or null","website":"https://url or null","email":null,"phone":null,"business_type":"Importer|Distributor|Trader","confidence":55,"sources":["AI knowledge base"]}
-
-If you don't know any real companies for this combination: {"no_results":true,"reason":"No known ${product} importers in ${country} in training data"}
-
-Output ONLY JSONL.`
+async function braveSearch(query, key) {
+  const r = await fetch(
+    `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=6`,
+    { signal: sig(8000), headers: { Accept: 'application/json', 'X-Subscription-Token': key } },
+  )
+  if (!r.ok) return []
+  const d = await r.json()
+  return (d.web?.results || []).map((x) => x.url).filter(Boolean)
 }
 
-function extractResponsesAPIText(data) {
-  return (data.output || [])
-    .filter((o) => o.type === 'message')
-    .flatMap((m) => m.content || [])
-    .filter((c) => c.type === 'output_text')
-    .map((c) => c.text)
-    .join('')
+async function serperSearch(query, key) {
+  const r = await fetch('https://google.serper.dev/search', {
+    method: 'POST',
+    signal: sig(8000),
+    headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ q: query, num: 6 }),
+  })
+  if (!r.ok) return []
+  const d = await r.json()
+  return (d.organic || []).map((x) => x.link).filter(Boolean)
 }
 
-function parseJSONL(text) {
-  const buyers = []
-  let noResults = false
-  let noResultsReason = ''
+function directoryUrls(product, country) {
+  const ps = product.toLowerCase().replace(/\s+/g, '-')
+  const cs = country.toLowerCase()
+    .replace(/\bunited arab emirates\b/, 'uae')
+    .replace(/\bunited kingdom\b/, 'uk')
+    .replace(/\bunited states\b/, 'usa')
+    .replace(/\s+/g, '-')
+  return [
+    `https://www.exportimportdata.in/blogs/${ps}-importers-in-${cs}.aspx`,
+    `https://www.kompass.com/t/${cs}/import/${ps}/`,
+    `https://www.tradekey.com/products-buyer-lead/productname-${ps}/`,
+  ]
+}
 
-  for (const line of text.split('\n')) {
-    const t = line.trim()
-    if (!t.startsWith('{')) continue
-    try {
-      const obj = JSON.parse(t)
-      if (obj.no_results) {
-        noResults = true
-        noResultsReason = obj.reason || ''
-      } else if (obj.company_name) {
-        buyers.push(obj)
-      }
-    } catch (_) {}
+async function collectUrls(product, country, env) {
+  const queries = [
+    `"${product}" importer ${country} company contact`,
+    `${product} import buyer ${country} trade directory`,
+  ]
+  const urls = []
+
+  if (env.BRAVE_API_KEY) {
+    await Promise.all(
+      queries.map((q) => braveSearch(q, env.BRAVE_API_KEY).then((r) => urls.push(...r)).catch(() => {})),
+    )
+  } else if (env.SERPER_API_KEY) {
+    await Promise.all(
+      queries.map((q) => serperSearch(q, env.SERPER_API_KEY).then((r) => urls.push(...r)).catch(() => {})),
+    )
   }
 
-  return { buyers, noResults, noResultsReason }
+  urls.push(...directoryUrls(product, country))
+
+  const seen = new Set()
+  return urls.filter((u) => { if (seen.has(u)) return false; seen.add(u); return true }).slice(0, 7)
 }
 
-// Returns { text, searchMode } where searchMode is 'web_search' | 'knowledge' | throws on hard failure
-async function callOpenAI(apiKey, product, country, signal) {
-  // ── Strategy 1: Responses API + web_search_preview (paid plan) ──────────
-  try {
-    const r1 = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      signal,
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        tools: [{ type: 'web_search_preview' }],
-        input: webSearchPrompt(product, country),
-        max_output_tokens: 3000,
-      }),
-    })
-    if (r1.ok) {
-      const data = await r1.json()
-      const text = extractResponsesAPIText(data)
-      if (text.trim()) return { text, searchMode: 'web_search' }
-    }
-  } catch (_) {}
+// ── Stage 2: Crawl pages ───────────────────────────────────────────────────
 
-  // ── Strategy 2: gpt-4o-search-preview via Chat Completions (paid plan) ──
-  try {
-    const r2 = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      signal,
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gpt-4o-search-preview',
-        messages: [{ role: 'user', content: webSearchPrompt(product, country) }],
-        max_tokens: 3000,
-      }),
-    })
-    if (r2.ok) {
-      const data = await r2.json()
-      const text = data.choices?.[0]?.message?.content || ''
-      // Only accept if the response actually contains JSON lines (not an error narrative)
-      if (text.trim() && text.split('\n').some((l) => l.trim().startsWith('{'))) {
-        return { text, searchMode: 'web_search' }
-      }
-    }
-  } catch (_) {}
+function stripHtml(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z#0-9]+;/gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
 
-  // ── Strategy 3: gpt-4o-mini — knowledge-based, free tier ────────────────
-  const r3 = await fetch('https://api.openai.com/v1/chat/completions', {
+async function crawlPage(url) {
+  try {
+    const r = await fetch(url, {
+      signal: sig(6000),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    })
+    if (!r.ok) return null
+    const html = await r.text()
+    return stripHtml(html).slice(0, 5000)
+  } catch (_) {
+    return null
+  }
+}
+
+// ── Stage 3: Extract with GPT-4o-mini (one call per page) ─────────────────
+
+async function extractFromPage(text, pageUrl, product, country, apiKey) {
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
-    signal,
+    signal: sig(12000),
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: knowledgePrompt(product, country) }],
-      max_tokens: 2000,
-      temperature: 0.2,
+      temperature: 0,
+      max_tokens: 1500,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Extract buyer/importer company records from web page text. Return ONLY a JSON array. Never invent data not present in the text. Unknown fields = null.',
+        },
+        {
+          role: 'user',
+          content: `Source: ${pageUrl}\nProduct: ${product}  Country: ${country}\n\n${text}\n\nExtract companies that import ${product} in ${country}.\nJSON array:\n[{"company_name":"...","city":"...","website":"...","email":"...","phone":"...","business_type":"Importer|Distributor|Trader"}]\nReturn ONLY the JSON array.`,
+        },
+      ],
     }),
   })
 
-  if (!r3.ok) {
-    const errBody = await r3.json().catch(() => ({}))
-    const msg = errBody?.error?.message || `HTTP ${r3.status}`
-    throw new Error(`OpenAI API error: ${msg}`)
+  if (!r.ok) return []
+  const d = await r.json()
+  const raw = (d.choices?.[0]?.message?.content || '').trim().replace(/^```json?\n?/, '').replace(/\n?```$/, '')
+  try {
+    const arr = JSON.parse(raw)
+    return Array.isArray(arr) ? arr.filter((x) => x?.company_name) : []
+  } catch (_) {
+    const m = raw.match(/\[[\s\S]*]/)
+    try { return JSON.parse(m?.[0] || '[]').filter((x) => x?.company_name) } catch (_2) { return [] }
   }
-
-  const data3 = await r3.json()
-  const text3 = data3.choices?.[0]?.message?.content || ''
-  return { text: text3, searchMode: 'knowledge' }
 }
 
+// ── Stage 4: JS consolidation (dedup + merge + confidence) ────────────────
+
+function normKey(name) {
+  return name
+    .toLowerCase()
+    .replace(
+      /\b(ltd|limited|sdn\.?bhd|pvt|llc|gmbh|corp|inc|co\.|company|trading|enterprise|group|holdings?|international|global|imports?|exports?|industries|services)\b/gi,
+      '',
+    )
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 22)
+}
+
+function mergeFields(target, src) {
+  for (const k of ['city', 'website', 'email', 'phone', 'business_type']) {
+    if (!target[k] && src[k]) target[k] = src[k]
+  }
+}
+
+function consolidate(rawBuyers, country) {
+  const map = new Map()
+  for (const { buyer, source } of rawBuyers) {
+    const key = normKey(buyer.company_name)
+    if (!key || key.length < 2) continue
+    if (map.has(key)) {
+      mergeFields(map.get(key), buyer)
+      map.get(key)._srcs.add(source)
+    } else {
+      map.set(key, { ...buyer, country: buyer.country || country, _srcs: new Set([source]) })
+    }
+  }
+  return [...map.values()]
+    .map(({ _srcs, ...b }) => {
+      const sources = [..._srcs]
+      let conf = 40
+      if (b.website) conf += 20
+      if (b.email)   conf += 20
+      if (b.phone)   conf += 10
+      if (sources.length > 1) conf += 10
+      return { ...b, confidence: Math.min(conf, 95), sources }
+    })
+    .sort((a, z) => z.confidence - a.confidence)
+}
+
+// ── Stage 4b: Optional GPT-4o final consolidation ─────────────────────────
+// Tries gpt-4o first; silently falls back to the JS-consolidated list if
+// the model is unavailable (free tier) or returns unusable output.
+
+async function gpt4oClean(buyers, product, country, apiKey) {
+  if (buyers.length === 0) return buyers
+  try {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      signal: sig(20000),
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        temperature: 0,
+        max_tokens: 3000,
+        messages: [
+          {
+            role: 'user',
+            content: `These are extracted ${product} importers in ${country}. Remove duplicates, fix formatting, keep all verified fields. Return as JSON array with same schema.\n\n${JSON.stringify(buyers)}\n\nReturn ONLY the JSON array.`,
+          },
+        ],
+      }),
+    })
+    if (!r.ok) return buyers
+    const d = await r.json()
+    const raw = (d.choices?.[0]?.message?.content || '').replace(/^```json?\n?/, '').replace(/\n?```$/, '')
+    const cleaned = JSON.parse(raw)
+    return Array.isArray(cleaned) && cleaned.length > 0 ? cleaned : buyers
+  } catch (_) {
+    return buyers // fall back silently
+  }
+}
+
+// ── Main Cloudflare Pages Function ─────────────────────────────────────────
+
 export async function onRequestGet({ request, env }) {
-  const url = new URL(request.url)
-  const country = url.searchParams.get('country') || ''
-  const product = url.searchParams.get('product') || ''
+  const u = new URL(request.url)
+  const country = u.searchParams.get('country') || ''
+  const product  = u.searchParams.get('product')  || ''
 
   if (!country || !product) {
     return new Response(JSON.stringify({ error: 'country and product are required' }), {
@@ -155,50 +235,55 @@ export async function onRequestGet({ request, env }) {
   const apiKey = env.OPENAI_API_KEY
   const { readable, writable } = new TransformStream()
   const writer = writable.getWriter()
-  const encoder = new TextEncoder()
-  const send = (obj) => writer.write(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
+  const enc = new TextEncoder()
+  const send = (obj) => writer.write(enc.encode(`data: ${JSON.stringify(obj)}\n\n`))
 
   ;(async () => {
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 28000)
-
     try {
       if (!apiKey) {
-        await send({ type: 'error', code: 'no_api_key', message: 'OpenAI API key not configured. Add OPENAI_API_KEY in Cloudflare Pages → Settings → Environment Variables.' })
+        await send({ type: 'error', code: 'no_api_key', message: 'Add OPENAI_API_KEY in Cloudflare Pages → Settings → Environment Variables.' })
         return
       }
 
-      await send({ type: 'status', message: `Searching for ${product} importers in ${country}…` })
+      // ── 1. Search ─────────────────────────────────────────────────────────
+      await send({ type: 'status', message: `Finding ${product} importer pages for ${country}…` })
+      const urls = await collectUrls(product, country, env)
+      await send({ type: 'status', message: `Crawling ${urls.length} pages and extracting data…` })
 
-      const { text, searchMode } = await callOpenAI(apiKey, product, country, controller.signal)
-      clearTimeout(timer)
+      // ── 2+3. Crawl + Extract (all pages concurrently for speed) ───────────
+      const rawBuyers = []
+      await Promise.all(
+        urls.map(async (pageUrl) => {
+          const text = await crawlPage(pageUrl)
+          if (!text) return
+          const buyers = await extractFromPage(text, pageUrl, product, country, apiKey)
+          for (const b of buyers) rawBuyers.push({ buyer: b, source: pageUrl })
+        }),
+      )
 
-      // Send search mode so the UI can show the right badge
+      await send({ type: 'status', message: `Consolidating ${rawBuyers.length} raw records…` })
+
+      // ── 4. Consolidate ────────────────────────────────────────────────────
+      let buyers = consolidate(rawBuyers, country)
+
+      // ── 4b. GPT-4o clean pass (best-effort, free-tier safe) ───────────────
+      buyers = await gpt4oClean(buyers, product, country, apiKey)
+
+      const searchMode = (env.BRAVE_API_KEY || env.SERPER_API_KEY) ? 'web_search' : 'directory_crawl'
       await send({ type: 'meta', searchMode })
 
-      // If the model returned a narrative instead of JSONL, treat as no results
-      const hasJSON = text.trim() && text.split('\n').some((l) => l.trim().startsWith('{'))
-      if (!hasJSON) {
-        await send({ type: 'no_results', message: `No ${product} importers found in ${country}.` })
-        return
-      }
-
-      const { buyers, noResults, noResultsReason } = parseJSONL(text)
-
-      if (noResults || buyers.length === 0) {
-        await send({ type: 'no_results', message: noResultsReason || `No verified ${product} importers found in ${country}.` })
+      if (buyers.length === 0) {
+        await send({
+          type: 'no_results',
+          message: `No ${product} importers extracted. Add BRAVE_API_KEY (brave.com/search/api/) for broader web coverage.`,
+        })
       } else {
-        for (const buyer of buyers) {
-          await send({ type: 'buyer', ...buyer })
-        }
+        for (const buyer of buyers) await send({ type: 'buyer', ...buyer })
       }
 
       await send({ type: 'done', count: buyers.length })
     } catch (err) {
-      clearTimeout(timer)
-      const msg = err?.name === 'AbortError'
-        ? 'Search timed out. Please try again.'
-        : err?.message || 'Search failed. Please try again.'
+      const msg = err?.name === 'AbortError' ? 'Timed out — please try again.' : (err?.message || 'Search failed.')
       await send({ type: 'error', message: msg })
       await send({ type: 'done', count: 0 })
     } finally {

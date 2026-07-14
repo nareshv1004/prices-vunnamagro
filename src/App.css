@@ -2155,6 +2155,7 @@ a.brow__src:hover { background: #e8e0d8; color: #333; }
 .brow__action:hover { background: var(--red); color: #fff; }
 /* Source bar badges */
 .bmodal__src-badge--live  { background: #e8f5e9; color: #2e7d32; }
+.bmodal__src-badge--crawl { background: #e3f2fd; color: #1565c0; }
 .bmodal__src-badge--empty { background: #fff8e1; color: #795548; }
 /* Empty / no-results state */
 .bmodal__empty {
