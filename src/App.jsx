@@ -656,6 +656,7 @@ function BuyersModal({ onClose }) {
   const [errorMsg, setErrorMsg] = useState('')
   const [noResults, setNoResults] = useState(false)
   const [noResultsMsg, setNoResultsMsg] = useState('')
+  const [searchMode, setSearchMode] = useState('') // 'web_search' | 'knowledge' | ''
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -676,6 +677,7 @@ function BuyersModal({ onClose }) {
     setErrorMsg('')
     setNoResults(false)
     setNoResultsMsg('')
+    setSearchMode('')
 
     const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
     try {
@@ -706,6 +708,8 @@ function BuyersModal({ onClose }) {
             const evt = JSON.parse(raw)
             if (evt.type === 'status') {
               setStatusMsg(evt.message || '')
+            } else if (evt.type === 'meta') {
+              setSearchMode(evt.searchMode || '')
             } else if (evt.type === 'buyer') {
               if (!gotResults) { setView('results'); gotResults = true }
               const { type: _t, ...buyer } = evt
@@ -793,8 +797,10 @@ function BuyersModal({ onClose }) {
           </div>
           <div className="bmodal__src-bar">
             {noResults
-              ? <span className="bmodal__src-badge bmodal__src-badge--empty">🔍 Live web search completed — no verified buyers found</span>
-              : <span className="bmodal__src-badge bmodal__src-badge--live">✓ Verified by live web search · OpenAI</span>
+              ? <span className="bmodal__src-badge bmodal__src-badge--empty">🔍 Search completed — no verified buyers found</span>
+              : searchMode === 'web_search'
+              ? <span className="bmodal__src-badge bmodal__src-badge--live">✓ Verified by live web search · OpenAI</span>
+              : <span className="bmodal__src-badge bmodal__src-badge--ai">ℹ️ From AI training knowledge · upgrade to OpenAI paid plan for live web search</span>
             }
           </div>
           {noResults ? (
