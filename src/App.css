@@ -2013,6 +2013,21 @@
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.85);
 }
+.bmodal__src-bar {
+  padding: 8px 18px;
+  border-bottom: 1px solid rgba(45,27,14,0.08);
+  flex-shrink: 0;
+}
+.bmodal__src-badge {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+.bmodal__src-badge--real  { background: #E8F8ED; color: #1B6B35; }
+.bmodal__src-badge--ai    { background: #FEF3E2; color: #92520A; }
+.bmodal__src-badge--demo  { background: #EBF5FB; color: #1A5276; }
 .bmodal__demo-note {
   background: rgba(45,27,14,0.06);
   border-bottom: 1px solid rgba(45,27,14,0.08);

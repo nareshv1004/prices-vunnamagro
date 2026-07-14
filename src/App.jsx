@@ -652,6 +652,7 @@ function BuyersModal({ onClose }) {
   const [view, setView] = useState('form') // 'form' | 'loading' | 'results'
   const [buyers, setBuyers] = useState([])
   const [demoNote, setDemoNote] = useState('')
+  const [dataSource, setDataSource] = useState('ai') // 'trade records' | 'ai' | 'demo'
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -669,6 +670,7 @@ function BuyersModal({ onClose }) {
     setView('loading')
     setBuyers([])
     setDemoNote('')
+    setDataSource('ai')
 
     const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
     try {
@@ -692,9 +694,14 @@ function BuyersModal({ onClose }) {
           const data = line.slice(6).trim()
           if (data === '[DONE]') continue
           try {
-            const buyer = JSON.parse(data)
-            if (isFirst) { setView('results'); isFirst = false }
-            setBuyers((prev) => [...prev, buyer])
+            const evt = JSON.parse(data)
+            if (evt.type === 'meta') {
+              setDataSource(evt.source || 'ai')
+            } else if (evt.type === 'buyer' || evt.company_name) {
+              if (isFirst) { setView('results'); isFirst = false }
+              const { type: _t, ...buyer } = evt
+              setBuyers((prev) => [...prev, buyer])
+            }
           } catch (_) {}
         }
       }
@@ -702,6 +709,7 @@ function BuyersModal({ onClose }) {
     } catch (_err) {
       setBuyers(DEMO_BUYERS)
       setDemoNote('Showing sample data — add ANTHROPIC_API_KEY in Cloudflare Pages for live AI-generated leads.')
+      setDataSource('demo')
       setView('results')
     }
   }
@@ -744,6 +752,14 @@ function BuyersModal({ onClose }) {
               <span className="bmodal__rctx-cnt"> · {buyers.length} leads</span>
             </div>
             <button className="bmodal__close bmodal__close--dk" onClick={onClose}>×</button>
+          </div>
+          <div className="bmodal__src-bar">
+            {dataSource === 'trade records'
+              ? <span className="bmodal__src-badge bmodal__src-badge--real">✓ Company names from trade shipment records · Contact details AI-estimated</span>
+              : dataSource === 'demo'
+              ? <span className="bmodal__src-badge bmodal__src-badge--demo">ℹ️ Sample data — configure ANTHROPIC_API_KEY for live leads</span>
+              : <span className="bmodal__src-badge bmodal__src-badge--ai">⚠️ AI-generated leads — verify company names before contacting</span>
+            }
           </div>
           {demoNote && <div className="bmodal__demo-note">ℹ️ {demoNote}</div>}
           <div className="bmodal__rlist">
