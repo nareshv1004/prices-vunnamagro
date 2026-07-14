@@ -75,6 +75,9 @@ function buildDirectoryUrls(product, country) {
   const cs = countrySlug(country)
   const urls = []
 
+  // Prefer the singular form for Volza/Cybex — those sites use singular slugs
+  const singularSlug = slugs.find(s => !s.endsWith('ies') && !s.endsWith('es')) || slugs[0]
+
   for (const s of slugs) {
     // exportimportdata.in — static HTML blogs, reliably public
     urls.push(`https://www.exportimportdata.in/blogs/${s}-importers-in-${cs}.aspx`)
@@ -82,24 +85,23 @@ function buildDirectoryUrls(product, country) {
       urls.push(`https://www.exportimportdata.in/blogs/${s}-importers-in-dubai.aspx`)
       urls.push(`https://www.exportimportdata.in/blogs/${s}-buyers-in-uae.aspx`)
     }
-    // Volza — shows preview company names before paywall
-    urls.push(`https://www.volza.com/p/${s}/import/import-in-${cs}/`)
-    // Cybex — shows preview table before login
-    urls.push(`https://www.cybex.in/import-export/${s}-importers-in-${cs}.aspx`)
   }
+
+  // Volza — shows preview company names before paywall (use singular slug)
+  urls.push(`https://www.volza.com/p/${singularSlug}/import/import-in-${cs}/`)
+  // Cybex — shows preview table before login (use singular slug)
+  urls.push(`https://www.cybex.in/import-export/${singularSlug}-importers-in-${cs}.aspx`)
 
   if (isUAE(country)) {
     // UAE Yellow Pages — public business directory with phone numbers
     urls.push('https://yellowpages.ae/en/search/food-stuff-importers-exporters-dubai')
     urls.push('https://yellowpages.ae/en/search/spices-traders-dubai')
-    // Kompass UAE food importers — some data is free
-    urls.push('https://www.kompass.com/a/united-arab-emirates/22/food-stuffs-other-food-industries/')
   }
 
   // TradeKey buyer leads
-  urls.push(`https://www.tradekey.com/products-buyer-lead/productname-${slugs[0]}/`)
+  urls.push(`https://www.tradekey.com/products-buyer-lead/productname-${singularSlug}/`)
 
-  return [...new Set(urls)].slice(0, 12)
+  return [...new Set(urls)].slice(0, 14)
 }
 
 async function crawlViaJina(url) {
@@ -167,8 +169,8 @@ Return ONLY the JSON array. Use null for unknown fields.`,
 }
 
 // ── Knowledge fallback ─────────────────────────────────────────────────────
-// Last resort: ask GPT-4o-mini from training knowledge.
-// Labelled "AI Knowledge" — users should verify independently.
+// Ask broadly for food/spice trading companies in the country — GPT-4o-mini
+// knows major companies even if it doesn't know specific product importers.
 
 async function knowledgeFallback(product, country, apiKey, send) {
   await send({ type: 'debug', message: 'No web data found — trying AI knowledge fallback…' })
@@ -178,14 +180,17 @@ async function knowledgeFallback(product, country, apiKey, send) {
       method: 'POST', signal: sig(20000),
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', temperature: 0, max_tokens: 1500,
+        model: 'gpt-4o-mini', temperature: 0, max_tokens: 2000,
         messages: [{
           role: 'user',
-          content: `List real companies in ${country} that import, distribute, or trade ${product}.
-Only include companies you know exist with reasonable confidence from training data.
-Do NOT invent companies. If you don't know any, return [].
+          content: `List well-known food importing, spice trading, or agricultural commodity companies in ${country}.
+These should be real companies that import food products or spices from countries like India.
+They don't need to be specific to "${product}" — any food/spice importer or distributor in ${country} is useful.
+Include major retail chains, food distributors, trading houses, or commodity importers.
+Aim for 8-15 real companies. Only omit a company if you're genuinely uncertain it exists.
 Return ONLY a JSON array:
-[{"company_name":"...","city":"...","country":"${country}","business_type":"Importer|Distributor|Trader"}]`,
+[{"company_name":"...","city":"...","country":"${country}","business_type":"Importer|Distributor|Trader|Retailer","website":"..."}]
+Use null for unknown website. Return [] only if you know nothing about food/spice companies in this country.`,
         }],
       }),
     })
@@ -194,6 +199,7 @@ Return ONLY a JSON array:
     const arr = JSON.parse(raw)
     const buyers = Array.isArray(arr) ? arr.filter(x => x?.company_name?.trim()) : []
     await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'done', found: buyers.length })
+    await send({ type: 'debug', message: `AI knowledge → ${buyers.length} food/spice companies` })
     return buyers.map(b => ({ buyer: b, source: 'AI Knowledge' }))
   } catch (_) {
     await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'failed', found: 0 })
@@ -289,13 +295,16 @@ export async function onRequestGet({ request, env }) {
       const braveQueries = [
         `"${product}" importers buyers ${country} company`,
         `${product} import buyers list ${country} contact phone`,
-        `site:volza.com "${product}" ${country}`,
         `site:exportimportdata.in ${product} importers ${country}`,
-        `site:cybex.in ${product} importers ${country}`,
         ...(isUAE(country) ? [
-          `Dubai UAE spice food importer "${product}" company`,
-          `site:yellowpages.ae food importers spice UAE`,
-        ] : []),
+          // Target company websites, NOT database aggregators
+          `"${product}" importer buyer Dubai UAE -site:volza.com -site:cybex.in -site:exportgenius.com`,
+          `site:yellowpages.ae spices food importers`,
+          `Dubai UAE food stuff spice trading company import India`,
+        ] : [
+          `site:volza.com "${product}" ${country}`,
+          `site:cybex.in ${product} importers ${country}`,
+        ]),
       ]
 
       let braveUrls = []
@@ -328,26 +337,32 @@ export async function onRequestGet({ request, env }) {
       await send({ type: 'status', message: 'Running Jina Search (full-page results)…' })
 
       for (const jq of jinaQueries) {
-        await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'crawling' })
+        const jinaLabel = `jina: ${jq.slice(0, 60)}`
+        await send({ type: 'page_status', url: jinaLabel, phase: 'crawling' })
         const jinaText = await jinaSearch(jq)
+        await send({ type: 'debug', message: `Jina Search returned ${jinaText?.length || 0} chars` })
         if (jinaText && jinaText.length > 100) {
-          await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'extracting' })
+          await send({ type: 'page_status', url: jinaLabel, phase: 'extracting' })
           const buyers = await extract(jinaText, 'Jina Search', product, country, apiKey)
-          await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'done', found: buyers.length })
+          await send({ type: 'page_status', url: jinaLabel, phase: 'done', found: buyers.length })
           for (const b of buyers) rawBuyers.push({ buyer: b, source: 'Jina Search' })
-          await send({ type: 'debug', message: `Jina "${jq.slice(0, 40)}…" → ${buyers.length} companies` })
+          await send({ type: 'debug', message: `Jina extraction → ${buyers.length} companies` })
         } else {
-          await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'failed', found: 0 })
+          await send({ type: 'page_status', url: jinaLabel, phase: 'failed', found: 0 })
+          await send({ type: 'debug', message: `Jina Search failed or empty (${jinaText?.length || 0} chars)` })
         }
       }
 
       // ── C: Directory crawls ──────────────────────────────────────────────
-      // Merge known directories with promising Brave URLs
-      const bravePageTargets = braveUrls.filter(u =>
-        !u.includes('volza.com') && !u.includes('cybex.in') // skip known paywalls from Brave
-          || dirUrls.includes(u)
-      ).slice(0, 4)
-      const crawlTargets = [...new Set([...dirUrls, ...bravePageTargets])].slice(0, 14)
+      // Skip known subscription-gated databases from Brave results.
+      // Crawl actual company websites, government portals, and open directories.
+      const DB_DOMAINS = ['volza.com','cybex.in','exportgenius.com','panjiva.com',
+        'importyeti.com','seair.co.in','zauba.com','tradeford.com','kompass.com',
+        'linkedin.com','facebook.com','twitter.com','instagram.com']
+      const bravePageTargets = braveUrls
+        .filter(u => !DB_DOMAINS.some(d => u.includes(d)))
+        .slice(0, 10)
+      const crawlTargets = [...new Set([...dirUrls, ...bravePageTargets])].slice(0, 16)
       await send({ type: 'status', message: `Crawling ${crawlTargets.length} pages…` })
 
       await Promise.all(crawlTargets.map(async pageUrl => {
