@@ -647,6 +647,43 @@ function BuyerRow({ buyer }) {
   )
 }
 
+function SearchDebug({ debugLines, pages }) {
+  const [open, setOpen] = useState(false)
+  const phaseIcon = (phase) =>
+    phase === 'crawling' ? '⏳' : phase === 'extracting' ? '🔍' : phase === 'done' ? '✓' : phase === 'failed' ? '✗' : '•'
+
+  if (!debugLines.length && !pages.length) return null
+  return (
+    <div className="bmodal__search-debug">
+      <button className="bmodal__debug-toggle" onClick={() => setOpen(o => !o)}>
+        {open ? '▲' : '▼'} Search details ({pages.length} sources, {debugLines.length} log lines)
+      </button>
+      {open && (
+        <div className="bmodal__debug-body">
+          {debugLines.length > 0 && (
+            <div className="bmodal__debug">
+              {debugLines.map((l, i) => <p key={i} className="bmodal__debug-line">{l}</p>)}
+            </div>
+          )}
+          {pages.length > 0 && (
+            <div className="bmodal__pages">
+              {pages.map((p, i) => (
+                <div key={i} className={`bmodal__page bmodal__page--${p.phase}`}>
+                  <span className="bmodal__page-icon">{phaseIcon(p.phase)}</span>
+                  <span className="bmodal__page-url">{p.url}</span>
+                  {p.found != null && (
+                    <span className="bmodal__page-cnt">{p.found > 0 ? `${p.found} lead${p.found > 1 ? 's' : ''}` : 'none'}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function BuyersModal({ onClose }) {
   const [country, setCountry] = useState('')
   const [product, setProduct] = useState('')
@@ -812,6 +849,7 @@ function BuyersModal({ onClose }) {
             <h2 className="bmodal__title">Search Failed</h2>
             <p className="bmodal__sub">{errorMsg}</p>
           </div>
+          <SearchDebug debugLines={debugLines} pages={pages} />
           <div className="bmodal__form">
             <button className="bmodal__gen bmodal__gen--active" onClick={handleBack}>
               ← Try Again
@@ -858,6 +896,7 @@ function BuyersModal({ onClose }) {
               {buyers.map((b, i) => <BuyerRow key={i} buyer={b} />)}
             </div>
           )}
+          <SearchDebug debugLines={debugLines} pages={pages} />
         </div>
       </div>
     )
