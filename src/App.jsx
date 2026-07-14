@@ -593,9 +593,65 @@ const BUYER_COUNTRIES = [
   'Japan', 'South Korea',
 ]
 
+const DEMO_BUYERS = [
+  { company_name: 'Gulf Agro Trading LLC', city: 'Dubai', business_type: 'Food Distributor', website: 'gulfagrotrading.ae', email: 'procurement@gulfagrotrading.ae', phone: '+971-4-355-7890', whatsapp: '+971-50-355-7890', description: 'Leading distributor of Indian pulses, spices, and grains serving the UAE wholesale and retail market.' },
+  { company_name: 'Spice Route International FZE', city: 'Sharjah', business_type: 'Spice Importer', website: 'spiceroute-intl.ae', email: 'imports@spiceroute-intl.ae', phone: '+971-6-528-4411', whatsapp: '+971-55-528-4411', description: 'Specialised importer of Indian spices and dried goods supplying GCC horeca and retail sectors.' },
+  { company_name: 'Emirates Grain & Pulse Co.', city: 'Abu Dhabi', business_type: 'Commodity Broker', website: 'emiratesgrains.com', email: 'trade@emiratesgrains.com', phone: '+971-2-622-9050', whatsapp: '+971-52-622-9050', description: 'Commodity brokerage specialising in South Asian pulses and cereals for re-export across the GCC.' },
+  { company_name: 'Al Barakah Foods Trading', city: 'Dubai', business_type: 'Wholesale Trader', website: 'albarakahfoods.ae', email: 'orders@albarakahfoods.ae', phone: '+971-4-887-3320', whatsapp: '+971-56-887-3320', description: 'Wholesale distributor of Indian grocery staples to ethnic supermarkets and restaurants across the UAE.' },
+  { company_name: 'Orient Foods Distribution', city: 'Ajman', business_type: 'Food Distributor', website: 'orientfoods.ae', email: 'buying@orientfoods.ae', phone: '+971-6-742-8800', whatsapp: '+971-58-742-8800', description: 'Full-service food distribution covering all seven UAE emirates with ambient and cold-chain logistics.' },
+  { company_name: 'Global Harvest Commodities', city: 'London', business_type: 'Commodity Broker', website: 'globalharvestcommodities.co.uk', email: 'procurement@globalharvestcommodities.co.uk', phone: '+44-20-7946-0812', whatsapp: null, description: 'London-based commodity trading house sourcing Indian pulses and spices for UK wholesale buyers.' },
+  { company_name: 'Sunrise Agri Imports Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer', website: 'sunriseagri.com.my', email: 'import@sunriseagri.com.my', phone: '+60-3-2785-4400', whatsapp: '+60-12-2785-4400', description: 'Malaysian importer of Indian spices and pulses for local processing and re-export across Southeast Asia.' },
+  { company_name: 'Continental Foods GmbH', city: 'Hamburg', business_type: 'Wholesale Trader', website: 'continentalfoods.de', email: 'einkauf@continentalfoods.de', phone: '+49-40-4139-7720', whatsapp: null, description: 'German wholesale trader of Asian food commodities supplying supermarkets across Central Europe.' },
+  { company_name: 'Dhaka Agro Import Ltd', city: 'Dhaka', business_type: 'Wholesale Trader', website: 'dhakaagroimport.com.bd', email: 'info@dhakaagroimport.com.bd', phone: '+880-2-9887-5531', whatsapp: '+880-17-9887-5531', description: "One of Bangladesh's largest importers of Indian pulses and spices with distribution across all divisions." },
+  { company_name: 'Pacific Rim Trading Co.', city: 'Singapore', business_type: 'Food Distributor', website: 'pacificrimtrading.sg', email: 'procurement@pacificrimtrading.sg', phone: '+65-6337-8820', whatsapp: '+65-8337-8820', description: 'Singapore-based trading house supplying Indian agricultural products to Southeast Asian food manufacturers.' },
+  { company_name: 'Indo-Gulf Foods L.L.C.', city: 'Muscat', business_type: 'Wholesale Trader', website: 'indogulffoods.om', email: 'trade@indogulffoods.om', phone: '+968-2456-7890', whatsapp: '+968-9456-7890', description: 'Oman-based importer distributing Indian pulses and spices to hypermarkets and wholesalers across Oman.' },
+  { company_name: 'Nile Valley Food Imports', city: 'Nairobi', business_type: 'Food Distributor', website: 'nilevalleyfoods.co.ke', email: 'imports@nilevalleyfoods.co.ke', phone: '+254-20-444-3388', whatsapp: '+254-722-444-338', description: "East Africa's leading importer of South Asian grocery staples serving Kenya, Tanzania, and Uganda." },
+]
+
+function BuyerRow({ buyer }) {
+  const [copied, setCopied] = useState(false)
+  const waNum = buyer.whatsapp ? buyer.whatsapp.replace(/[^0-9]/g, '') : ''
+  const copyEmail = () => {
+    navigator.clipboard.writeText(buyer.email).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1400)
+    })
+  }
+  return (
+    <div className="brow">
+      <div className="brow__head">
+        <span className="brow__type">{buyer.business_type}</span>
+        <strong className="brow__name">{buyer.company_name}</strong>
+        <span className="brow__city">📍 {buyer.city}</span>
+      </div>
+      <p className="brow__desc">{buyer.description}</p>
+      <div className="brow__contacts">
+        {buyer.website && (
+          <a className="brow__link" href={`https://${buyer.website}`} target="_blank" rel="noopener noreferrer">🌐 {buyer.website}</a>
+        )}
+        {buyer.email && (
+          <span className="brow__email-wrap">
+            <a className="brow__link" href={`mailto:${buyer.email}`}>✉️ {buyer.email}</a>
+            <button className={`brow__copy${copied ? ' brow__copy--done' : ''}`} onClick={copyEmail}>{copied ? '✓' : '⧉'}</button>
+          </span>
+        )}
+        {buyer.phone && (
+          <a className="brow__link" href={`tel:${buyer.phone}`}>📞 {buyer.phone}</a>
+        )}
+        {waNum && (
+          <a className="brow__wa" href={`https://wa.me/${waNum}`} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function BuyersModal({ onClose }) {
   const [country, setCountry] = useState('')
   const [product, setProduct] = useState('')
+  const [view, setView] = useState('form') // 'form' | 'loading' | 'results'
+  const [buyers, setBuyers] = useState([])
+  const [demoNote, setDemoNote] = useState('')
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -608,10 +664,71 @@ function BuyersModal({ onClose }) {
     }
   }, [onClose])
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!country || !product) return
-    const p = new URLSearchParams({ country, product })
-    window.open(`/buyers.html?${p}`, '_blank', 'noopener,noreferrer')
+    setView('loading')
+    try {
+      const url = `/generate-buyers?country=${encodeURIComponent(country)}&product=${encodeURIComponent(product)}`
+      const resp = await fetch(url)
+      const ct = resp.headers.get('content-type') || ''
+      if (!ct.includes('application/json')) throw new Error('unavailable')
+      const data = await resp.json()
+      setBuyers(data.buyers || [])
+      if (data.demo) setDemoNote(data.note || '')
+      setView('results')
+    } catch (_err) {
+      setBuyers(DEMO_BUYERS)
+      setDemoNote('Showing sample data — add ANTHROPIC_API_KEY in Cloudflare Pages for live AI-generated leads.')
+      setView('results')
+    }
+  }
+
+  const handleBack = () => {
+    setView('form')
+    setBuyers([])
+    setDemoNote('')
+  }
+
+  if (view === 'loading') {
+    return (
+      <div className="bmodal-overlay" onClick={onClose}>
+        <div className="bmodal" onClick={(e) => e.stopPropagation()}>
+          <button className="bmodal__close" onClick={onClose}>×</button>
+          <div className="bmodal__top">
+            <span className="bmodal__globe" aria-hidden="true">🌍</span>
+            <h2 className="bmodal__title">Finding Buyers…</h2>
+            <p className="bmodal__sub">{product} importers in {country}</p>
+          </div>
+          <div className="bmodal__spin-wrap">
+            <div className="bmodal__spinner" />
+            <p className="bmodal__spin-txt">Generating leads with AI…</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (view === 'results') {
+    return (
+      <div className="bmodal-overlay" onClick={onClose}>
+        <div className="bmodal bmodal--wide" onClick={(e) => e.stopPropagation()}>
+          <div className="bmodal__rhead">
+            <button className="bmodal__back" onClick={handleBack}>← New Search</button>
+            <div className="bmodal__rctx">
+              <span className="bmodal__rctx-prod">{product}</span>
+              <span className="bmodal__rctx-sep"> importers in </span>
+              <span className="bmodal__rctx-prod">{country}</span>
+              <span className="bmodal__rctx-cnt"> · {buyers.length} leads</span>
+            </div>
+            <button className="bmodal__close bmodal__close--dk" onClick={onClose}>×</button>
+          </div>
+          {demoNote && <div className="bmodal__demo-note">ℹ️ {demoNote}</div>}
+          <div className="bmodal__rlist">
+            {buyers.map((b, i) => <BuyerRow key={i} buyer={b} />)}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
