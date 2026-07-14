@@ -12,27 +12,35 @@ function sig(ms) {
 
 function countrySlug(country) {
   return country.toLowerCase()
-    .replace(/\bunited arab emirates\b/, 'uae')
-    .replace(/\bunited kingdom\b/, 'uk')
-    .replace(/\bunited states\b/, 'usa')
+    .replace(/\bunited arab emirates\b/i, 'uae')
+    .replace(/\bunited kingdom\b/i, 'uk')
+    .replace(/\bunited states\b/i, 'usa')
     .replace(/\s+/g, '-')
 }
 
-function productSlugs(product) {
-  const words = product.toLowerCase().split(/\s+/)
-  return [...new Set([
-    words.join('-'),
-    words.slice(1).join('-'),
-    words[words.length - 1],
-    words.join('-').replace(/chillies/g, 'chilli'),
-    words.join('-').replace(/\bchilli\b/g, 'chillies'),
-  ])].filter(s => s.length > 2).slice(0, 3)
+function isUAE(country) {
+  const c = country.toLowerCase()
+  return c.includes('uae') || c.includes('emirates') || c.includes('dubai')
+    || c.includes('sharjah') || c.includes('abu dhabi')
 }
 
-// ── Source A: Brave Search — snippets + URLs ───────────────────────────────
-// Brave returns rich descriptions for each result. Those snippets often contain
-// company names directly — no page crawl needed. We also collect URLs to crawl.
+// Generate all reasonable URL slug variants — NO length cap.
+function productSlugs(product) {
+  const words = product.toLowerCase().trim().split(/\s+/)
+  const base = words.join('-')
+  return [...new Set([
+    base,
+    words.slice(1).join('-'),             // drop first word
+    words[words.length - 1],             // last word only
+    base.replace(/chillies/g, 'chilli'), // singular — Volza uses this
+    base.replace(/peppers?/g, 'chilli'),
+    base.replace(/\bchilli\b/g, 'chillies'),
+    base.replace(/ies$/, 'i'),            // generic plural→singular
+    base.replace(/s$/, ''),               // generic trailing-s strip
+  ])].filter(s => s && s.length > 2)
+}
 
+// ── Source A: Brave Search — snippets ─────────────────────────────────────
 async function braveSearchFull(query, key) {
   const r = await fetch(
     `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=10&result_filter=web`,
@@ -49,37 +57,49 @@ async function braveSearchFull(query, key) {
   }
 }
 
-// ── Source B: Jina Search — search + full page content ────────────────────
-// s.jina.ai does the search AND returns cleaned markdown of each result page.
-
+// ── Source B: Jina Search ─────────────────────────────────────────────────
 async function jinaSearch(query) {
-  const r = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`, {
-    signal: sig(20000),
-    headers: { Accept: 'text/plain', 'X-No-Cache': 'true' },
-  })
-  if (!r.ok) return ''
-  return (await r.text()).slice(0, 12000)
+  try {
+    const r = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`, {
+      signal: sig(22000),
+      headers: { Accept: 'text/plain', 'X-No-Cache': 'true' },
+    })
+    if (!r.ok) return ''
+    return (await r.text()).slice(0, 14000)
+  } catch (_) { return '' }
 }
 
-// ── Source C: Known public directories (crawled via Jina Reader) ───────────
-// Only include sites that actually have public company listings (not paywalled).
-// Volza/Cybex show a small preview before login — worth trying.
-
-function publicDirectoryUrls(product, country) {
+// ── Source C: Directory crawl via Jina Reader ─────────────────────────────
+function buildDirectoryUrls(product, country) {
   const slugs = productSlugs(product)
   const cs = countrySlug(country)
-  const s0 = slugs[0]
-  return [...new Set([
-    // exportimportdata.in — static HTML blog posts, reliably crawlable
-    ...slugs.map(s => `https://www.exportimportdata.in/blogs/${s}-importers-in-${cs}.aspx`),
-    ...(cs === 'uae' ? slugs.map(s => `https://www.exportimportdata.in/blogs/${s}-importers-in-dubai.aspx`) : []),
+  const urls = []
+
+  for (const s of slugs) {
+    // exportimportdata.in — static HTML blogs, reliably public
+    urls.push(`https://www.exportimportdata.in/blogs/${s}-importers-in-${cs}.aspx`)
+    if (isUAE(country)) {
+      urls.push(`https://www.exportimportdata.in/blogs/${s}-importers-in-dubai.aspx`)
+      urls.push(`https://www.exportimportdata.in/blogs/${s}-buyers-in-uae.aspx`)
+    }
     // Volza — shows preview company names before paywall
-    `https://www.volza.com/p/${s0}/import/import-in-${cs}/`,
-    // Cybex — shows preview before login
-    `https://www.cybex.in/import-export/${s0}-importers-in-${cs}.aspx`,
-    // TradeKey — some buyer leads are public
-    `https://www.tradekey.com/products-buyer-lead/productname-${s0}/`,
-  ])]
+    urls.push(`https://www.volza.com/p/${s}/import/import-in-${cs}/`)
+    // Cybex — shows preview table before login
+    urls.push(`https://www.cybex.in/import-export/${s}-importers-in-${cs}.aspx`)
+  }
+
+  if (isUAE(country)) {
+    // UAE Yellow Pages — public business directory with phone numbers
+    urls.push('https://yellowpages.ae/en/search/food-stuff-importers-exporters-dubai')
+    urls.push('https://yellowpages.ae/en/search/spices-traders-dubai')
+    // Kompass UAE food importers — some data is free
+    urls.push('https://www.kompass.com/a/united-arab-emirates/22/food-stuffs-other-food-industries/')
+  }
+
+  // TradeKey buyer leads
+  urls.push(`https://www.tradekey.com/products-buyer-lead/productname-${slugs[0]}/`)
+
+  return [...new Set(urls)].slice(0, 12)
 }
 
 async function crawlViaJina(url) {
@@ -94,26 +114,42 @@ async function crawlViaJina(url) {
 }
 
 // ── Extraction: GPT-4o-mini ────────────────────────────────────────────────
+// Prompt is deliberately permissive: extract any company MENTIONED near the
+// topic, even without full contact details. Consolidation handles quality.
 
 async function extract(text, sourceLabel, product, country, apiKey) {
-  if (!text || text.length < 20) return []
+  if (!text || text.length < 30) return []
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST', signal: sig(15000),
+    method: 'POST', signal: sig(18000),
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
       temperature: 0,
-      max_tokens: 2000,
+      max_tokens: 2500,
       messages: [
         {
           role: 'system',
-          content: `Extract buyer/importer company records from text. Return ONLY a JSON array.
-Rules: Only include companies mentioned in the text. Never invent data. Unknown fields = null.
-If the text is a paywall/login page with no company data, return [].`,
+          content: `Extract importer/buyer/trader company names from text.
+RULES:
+- Extract every company or business name mentioned, even if contact details are missing.
+- Include companies that import, buy, distribute, or trade the product — even if their country is only implied.
+- Do NOT filter by country strictly; a company mentioned in a UAE context is fine.
+- Return [] only if the text is a login/paywall page with zero company data.
+- Never invent companies not present in the text.
+Return ONLY a JSON array.`,
         },
         {
           role: 'user',
-          content: `Source: ${sourceLabel}\nProduct: ${product}  Country: ${country}\n\n${text}\n\nExtract all companies that import or buy ${product} in ${country}.\nJSON array:\n[{"company_name":"...","city":"...","website":"...","email":"...","phone":"...","business_type":"Importer|Distributor|Trader"}]\nReturn ONLY the JSON array.`,
+          content: `Text source: ${sourceLabel}
+Product: ${product}
+Country context: ${country}
+
+${text}
+
+Extract all companies related to importing or buying "${product}".
+JSON array:
+[{"company_name":"...","city":"...","country":"...","website":"...","email":"...","phone":"...","business_type":"Importer|Distributor|Trader"}]
+Return ONLY the JSON array. Use null for unknown fields.`,
         },
       ],
     }),
@@ -123,10 +159,45 @@ If the text is a paywall/login page with no company data, return [].`,
     .trim().replace(/^```json?\n?/, '').replace(/\n?```$/, '')
   try {
     const arr = JSON.parse(raw)
-    return Array.isArray(arr) ? arr.filter(x => x?.company_name) : []
+    return Array.isArray(arr) ? arr.filter(x => x?.company_name?.trim()) : []
   } catch (_) {
     const m = raw.match(/\[[\s\S]*]/)
-    try { return JSON.parse(m?.[0] || '[]').filter(x => x?.company_name) } catch (_2) { return [] }
+    try { return JSON.parse(m?.[0] || '[]').filter(x => x?.company_name?.trim()) } catch (_2) { return [] }
+  }
+}
+
+// ── Knowledge fallback ─────────────────────────────────────────────────────
+// Last resort: ask GPT-4o-mini from training knowledge.
+// Labelled "AI Knowledge" — users should verify independently.
+
+async function knowledgeFallback(product, country, apiKey, send) {
+  await send({ type: 'debug', message: 'No web data found — trying AI knowledge fallback…' })
+  await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'crawling' })
+  try {
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST', signal: sig(20000),
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini', temperature: 0, max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: `List real companies in ${country} that import, distribute, or trade ${product}.
+Only include companies you know exist with reasonable confidence from training data.
+Do NOT invent companies. If you don't know any, return [].
+Return ONLY a JSON array:
+[{"company_name":"...","city":"...","country":"${country}","business_type":"Importer|Distributor|Trader"}]`,
+        }],
+      }),
+    })
+    if (!r.ok) { await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'failed', found: 0 }); return [] }
+    const raw = ((await r.json()).choices?.[0]?.message?.content || '').replace(/^```json?\n?/, '').replace(/\n?```$/, '')
+    const arr = JSON.parse(raw)
+    const buyers = Array.isArray(arr) ? arr.filter(x => x?.company_name?.trim()) : []
+    await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'done', found: buyers.length })
+    return buyers.map(b => ({ buyer: b, source: 'AI Knowledge' }))
+  } catch (_) {
+    await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'failed', found: 0 })
+    return []
   }
 }
 
@@ -134,7 +205,7 @@ If the text is a paywall/login page with no company data, return [].`,
 
 function normKey(name) {
   return name.toLowerCase()
-    .replace(/\b(ltd|limited|sdn\.?bhd|pvt|llc|gmbh|corp|inc|co\.|company|trading|enterprise|group|holdings?|international|global|imports?|exports?|industries|services)\b/gi, '')
+    .replace(/\b(ltd|limited|sdn\.?bhd|pvt|llc|gmbh|corp|inc|co\.|company|trading|enterprise|group|holdings?|international|global|imports?|exports?|industries|services|fze|fzco|llc|dmcc)\b/gi, '')
     .replace(/[^a-z0-9]/g, '').slice(0, 22)
 }
 
@@ -145,7 +216,7 @@ function consolidate(rawBuyers, country) {
     if (!key || key.length < 2) continue
     if (map.has(key)) {
       const e = map.get(key)
-      for (const k of ['city', 'website', 'email', 'phone', 'business_type'])
+      for (const k of ['city', 'country', 'website', 'email', 'phone', 'business_type'])
         if (!e[k] && buyer[k]) e[k] = buyer[k]
       e._srcs.add(source)
     } else {
@@ -154,7 +225,8 @@ function consolidate(rawBuyers, country) {
   }
   return [...map.values()].map(({ _srcs, ...b }) => {
     const sources = [..._srcs]
-    let conf = 40
+    const isAIOnly = sources.every(s => s === 'AI Knowledge')
+    let conf = isAIOnly ? 25 : 40
     if (b.website) conf += 20
     if (b.email)   conf += 20
     if (b.phone)   conf += 10
@@ -171,7 +243,7 @@ async function gpt4oClean(buyers, product, country, apiKey) {
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4o', temperature: 0, max_tokens: 3000,
-        messages: [{ role: 'user', content: `Clean and deduplicate these ${product} importers in ${country}. Fix formatting, remove obvious duplicates. Return JSON array with same schema.\n\n${JSON.stringify(buyers)}\n\nReturn ONLY the JSON array.` }],
+        messages: [{ role: 'user', content: `Clean and deduplicate these ${product} importers in ${country}. Fix company name formatting. Remove obvious duplicates. Keep all fields. Return ONLY a JSON array.\n\n${JSON.stringify(buyers)}` }],
       }),
     })
     if (!r.ok) return buyers
@@ -185,8 +257,8 @@ async function gpt4oClean(buyers, product, country, apiKey) {
 
 export async function onRequestGet({ request, env }) {
   const u = new URL(request.url)
-  const country = u.searchParams.get('country') || ''
-  const product  = u.searchParams.get('product')  || ''
+  const country = (u.searchParams.get('country') || '').trim()
+  const product  = (u.searchParams.get('product')  || '').trim()
 
   if (!country || !product) {
     return new Response(JSON.stringify({ error: 'country and product are required' }), {
@@ -207,68 +279,81 @@ export async function onRequestGet({ request, env }) {
         return
       }
 
-      await send({ type: 'status', message: `Gathering buyer intelligence for ${product} in ${country}…` })
+      await send({ type: 'status', message: `Searching for ${product} buyers in ${country}…` })
 
       const rawBuyers = []
-      const dirUrls = publicDirectoryUrls(product, country)
+      const dirUrls = buildDirectoryUrls(product, country)
+      await send({ type: 'debug', message: `Directory targets: ${dirUrls.join(' | ')}` })
 
-      // ── A: Brave Search snippets + URLs ─────────────────────────────────
+      // ── A: Brave Search snippets ─────────────────────────────────────────
       const braveQueries = [
         `"${product}" importers buyers ${country} company`,
-        `${product} import buyers list ${country} contact`,
-        `site:volza.com ${product} ${country}`,
+        `${product} import buyers list ${country} contact phone`,
+        `site:volza.com "${product}" ${country}`,
         `site:exportimportdata.in ${product} importers ${country}`,
         `site:cybex.in ${product} importers ${country}`,
+        ...(isUAE(country) ? [
+          `Dubai UAE spice food importer "${product}" company`,
+          `site:yellowpages.ae food importers spice UAE`,
+        ] : []),
       ]
 
       let braveUrls = []
 
       if (env.BRAVE_API_KEY) {
-        await send({ type: 'status', message: 'Running Brave Search queries…' })
+        await send({ type: 'status', message: 'Running Brave Search…' })
         const braveResults = await Promise.all(
-          braveQueries.map(q => braveSearchFull(q, env.BRAVE_API_KEY).catch(e => {
-            return { urls: [], snippetText: '' }
-          }))
+          braveQueries.map(q => braveSearchFull(q, env.BRAVE_API_KEY).catch(() => ({ urls: [], snippetText: '' })))
         )
-
-        // Collect all snippet text into one extraction call
         const allSnippets = braveResults.map(r => r.snippetText).filter(Boolean).join('\n===\n')
         braveUrls = [...new Set(braveResults.flatMap(r => r.urls))]
-
-        await send({ type: 'debug', message: `Brave: ${braveUrls.length} URLs · extracting from ${braveResults.filter(r => r.snippetText).length} result sets` })
+        await send({ type: 'debug', message: `Brave returned ${braveUrls.length} URLs` })
 
         if (allSnippets.length > 50) {
           await send({ type: 'page_status', url: 'brave-search-snippets', phase: 'extracting' })
-          const buyers = await extract(allSnippets.slice(0, 10000), 'Brave Search snippets', product, country, apiKey)
+          const buyers = await extract(allSnippets.slice(0, 12000), 'Brave Search snippets', product, country, apiKey)
           await send({ type: 'page_status', url: 'brave-search-snippets', phase: 'done', found: buyers.length })
           for (const b of buyers) rawBuyers.push({ buyer: b, source: 'Brave Search' })
-          await send({ type: 'debug', message: `Snippets extraction: ${buyers.length} companies found` })
+          await send({ type: 'debug', message: `Snippet extraction → ${buyers.length} companies` })
+        }
+      } else {
+        await send({ type: 'debug', message: 'BRAVE_API_KEY not set — skipping web search snippets' })
+      }
+
+      // ── B: Jina Search ───────────────────────────────────────────────────
+      const jinaQueries = [
+        `${product} importers buyers ${country} company name contact`,
+        ...(isUAE(country) ? [`Dubai UAE food spice importer trading company ${product}`] : []),
+      ]
+      await send({ type: 'status', message: 'Running Jina Search (full-page results)…' })
+
+      for (const jq of jinaQueries) {
+        await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'crawling' })
+        const jinaText = await jinaSearch(jq)
+        if (jinaText && jinaText.length > 100) {
+          await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'extracting' })
+          const buyers = await extract(jinaText, 'Jina Search', product, country, apiKey)
+          await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'done', found: buyers.length })
+          for (const b of buyers) rawBuyers.push({ buyer: b, source: 'Jina Search' })
+          await send({ type: 'debug', message: `Jina "${jq.slice(0, 40)}…" → ${buyers.length} companies` })
+        } else {
+          await send({ type: 'page_status', url: `jina: ${jq.slice(0, 60)}`, phase: 'failed', found: 0 })
         }
       }
 
-      // ── B: Jina Search — full content of top results ─────────────────────
-      await send({ type: 'status', message: 'Running Jina Search for full-page content…' })
-      await send({ type: 'page_status', url: 'jina-search', phase: 'crawling' })
-      const jinaText = await jinaSearch(`${product} importers buyers list ${country} company contact`)
-      if (jinaText && jinaText.length > 100) {
-        await send({ type: 'page_status', url: 'jina-search', phase: 'extracting' })
-        const buyers = await extract(jinaText, 'Jina Search', product, country, apiKey)
-        await send({ type: 'page_status', url: 'jina-search', phase: 'done', found: buyers.length })
-        for (const b of buyers) rawBuyers.push({ buyer: b, source: 'Jina Search' })
-        await send({ type: 'debug', message: `Jina Search extraction: ${buyers.length} companies found` })
-      } else {
-        await send({ type: 'page_status', url: 'jina-search', phase: 'failed', found: 0 })
-      }
-
-      // ── C: Crawl public directories + top Brave URLs ──────────────────────
-      // Merge known directories with top Brave URLs (deduplicated, max 8)
-      const crawlTargets = [...new Set([...dirUrls, ...braveUrls])].slice(0, 8)
-      await send({ type: 'status', message: `Crawling ${crawlTargets.length} pages via Jina Reader…` })
+      // ── C: Directory crawls ──────────────────────────────────────────────
+      // Merge known directories with promising Brave URLs
+      const bravePageTargets = braveUrls.filter(u =>
+        !u.includes('volza.com') && !u.includes('cybex.in') // skip known paywalls from Brave
+          || dirUrls.includes(u)
+      ).slice(0, 4)
+      const crawlTargets = [...new Set([...dirUrls, ...bravePageTargets])].slice(0, 14)
+      await send({ type: 'status', message: `Crawling ${crawlTargets.length} pages…` })
 
       await Promise.all(crawlTargets.map(async pageUrl => {
         await send({ type: 'page_status', url: pageUrl, phase: 'crawling' })
         const text = await crawlViaJina(pageUrl)
-        if (!text) {
+        if (!text || text.length < 50) {
           await send({ type: 'page_status', url: pageUrl, phase: 'failed', found: 0 })
           return
         }
@@ -278,22 +363,30 @@ export async function onRequestGet({ request, env }) {
         for (const b of buyers) rawBuyers.push({ buyer: b, source: pageUrl })
       }))
 
+      // ── Knowledge fallback if nothing found yet ──────────────────────────
+      if (rawBuyers.length === 0) {
+        const kbBuyers = await knowledgeFallback(product, country, apiKey, send)
+        rawBuyers.push(...kbBuyers)
+      }
+
       // ── Consolidate ───────────────────────────────────────────────────────
       await send({ type: 'status', message: `Consolidating ${rawBuyers.length} raw records…` })
       let buyers = consolidate(rawBuyers, country)
       buyers = await gpt4oClean(buyers, product, country, apiKey)
 
-      await send({ type: 'meta', searchMode: env.BRAVE_API_KEY ? 'web_search' : 'directory_crawl' })
-      await send({ type: 'debug', message: `Final result: ${buyers.length} unique verified companies` })
+      const hasAIOnly = buyers.length > 0 && buyers.every(b => b.sources?.every(s => s === 'AI Knowledge'))
+      await send({ type: 'meta', searchMode: env.BRAVE_API_KEY ? 'web_search' : (hasAIOnly ? 'knowledge' : 'directory_crawl') })
+      await send({ type: 'debug', message: `Final: ${buyers.length} unique companies` })
 
       if (buyers.length === 0) {
-        await send({ type: 'no_results', message: `No ${product} importers found in ${country}. Check the debug lines above to see which sources returned data.` })
+        await send({ type: 'no_results', message: `No ${product} importers could be found for ${country}. The debug lines above show what each source returned.` })
       } else {
         for (const buyer of buyers) await send({ type: 'buyer', ...buyer })
       }
       await send({ type: 'done', count: buyers.length })
+
     } catch (err) {
-      const msg = err?.name === 'AbortError' ? 'Timed out — please try again.' : (err?.message || 'Search failed.')
+      const msg = err?.name === 'AbortError' ? 'Request timed out.' : (err?.message || 'Search failed.')
       await send({ type: 'error', message: msg })
       await send({ type: 'done', count: 0 })
     } finally {
