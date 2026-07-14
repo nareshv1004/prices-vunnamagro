@@ -57,12 +57,15 @@ async function braveSearchFull(query, key) {
   }
 }
 
-// ── Source B: Jina Search ─────────────────────────────────────────────────
-async function jinaSearch(query) {
+// ── Source B: DuckDuckGo HTML (replaces s.jina.ai which returns 0 chars) ──
+// DDG's HTML endpoint needs no JS, no auth, no API key.
+// We fetch it via Jina Reader so markup is stripped to clean text.
+async function ddgSearch(query) {
   try {
-    const r = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`, {
-      signal: sig(22000),
-      headers: { Accept: 'text/plain', 'X-No-Cache': 'true' },
+    const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`
+    const r = await fetch(`https://r.jina.ai/${ddgUrl}`, {
+      signal: sig(18000),
+      headers: { Accept: 'text/plain', 'X-No-Cache': 'true', 'X-Return-Format': 'text' },
     })
     if (!r.ok) return ''
     return (await r.text()).slice(0, 14000)
@@ -173,18 +176,34 @@ async function knowledgeFallback(product, country, apiKey, send) {
       method: 'POST', signal: sig(20000),
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', temperature: 0, max_tokens: 2000,
-        messages: [{
-          role: 'user',
-          content: `List well-known food importing, spice trading, or agricultural commodity companies in ${country}.
-These should be real companies that import food products or spices from countries like India.
-They don't need to be specific to "${product}" — any food/spice importer or distributor in ${country} is useful.
-Include major retail chains, food distributors, trading houses, or commodity importers.
-Aim for 8-15 real companies. Only omit a company if you're genuinely uncertain it exists.
-Return ONLY a JSON array:
-[{"company_name":"...","city":"...","country":"${country}","business_type":"Importer|Distributor|Trader|Retailer","website":"..."}]
-Use null for unknown website. Return [] only if you know nothing about food/spice companies in this country.`,
-        }],
+        model: 'gpt-4o-mini', temperature: 0.3, max_tokens: 2000,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a trade intelligence assistant helping an Indian spice exporter find buyers. Be helpful and list companies generously. Do not be overly cautious about certainty.',
+          },
+          {
+            role: 'user',
+            content: `I export ${product} from India and want to find buyers in ${country}.
+
+List food importing companies, spice traders, wholesale food distributors, commodity trading groups, and large retailers that import food directly — all based in ${country}.
+
+They do NOT need to specifically import ${product}. Any food/spice/commodity business in ${country} is a useful lead.
+
+Include examples like:
+- Food stuff trading companies and wholesale distributors
+- Spice importers and commodity traders
+- Food manufacturing companies that use spices as ingredients
+- Major supermarket chains / retailers that import food directly
+- Indian/Asian grocery wholesale distributors
+
+Give me 10-15 companies. Be generous with your list.
+
+Return ONLY JSON array:
+[{"company_name":"...","city":"...","country":"${country}","business_type":"...","website":"..."}]
+Use null for unknown website.`,
+          },
+        ],
       }),
     })
     if (!r.ok) { await send({ type: 'page_status', url: 'ai-knowledge-fallback', phase: 'failed', found: 0 }); return [] }
@@ -322,27 +341,27 @@ export async function onRequestGet({ request, env }) {
         await send({ type: 'debug', message: 'BRAVE_API_KEY not set — skipping web search snippets' })
       }
 
-      // ── B: Jina Search ───────────────────────────────────────────────────
-      const jinaQueries = [
-        `${product} importers buyers ${country} company name contact`,
-        ...(isUAE(country) ? [`Dubai UAE food spice importer trading company ${product}`] : []),
+      // ── B: DuckDuckGo HTML search (s.jina.ai was returning 0 chars) ────────
+      // DDG HTML endpoint is plain HTML, no JS, no auth — reliable via Jina Reader.
+      const ddgQueries = [
+        `${product} importers buyers ${country} company`,
+        ...(isUAE(country) ? [`Dubai UAE spice food importer company ${product}`] : []),
       ]
-      await send({ type: 'status', message: 'Running Jina Search (full-page results)…' })
+      await send({ type: 'status', message: 'Searching DuckDuckGo for company pages…' })
 
-      for (const jq of jinaQueries) {
-        const jinaLabel = `jina: ${jq.slice(0, 60)}`
-        await send({ type: 'page_status', url: jinaLabel, phase: 'crawling' })
-        const jinaText = await jinaSearch(jq)
-        await send({ type: 'debug', message: `Jina Search returned ${jinaText?.length || 0} chars` })
-        if (jinaText && jinaText.length > 100) {
-          await send({ type: 'page_status', url: jinaLabel, phase: 'extracting' })
-          const buyers = await extract(jinaText, 'Jina Search', product, country, apiKey)
-          await send({ type: 'page_status', url: jinaLabel, phase: 'done', found: buyers.length })
-          for (const b of buyers) rawBuyers.push({ buyer: b, source: 'Jina Search' })
-          await send({ type: 'debug', message: `Jina extraction → ${buyers.length} companies` })
+      for (const dq of ddgQueries) {
+        const ddgLabel = `ddg: ${dq.slice(0, 60)}`
+        await send({ type: 'page_status', url: ddgLabel, phase: 'crawling' })
+        const ddgText = await ddgSearch(dq)
+        await send({ type: 'debug', message: `DDG search returned ${ddgText?.length || 0} chars` })
+        if (ddgText && ddgText.length > 100) {
+          await send({ type: 'page_status', url: ddgLabel, phase: 'extracting' })
+          const buyers = await extract(ddgText, `DDG: ${dq}`, product, country, apiKey)
+          await send({ type: 'page_status', url: ddgLabel, phase: 'done', found: buyers.length })
+          for (const b of buyers) rawBuyers.push({ buyer: b, source: 'Web Search' })
+          await send({ type: 'debug', message: `DDG extraction → ${buyers.length} companies` })
         } else {
-          await send({ type: 'page_status', url: jinaLabel, phase: 'failed', found: 0 })
-          await send({ type: 'debug', message: `Jina Search failed or empty (${jinaText?.length || 0} chars)` })
+          await send({ type: 'page_status', url: ddgLabel, phase: 'failed', found: 0 })
         }
       }
 
