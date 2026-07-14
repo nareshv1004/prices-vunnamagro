@@ -881,7 +881,7 @@ function BuyersModal({ onClose }) {
               ? <span className="bmodal__src-badge bmodal__src-badge--live">✓ Live web search (Brave/Google) · crawled + extracted by GPT-4o mini</span>
               : searchMode === 'directory_crawl'
               ? <span className="bmodal__src-badge bmodal__src-badge--crawl">✓ Crawled from trade directories · extracted by GPT-4o mini · add BRAVE_API_KEY for broader results</span>
-              : <span className="bmodal__src-badge bmodal__src-badge--ai">ℹ️ From AI training knowledge · add BRAVE_API_KEY for live web search</span>
+              : <span className="bmodal__src-badge bmodal__src-badge--ai">ℹ️ Potential leads from AI knowledge · verify each company for your product before contacting</span>
             }
           </div>
           {noResults ? (

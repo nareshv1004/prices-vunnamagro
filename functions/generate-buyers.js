@@ -444,7 +444,10 @@ export async function onRequestGet({ request, env }) {
       buyers = await gpt4oClean(buyers, product, country, apiKey)
 
       const hasAIOnly = buyers.length > 0 && buyers.every(b => b.sources?.every(s => s === 'AI Knowledge'))
-      await send({ type: 'meta', searchMode: env.BRAVE_API_KEY ? 'web_search' : (hasAIOnly ? 'knowledge' : 'directory_crawl') })
+      const searchMode = hasAIOnly ? 'knowledge'
+        : env.BRAVE_API_KEY ? 'web_search'
+        : 'directory_crawl'
+      await send({ type: 'meta', searchMode })
       await send({ type: 'debug', message: `Final: ${buyers.length} unique companies` })
 
       if (buyers.length === 0) {
