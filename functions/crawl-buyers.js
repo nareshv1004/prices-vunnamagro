@@ -300,14 +300,16 @@ export async function onRequestPost({ request, env }) {
 
   companies.sort((a, b) => (b.buyer_score || 0) - (a.buyer_score || 0))
 
-  // Stage 5 — write to KV
+  // Stage 5 — write to KV only when live sources found real companies
+  // Empty arrays are not cached — the serving endpoint falls through to v1 baselines instead
   const key = kvKey(product, country)
-  const record = { product, country, buyers: companies, cached_at: new Date().toISOString(), source_version: 'v2' }
-  if (env.KV_BUYERS_CACHE) {
+  const cached_at = new Date().toISOString()
+  if (companies.length > 0 && env.KV_BUYERS_CACHE) {
+    const record = { product, country, buyers: companies, cached_at, source_version: 'v2' }
     await env.KV_BUYERS_CACHE.put(key, JSON.stringify(record), { expirationTtl: 90000 })
   }
 
-  return new Response(JSON.stringify({ ok: true, count: companies.length, key, cached_at: record.cached_at }), {
+  return new Response(JSON.stringify({ ok: true, count: companies.length, key, cached_at }), {
     headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   })
 }
