@@ -593,10 +593,23 @@ const BUYER_COUNTRIES = [
   'Japan', 'South Korea',
 ]
 
+function BuyerScore({ score }) {
+  const color = score >= 75 ? '#1f7a4a' : score >= 50 ? '#b45309' : '#888'
+  return (
+    <div className="brow__score" title={`Buyer Score: ${score}/100`}>
+      <span className="brow__score-num" style={{ color }}>{score}</span>
+      <div className="brow__score-bar-wrap">
+        <div className="brow__score-fill" style={{ width: `${score}%`, background: color }} />
+      </div>
+    </div>
+  )
+}
+
 function BuyerRow({ buyer }) {
   const searchUrl = `https://www.google.com/search?q=${encodeURIComponent('"' + buyer.company_name + '" ' + (buyer.business_type || 'importer'))}`
-  const linkedinUrl = `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(buyer.company_name)}`
-  const confClass = buyer.confidence >= 80 ? 'hi' : buyer.confidence >= 60 ? 'mid' : 'lo'
+  const linkedinSearchUrl = `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(buyer.company_name)}`
+  const fitClass = buyer.product_fit === 'High' ? 'hi' : buyer.product_fit === 'Low' ? 'lo' : 'mid'
+  const confClass = (buyer.confidence || 0) >= 80 ? 'hi' : (buyer.confidence || 0) >= 60 ? 'mid' : 'lo'
 
   return (
     <div className="brow">
@@ -604,28 +617,45 @@ function BuyerRow({ buyer }) {
         {buyer.business_type && <span className="brow__type">{buyer.business_type}</span>}
         <strong className="brow__name">{buyer.company_name}</strong>
         {(buyer.city || buyer.country) && (
-          <span className="brow__city">📍 {[buyer.city, buyer.country].filter(Boolean).join(', ')}</span>
+          <span className="brow__city">{[buyer.city, buyer.country].filter(Boolean).join(', ')}</span>
         )}
-        {buyer.confidence != null && (
-          <span className={`brow__conf brow__conf--${confClass}`} title="Confidence score from web search">
-            {buyer.confidence}%
-          </span>
-        )}
+        {buyer.buyer_score != null
+          ? <BuyerScore score={buyer.buyer_score} />
+          : buyer.confidence != null && (
+            <span className={`brow__conf brow__conf--${confClass}`}>{buyer.confidence}%</span>
+          )
+        }
       </div>
 
-      {(buyer.website || buyer.email || buyer.phone) && (
+      {buyer.product_fit && (
+        <div className="brow__fit-row">
+          <span className={`brow__fit brow__fit--${fitClass}`}>{buyer.product_fit} fit</span>
+          {buyer.product_fit_reason && <span className="brow__fit-reason">{buyer.product_fit_reason}</span>}
+        </div>
+      )}
+
+      {(buyer.last_shipment || buyer.import_frequency || buyer.est_containers) && (
+        <div className="brow__shipment">
+          {buyer.last_shipment && <span className="brow__ship-item">Last shipment: <strong>{buyer.last_shipment}</strong></span>}
+          {buyer.import_frequency && <span className="brow__ship-item">Frequency: <strong>{buyer.import_frequency}</strong></span>}
+          {buyer.est_containers && <span className="brow__ship-item">Volume: <strong>{buyer.est_containers}</strong></span>}
+        </div>
+      )}
+
+      {(buyer.website || buyer.email || buyer.phone || buyer.linkedin) && (
         <div className="brow__contacts">
           {buyer.website && (
             <a className="brow__link brow__link--web" href={buyer.website} target="_blank" rel="noopener noreferrer">
-              🌐 {buyer.website.replace(/^https?:\/\//, '').split('/')[0]}
+              {buyer.website.replace(/^https?:\/\//, '').split('/')[0]}
             </a>
           )}
           {buyer.email && (
-            <a className="brow__link brow__link--email" href={`mailto:${buyer.email}`}>
-              ✉️ {buyer.email}
-            </a>
+            <a className="brow__link brow__link--email" href={`mailto:${buyer.email}`}>{buyer.email}</a>
           )}
-          {buyer.phone && <span className="brow__link brow__link--phone">📞 {buyer.phone}</span>}
+          {buyer.phone && <span className="brow__link brow__link--phone">{buyer.phone}</span>}
+          {buyer.linkedin && (
+            <a className="brow__link brow__link--linkedin" href={buyer.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          )}
         </div>
       )}
 
@@ -633,15 +663,15 @@ function BuyerRow({ buyer }) {
         <div className="brow__srcs">
           {buyer.sources.slice(0, 3).map((src, i) =>
             typeof src === 'string' && src.startsWith('http')
-              ? <a key={i} className="brow__src" href={src} target="_blank" rel="noopener noreferrer">🔗 Source</a>
+              ? <a key={i} className="brow__src" href={src} target="_blank" rel="noopener noreferrer">Source</a>
               : <span key={i} className="brow__src">{src}</span>
           )}
         </div>
       )}
 
       <div className="brow__actions">
-        <a className="brow__action" href={searchUrl} target="_blank" rel="noopener noreferrer">🔍 Google</a>
-        <a className="brow__action" href={linkedinUrl} target="_blank" rel="noopener noreferrer">💼 LinkedIn</a>
+        <a className="brow__action" href={searchUrl} target="_blank" rel="noopener noreferrer">Google</a>
+        <a className="brow__action" href={buyer.linkedin || linkedinSearchUrl} target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </div>
     </div>
   )
@@ -694,6 +724,7 @@ function BuyersModal({ onClose }) {
   const [noResults, setNoResults] = useState(false)
   const [noResultsMsg, setNoResultsMsg] = useState('')
   const [searchMode, setSearchMode] = useState('')
+  const [cachedAt, setCachedAt] = useState(null)
   const [debugLines, setDebugLines] = useState([])   // debug / info messages
   const [pages, setPages] = useState([])             // { url, phase, found }
 
@@ -717,6 +748,7 @@ function BuyersModal({ onClose }) {
     setNoResults(false)
     setNoResultsMsg('')
     setSearchMode('')
+    setCachedAt(null)
     setDebugLines([])
     setPages([])
 
@@ -762,6 +794,7 @@ function BuyersModal({ onClose }) {
               })
             } else if (evt.type === 'meta') {
               setSearchMode(evt.searchMode || '')
+              if (evt.cachedAt) setCachedAt(evt.cachedAt)
             } else if (evt.type === 'buyer') {
               if (!gotResults) { setView('results'); gotResults = true }
               const { type: _t, ...buyer } = evt
@@ -876,12 +909,17 @@ function BuyersModal({ onClose }) {
           </div>
           <div className="bmodal__src-bar">
             {noResults
-              ? <span className="bmodal__src-badge bmodal__src-badge--empty">🔍 Search completed — no verified buyers found</span>
+              ? <span className="bmodal__src-badge bmodal__src-badge--empty">Search completed — no verified buyers found</span>
+              : searchMode === 'shipment_cache'
+              ? <span className="bmodal__src-badge bmodal__src-badge--v2">
+                  Shipment intelligence · enriched with website, email &amp; LinkedIn
+                  {cachedAt && ` · refreshed ${new Date(cachedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+                </span>
               : searchMode === 'web_search'
-              ? <span className="bmodal__src-badge bmodal__src-badge--live">✓ Live web search (Brave/Google) · crawled + extracted by GPT-4o mini</span>
+              ? <span className="bmodal__src-badge bmodal__src-badge--live">Live web search · crawled + extracted by GPT-4o mini</span>
               : searchMode === 'directory_crawl'
-              ? <span className="bmodal__src-badge bmodal__src-badge--crawl">✓ Crawled from trade directories · extracted by GPT-4o mini · add BRAVE_API_KEY for broader results</span>
-              : <span className="bmodal__src-badge bmodal__src-badge--ai">ℹ️ Potential leads from AI knowledge · verify each company for your product before contacting</span>
+              ? <span className="bmodal__src-badge bmodal__src-badge--crawl">Trade directory crawl · extracted by GPT-4o mini</span>
+              : <span className="bmodal__src-badge bmodal__src-badge--ai">Potential leads from AI knowledge · verify before contacting</span>
             }
           </div>
           {noResults ? (

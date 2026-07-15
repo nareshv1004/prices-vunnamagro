@@ -654,6 +654,26 @@ export async function onRequestGet({ request, env }) {
         return
       }
 
+      // ── KV cache check (v2 pre-crawled data) ───────────────────────────
+      if (env.KV_BUYERS_CACHE) {
+        const ps = product.toLowerCase().replace(/\s+/g, '-').replace(/chillies$/, 'chilli').replace(/ies$/, 'i')
+        const cs = country.toLowerCase()
+          .replace(/united arab emirates/i, 'uae').replace(/united kingdom/i, 'uk')
+          .replace(/united states/i, 'usa').replace(/saudi arabia/i, 'saudi-arabia')
+          .replace(/south korea/i, 'south-korea').replace(/south africa/i, 'south-africa')
+          .replace(/sri lanka/i, 'sri-lanka').replace(/\s+/g, '-')
+        const cacheKey = `v2:${ps}:${cs}`
+        const cached = await env.KV_BUYERS_CACHE.get(cacheKey, 'json').catch(() => null)
+        if (cached?.buyers?.length > 0) {
+          await send({ type: 'status', message: `Loading shipment intelligence data for ${country}…` })
+          await send({ type: 'meta', searchMode: 'shipment_cache', cachedAt: cached.cached_at, sourceVersion: 'v2' })
+          for (const buyer of cached.buyers) await send({ type: 'buyer', ...buyer })
+          await send({ type: 'done', count: cached.buyers.length })
+          return
+        }
+      }
+      // ── end KV check — fall through to live v1 pipeline ────────────────
+
       await send({ type: 'status', message: `Searching for ${product} buyers in ${country}…` })
 
       const rawBuyers = []
