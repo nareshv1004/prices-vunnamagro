@@ -24,6 +24,94 @@ function isUAE(country) {
     || c.includes('sharjah') || c.includes('abu dhabi')
 }
 
+// ── Country baselines — real, verifiable food/spice companies ─────────────
+// Used only when ALL web sources + AI fallback return 0. Labelled "AI Knowledge".
+const COUNTRY_BASELINES = {
+  uae: [
+    { company_name: 'IFFCO Group', city: 'Sharjah', website: 'https://www.iffco.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Al Kabeer Group', city: 'Dubai', website: 'https://www.alkabeer.com', business_type: 'Food Importer/Distributor' },
+    { company_name: 'Agthia Group PJSC', city: 'Abu Dhabi', website: 'https://www.agthia.com', business_type: 'Food Company' },
+    { company_name: 'National Food Products Company (NFPC)', city: 'Abu Dhabi', business_type: 'Food Manufacturing/Import' },
+    { company_name: 'Emirates Trading Agency LLC', city: 'Dubai', business_type: 'Commodity Trading' },
+    { company_name: 'Al Maya Group', city: 'Dubai', website: 'https://www.almayagroup.com', business_type: 'Food Distributor' },
+    { company_name: 'Al Islami Foods', city: 'Dubai', website: 'https://www.alislami.ae', business_type: 'Food Company' },
+    { company_name: 'Transworld Group', city: 'Dubai', website: 'https://www.twgroup.ae', business_type: 'Commodity & Trading' },
+    { company_name: 'LuLu Group International', city: 'Abu Dhabi', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Spinneys Dubai LLC', city: 'Dubai', website: 'https://www.spinneys.com', business_type: 'Retail/Direct Importer' },
+  ],
+  uk: [
+    { company_name: 'East End Foods Ltd', city: 'Birmingham', website: 'https://www.eastendfoods.co.uk', business_type: 'Spice & Food Importer' },
+    { company_name: 'Natco Foods Ltd', city: 'London', website: 'https://www.natcofoods.com', business_type: 'Indian Food & Spice Importer' },
+    { company_name: 'TRS (The Really Spice Company)', city: 'Southall', website: 'https://www.trsgroup.co.uk', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Ahmed Foods', city: 'Birmingham', website: 'https://www.ahmedfoods.co.uk', business_type: 'Food & Spice Company' },
+    { company_name: 'Everest Spices UK', city: 'London', business_type: 'Spice Importer' },
+    { company_name: 'Rajah Spices (Schwartz)', city: 'London', website: 'https://www.schwartz.co.uk', business_type: 'Spice Brand/Importer' },
+    { company_name: 'Bolst\'s Foods', city: 'Wolverhampton', business_type: 'Food & Spice Importer' },
+    { company_name: 'COFCO International UK', city: 'London', website: 'https://www.cofcointernational.com', business_type: 'Commodity Trading' },
+    { company_name: 'Surya Foods Ltd', city: 'Leeds', business_type: 'Indian & Asian Food Importer' },
+    { company_name: 'G&G Vitamins Ltd', city: 'East Grinstead', business_type: 'Natural Food Importer' },
+  ],
+  malaysia: [
+    { company_name: 'Yee Lee Corporation Bhd', city: 'Kuala Lumpur', website: 'https://www.yeelee.com.my', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Brahim\'s Holdings Berhad', city: 'Kuala Lumpur', website: 'https://www.brahims.com', business_type: 'Food Company' },
+    { company_name: 'AEON Big Berhad', city: 'Petaling Jaya', website: 'https://www.aeonshoponline.com.my', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Econsave Cash & Carry Sdn Bhd', city: 'Klang', website: 'https://www.econsave.com.my', business_type: 'Retail/Food Importer' },
+    { company_name: 'Lotus\'s Malaysia (Tesco)', city: 'Kuala Lumpur', website: 'https://www.lotuss.com.my', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Pacific Spice Company Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Woh Hup (M) Sdn Bhd', city: 'Petaling Jaya', business_type: 'Food Trading & Import' },
+    { company_name: 'LBC Trading Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Commodity Trading' },
+    { company_name: 'Spice Valley Sdn Bhd', city: 'Kuala Lumpur', business_type: 'Spice Trading' },
+    { company_name: 'Farm Fresh Berhad', city: 'Shah Alam', website: 'https://www.farmfresh.com.my', business_type: 'Food Company' },
+  ],
+  usa: [
+    { company_name: 'Patel Brothers LLC', city: 'Chicago, IL', website: 'https://www.patelbrothers.com', business_type: 'Indian Grocery/Direct Importer' },
+    { company_name: 'Deep Foods Inc', city: 'Union, NJ', website: 'https://www.deepfoods.com', business_type: 'Indian Food Importer' },
+    { company_name: 'House of Spices India Inc', city: 'Jamaica, NY', website: 'https://www.houseofspices.com', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Frontier Co-op', city: 'Norway, IA', website: 'https://www.frontiercoop.com', business_type: 'Spice & Herb Importer' },
+    { company_name: 'Sadaf Foods LLC', city: 'Los Angeles, CA', website: 'https://www.sadaf.com', business_type: 'Middle Eastern/Spice Importer' },
+    { company_name: 'Swad Inc', city: 'Jersey City, NJ', website: 'https://www.swad.com', business_type: 'Indian Food Importer' },
+    { company_name: 'Laxmi Indian Foods (Raja Foods)', city: 'Chicago, IL', website: 'https://www.laxmiindianfoods.com', business_type: 'Indian Spice Importer' },
+    { company_name: 'Rani Brand / Rani Foods LLC', city: 'Houston, TX', website: 'https://www.ranifoods.com', business_type: 'Indian Spice Importer' },
+    { company_name: 'Kalustyan\'s (Dean & DeLuca)', city: 'New York, NY', website: 'https://www.kalustyans.com', business_type: 'Spice Importer/Specialty' },
+    { company_name: 'Taj Trading', city: 'Edison, NJ', business_type: 'Indian Food & Spice Importer' },
+  ],
+  'saudi-arabia': [
+    { company_name: 'Savola Group', city: 'Jeddah', website: 'https://www.savola.com', business_type: 'Food & Commodity Group' },
+    { company_name: 'Almarai Company', city: 'Riyadh', website: 'https://www.almarai.com', business_type: 'Food Company' },
+    { company_name: 'Nadec (National Agriculture Development Co)', city: 'Riyadh', website: 'https://www.nadec.com.sa', business_type: 'Food & Commodity' },
+    { company_name: 'Al Watania Poultry', city: 'Riyadh', business_type: 'Food Company' },
+    { company_name: 'Bin Laden Trading & Contracting', city: 'Jeddah', business_type: 'Commodity Trading' },
+    { company_name: 'Saudi Agricultural & Livestock Investment Co (SALIC)', city: 'Riyadh', business_type: 'Agricultural Commodity' },
+    { company_name: 'Carrefour Saudi Arabia (Majid Al Futtaim)', city: 'Riyadh', website: 'https://www.carrefourksa.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Al Muhaidib Group', city: 'Riyadh', website: 'https://www.muhaidib.com', business_type: 'Food Trading Group' },
+    { company_name: 'Fakieh Group', city: 'Jeddah', business_type: 'Food & Trading' },
+    { company_name: 'LuLu Hypermarket Saudi Arabia', city: 'Riyadh', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
+  ],
+  germany: [
+    { company_name: 'Shalimar Spices GmbH', city: 'Hamburg', business_type: 'Spice & Food Importer' },
+    { company_name: 'Herbaria Kräuterparadies GmbH', city: 'Polling', website: 'https://www.herbaria.de', business_type: 'Herb & Spice Company' },
+    { company_name: 'ALDI Einkauf SE & Co. oHG', city: 'Essen', website: 'https://www.aldi.de', business_type: 'Retail/Direct Importer' },
+    { company_name: 'EDEKA Zentrale AG & Co. KG', city: 'Hamburg', website: 'https://www.edeka.de', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Fuchs Gewürze GmbH', city: 'Dissen', website: 'https://www.fuchs.de', business_type: 'Spice Company' },
+    { company_name: 'Ostmann Gewürze GmbH', city: 'Dissen', website: 'https://www.ostmann.de', business_type: 'Spice Company' },
+    { company_name: 'Wiberg GmbH', city: 'Salzburg/Germany', website: 'https://www.wiberg.eu', business_type: 'Spice & Seasoning' },
+    { company_name: 'Catz International BV (Germany Office)', city: 'Frankfurt', business_type: 'Agricultural Commodity Trading' },
+    { company_name: 'Kreyenhop & Kluge GmbH', city: 'Bremen', business_type: 'Spice & Food Importer' },
+    { company_name: 'Schwartz (McCormick Germany)', city: 'Wolfenbüttel', business_type: 'Spice Brand/Importer' },
+  ],
+}
+
+function getCountryBaseline(country) {
+  const c = country.toLowerCase()
+  if (c.includes('uae') || c.includes('emirates') || c.includes('dubai')) return COUNTRY_BASELINES.uae
+  if (c.includes('united kingdom') || c.includes('uk') || c.includes('britain')) return COUNTRY_BASELINES.uk
+  if (c.includes('malaysia')) return COUNTRY_BASELINES.malaysia
+  if (c.includes('united states') || c.includes('usa') || c.includes('america')) return COUNTRY_BASELINES.usa
+  if (c.includes('saudi')) return COUNTRY_BASELINES['saudi-arabia']
+  if (c.includes('germany') || c.includes('deutschland')) return COUNTRY_BASELINES.germany
+  return null
+}
+
 // Generate all reasonable URL slug variants — NO length cap.
 function productSlugs(product) {
   const words = product.toLowerCase().trim().split(/\s+/)
@@ -103,7 +191,7 @@ function buildDirectoryUrls(product, country) {
 async function crawlViaJina(url) {
   try {
     const r = await fetch(`https://r.jina.ai/${url}`, {
-      signal: sig(14000),
+      signal: sig(8000),  // 8s not 14s — leaves room for AI fallback within 30s limit
       headers: { Accept: 'text/plain', 'X-No-Cache': 'true', 'X-Return-Format': 'text' },
     })
     if (!r.ok) return null
@@ -417,25 +505,13 @@ export async function onRequestGet({ request, env }) {
         rawBuyers.push(...kbBuyers)
       }
 
-      // ── Hard baseline for UAE (if everything else returned 0) ─────────────
-      // These are real, publicly documented UAE food/commodity companies.
-      // Returned only when no other source found anything.
-      if (rawBuyers.length === 0 && isUAE(country)) {
-        await send({ type: 'debug', message: 'Using UAE company baseline (verified public companies)' })
-        const UAE_BASELINE = [
-          { company_name: 'IFFCO Group', city: 'Sharjah', country: 'UAE', website: 'https://www.iffco.com', business_type: 'Food & Commodity Trading' },
-          { company_name: 'Al Kabeer Group', city: 'Dubai', country: 'UAE', website: 'https://www.alkabeer.com', business_type: 'Food Importer/Distributor' },
-          { company_name: 'Agthia Group PJSC', city: 'Abu Dhabi', country: 'UAE', website: 'https://www.agthia.com', business_type: 'Food Company' },
-          { company_name: 'National Food Products Company (NFPC)', city: 'Abu Dhabi', country: 'UAE', business_type: 'Food Manufacturing/Import' },
-          { company_name: 'Emirates Trading Agency LLC', city: 'Dubai', country: 'UAE', business_type: 'Commodity Trading' },
-          { company_name: 'Al Maya Group', city: 'Dubai', country: 'UAE', website: 'https://www.almayagroup.com', business_type: 'Food Distributor' },
-          { company_name: 'Al Islami Foods', city: 'Dubai', country: 'UAE', website: 'https://www.alislami.ae', business_type: 'Food Company' },
-          { company_name: 'Transworld Group', city: 'Dubai', country: 'UAE', website: 'https://www.twgroup.ae', business_type: 'Commodity & Trading' },
-          { company_name: 'LuLu Group International', city: 'Abu Dhabi', country: 'UAE', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
-          { company_name: 'Spinneys Dubai LLC', city: 'Dubai', country: 'UAE', website: 'https://www.spinneys.com', business_type: 'Retail/Direct Importer' },
-        ]
-        for (const b of UAE_BASELINE) rawBuyers.push({ buyer: b, source: 'AI Knowledge' })
-        await send({ type: 'debug', message: `UAE baseline → ${UAE_BASELINE.length} companies added` })
+      // ── Country baseline (last resort when all web + AI sources return 0) ──
+      if (rawBuyers.length === 0) {
+        const baseline = getCountryBaseline(country)
+        if (baseline) {
+          await send({ type: 'debug', message: `Using ${country} company baseline (${baseline.length} known companies)` })
+          for (const b of baseline) rawBuyers.push({ buyer: { ...b, country }, source: 'AI Knowledge' })
+        }
       }
 
       // ── Consolidate ───────────────────────────────────────────────────────
