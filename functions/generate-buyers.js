@@ -99,6 +99,236 @@ const COUNTRY_BASELINES = {
     { company_name: 'Kreyenhop & Kluge GmbH', city: 'Bremen', business_type: 'Spice & Food Importer' },
     { company_name: 'Schwartz (McCormick Germany)', city: 'Wolfenbüttel', business_type: 'Spice Brand/Importer' },
   ],
+  qatar: [
+    { company_name: 'Al Meera Consumer Goods Company', city: 'Doha', website: 'https://www.almeera.com.qa', business_type: 'Retail/Direct Importer' },
+    { company_name: 'LuLu Hypermarket Qatar', city: 'Doha', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Carrefour Qatar (Majid Al Futtaim)', city: 'Doha', website: 'https://www.carrefour.qa', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Qatar Trading Company (QTC)', city: 'Doha', business_type: 'Commodity & Food Trading' },
+    { company_name: 'Al Rayyan Food Company', city: 'Doha', business_type: 'Food Processing & Trading' },
+    { company_name: 'Monoprix Qatar', city: 'Doha', business_type: 'Retail/Food Importer' },
+    { company_name: 'IFFCO Qatar', city: 'Doha', website: 'https://www.iffco.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Al Jabor Group', city: 'Doha', business_type: 'Food & Commodity Trading' },
+  ],
+  kuwait: [
+    { company_name: 'United Food Company (UFC)', city: 'Kuwait City', business_type: 'Food Manufacturing & Import' },
+    { company_name: 'Al Sayer Group', city: 'Kuwait City', website: 'https://www.alsayer.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Alghanim Industries', city: 'Kuwait City', website: 'https://www.alghanim.com', business_type: 'Food & Trading Conglomerate' },
+    { company_name: 'Americana Group Kuwait', city: 'Kuwait City', business_type: 'Food Company' },
+    { company_name: 'Sultan Center Kuwait', city: 'Kuwait City', website: 'https://www.sultan-center.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'LuLu Hypermarket Kuwait', city: 'Kuwait City', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Carrefour Kuwait (Majid Al Futtaim)', city: 'Kuwait City', website: 'https://www.carrefour-me.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Al Safat Global Holding', city: 'Kuwait City', business_type: 'Food & Agricultural Trading' },
+  ],
+  bahrain: [
+    { company_name: 'Al Osra Supermarket', city: 'Manama', website: 'https://www.alosra.com.bh', business_type: 'Retail/Direct Importer' },
+    { company_name: 'LuLu Hypermarket Bahrain', city: 'Manama', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Geant Bahrain', city: 'Manama', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Delmon International Food Company', city: 'Manama', business_type: 'Food Trading & Distribution' },
+    { company_name: 'IFFCO Bahrain', city: 'Manama', website: 'https://www.iffco.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Al Jazeera Supermarket', city: 'Manama', business_type: 'Retail/Food Importer' },
+    { company_name: 'Hassan Ali & Sons', city: 'Manama', business_type: 'Commodity & Food Trading' },
+    { company_name: 'Carrefour Bahrain (Majid Al Futtaim)', city: 'Manama', website: 'https://www.carrefour.bh', business_type: 'Retail/Direct Importer' },
+  ],
+  oman: [
+    { company_name: 'LuLu Hypermarket Oman', city: 'Muscat', website: 'https://www.luluhypermarket.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Al Fair Supermarket', city: 'Muscat', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Carrefour Oman (Majid Al Futtaim)', city: 'Muscat', website: 'https://www.carrefour.om', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Al Hassan Group', city: 'Muscat', website: 'https://www.alhassangroup.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Zubair Group', city: 'Muscat', website: 'https://www.thezubairgroup.com', business_type: 'Trading Conglomerate' },
+    { company_name: 'Al Meera Oman', city: 'Muscat', business_type: 'Retail/Food Importer' },
+    { company_name: 'Khimji Ramdas Group', city: 'Muscat', website: 'https://www.khimji.com', business_type: 'Commodity & Food Trading' },
+    { company_name: 'Al Madina Group', city: 'Muscat', business_type: 'Food & Grocery Retail' },
+  ],
+  singapore: [
+    { company_name: 'NTUC FairPrice', city: 'Singapore', website: 'https://www.fairprice.com.sg', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Cold Storage Singapore', city: 'Singapore', website: 'https://www.coldstorage.com.sg', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Mustafa Centre Pte Ltd', city: 'Singapore', website: 'https://www.mustafa.com.sg', business_type: 'Indian Food & Spice Importer' },
+    { company_name: 'Sheng Siong Group', city: 'Singapore', website: 'https://www.shengsiong.com.sg', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Little India Spice Company', city: 'Singapore', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Seng Huat Foods Pte Ltd', city: 'Singapore', business_type: 'Food Trading' },
+    { company_name: 'Olam International', city: 'Singapore', website: 'https://www.olamagri.com', business_type: 'Agricultural Commodity Trading' },
+    { company_name: 'Wilmar International', city: 'Singapore', website: 'https://www.wilmar-international.com', business_type: 'Food & Commodity Group' },
+  ],
+  indonesia: [
+    { company_name: 'PT Indofood Sukses Makmur Tbk', city: 'Jakarta', website: 'https://www.indofood.com', business_type: 'Food Manufacturing & Import' },
+    { company_name: 'PT Garudafood Putra Putri Jaya', city: 'Pati', website: 'https://www.garudafood.com', business_type: 'Food Company' },
+    { company_name: 'PT Wings Food (Sayap Mas Utama)', city: 'Jakarta', business_type: 'Food Manufacturing' },
+    { company_name: 'Hypermart (PT Matahari Putra Prima)', city: 'Tangerang', website: 'https://www.hypermart.co.id', business_type: 'Retail/Direct Importer' },
+    { company_name: 'PT Transmarco (Transmart)', city: 'Jakarta', business_type: 'Retail/Direct Importer' },
+    { company_name: 'PT Charoen Pokphand Indonesia', city: 'Jakarta', website: 'https://www.cp.co.id', business_type: 'Food & Agro Company' },
+    { company_name: 'PT ABC President Indonesia', city: 'Jakarta', business_type: 'Food & Beverage' },
+    { company_name: 'PT Aneka Rasa Nusantara', city: 'Jakarta', business_type: 'Spice & Seasoning Trading' },
+  ],
+  thailand: [
+    { company_name: 'Charoen Pokphand Foods PCL (CPF)', city: 'Bangkok', website: 'https://www.cpfworldwide.com', business_type: 'Food & Agro Conglomerate' },
+    { company_name: 'Siam Makro PCL', city: 'Bangkok', website: 'https://www.siammakro.co.th', business_type: 'Wholesale/Direct Importer' },
+    { company_name: 'Big C Supercenter PCL', city: 'Bangkok', website: 'https://www.bigc.co.th', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Thai Union Group PCL', city: 'Samut Sakhon', website: 'https://www.thaiunion.com', business_type: 'Food Processing & Trading' },
+    { company_name: 'Amoroso International (Spices)', city: 'Bangkok', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Tops Market (Central Food Retail)', city: 'Bangkok', website: 'https://www.tops.co.th', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Sahapat Group', city: 'Bangkok', website: 'https://www.sahapat.co.th', business_type: 'Food Trading & Distribution' },
+    { company_name: 'Thai Preserved Food Factory', city: 'Bangkok', business_type: 'Food Manufacturing/Import' },
+  ],
+  vietnam: [
+    { company_name: 'Masan Consumer Holdings', city: 'Ho Chi Minh City', website: 'https://www.masanconsumer.com', business_type: 'Food & Spice Company' },
+    { company_name: 'Saigon Co.op (Co.opmart)', city: 'Ho Chi Minh City', website: 'https://www.co-opmart.com.vn', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Vingroup (VinMart)', city: 'Hanoi', website: 'https://www.vingroup.net', business_type: 'Retail/Direct Importer' },
+    { company_name: 'METRO Vietnam (MM Mega Market)', city: 'Ho Chi Minh City', website: 'https://www.mmvietnam.com', business_type: 'Wholesale/Direct Importer' },
+    { company_name: 'CP Vietnam (Charoen Pokphand)', city: 'Binh Duong', website: 'https://www.cpvietnam.vn', business_type: 'Food & Agro Company' },
+    { company_name: 'Acecook Vietnam', city: 'Ho Chi Minh City', website: 'https://www.acecookvietnam.com', business_type: 'Food Manufacturing' },
+    { company_name: 'Viet Tien Food Processing', city: 'Ho Chi Minh City', business_type: 'Food Trading & Import' },
+    { company_name: 'An Giang Vegetable Oil', city: 'An Giang', business_type: 'Agricultural Commodity' },
+  ],
+  canada: [
+    { company_name: 'T&T Supermarket (Loblaw)', city: 'Vancouver, BC', website: 'https://www.tnt-supermarket.com', business_type: 'Asian Food Importer' },
+    { company_name: 'Patel Brothers Canada', city: 'Mississauga, ON', business_type: 'Indian Food & Spice Importer' },
+    { company_name: 'Sukhadia\'s Sweets & Snacks', city: 'Mississauga, ON', website: 'https://www.sukhadias.com', business_type: 'Indian Food Importer' },
+    { company_name: 'Pacific Spice Canada', city: 'Vancouver, BC', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Global Food Imports Inc', city: 'Brampton, ON', business_type: 'Food & Spice Importer' },
+    { company_name: 'Shan Foods Canada', city: 'Toronto, ON', business_type: 'Spice Brand/Importer' },
+    { company_name: 'Sabzi Mandi Superstore', city: 'Surrey, BC', business_type: 'South Asian Food Importer' },
+    { company_name: 'Walmart Canada (Direct Import Division)', city: 'Mississauga, ON', website: 'https://www.walmart.ca', business_type: 'Retail/Direct Importer' },
+  ],
+  australia: [
+    { company_name: 'Woolworths Group', city: 'Sydney, NSW', website: 'https://www.woolworthsgroup.com.au', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Coles Group', city: 'Melbourne, VIC', website: 'https://www.colesgroup.com.au', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Harris Farm Markets', city: 'Sydney, NSW', website: 'https://www.harrisfarm.com.au', business_type: 'Fresh Food/Spice Importer' },
+    { company_name: 'Pattu Foods', city: 'Melbourne, VIC', business_type: 'Indian Spice Importer/Distributor' },
+    { company_name: 'Spice Garden Australia', city: 'Sydney, NSW', business_type: 'Spice Importer' },
+    { company_name: 'India at Home', city: 'Sydney, NSW', business_type: 'Indian Food & Spice Importer' },
+    { company_name: 'Bestfoods Australia Pty Ltd', city: 'Melbourne, VIC', business_type: 'Food Trading & Import' },
+    { company_name: 'ALDI Australia', city: 'Sydney, NSW', website: 'https://www.aldi.com.au', business_type: 'Retail/Direct Importer' },
+  ],
+  netherlands: [
+    { company_name: 'OFI (ofi) Netherlands', city: 'Rotterdam', website: 'https://www.ofi.com', business_type: 'Agricultural Commodity Trading' },
+    { company_name: 'Verstegen Spices & Sauces', city: 'Rotterdam', website: 'https://www.verstegen.nl', business_type: 'Spice Importer/Manufacturer' },
+    { company_name: 'Albert Heijn (Ahold Delhaize)', city: 'Zaandam', website: 'https://www.ah.nl', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Euroma Specerijen BV', city: 'Deventer', website: 'https://www.euroma.com', business_type: 'Spice & Herb Importer' },
+    { company_name: 'Rein & Sons International', city: 'Amsterdam', business_type: 'Commodity Trading' },
+    { company_name: 'Deli XL (Bidfood Netherlands)', city: 'Amsterdam', website: 'https://www.deli-xl.nl', business_type: 'Food Service/Spice Importer' },
+    { company_name: 'Jumbo Supermarkten', city: 'Veghel', website: 'https://www.jumbo.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Spicer Europe BV', city: 'Rotterdam', business_type: 'Spice Importer/Distributor' },
+  ],
+  france: [
+    { company_name: 'Carrefour France', city: 'Boulogne-Billancourt', website: 'https://www.carrefour.fr', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Ducros (McCormick France)', city: 'Monteux', website: 'https://www.ducros.fr', business_type: 'Spice Brand/Importer' },
+    { company_name: 'Intermarché (Groupement Mousquetaires)', city: 'Paris', website: 'https://www.intermarche.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Épices et Tout', city: 'Paris', business_type: 'Spice Importer/Specialty' },
+    { company_name: 'Fayet & Cie', city: 'Paris', business_type: 'Spice & Food Importer' },
+    { company_name: 'Leclerc (E.Leclerc)', city: 'Paris', website: 'https://www.e.leclerc', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Métro France', city: 'Nanterre', website: 'https://www.metro.fr', business_type: 'Wholesale/Direct Importer' },
+    { company_name: 'Indian Bazaar France', city: 'Paris', business_type: 'Indian Food & Spice Importer' },
+  ],
+  italy: [
+    { company_name: 'Esselunga SpA', city: 'Milan', website: 'https://www.esselunga.it', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Conad (Consorzio Nazionale Dettaglianti)', city: 'Bologna', website: 'https://www.conad.it', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Carrefour Italia', city: 'Milan', website: 'https://www.carrefour.it', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Novamont SpA', city: 'Novara', business_type: 'Agricultural & Food Trading' },
+    { company_name: 'Mussini (Spice Company)', city: 'Reggio Emilia', business_type: 'Spice & Food Importer' },
+    { company_name: 'Bartolini Food SpA', city: 'Perugia', business_type: 'Food Trading & Import' },
+    { company_name: 'Metro Italia', city: 'Milan', website: 'https://www.metro.it', business_type: 'Wholesale/Direct Importer' },
+    { company_name: 'Bazar Orient (Italian Specialty)', city: 'Rome', business_type: 'Spice & Exotic Food Importer' },
+  ],
+  spain: [
+    { company_name: 'Carmencita SA', city: 'Novelda (Alicante)', website: 'https://www.carmencita.com', business_type: 'Spice Company/Importer' },
+    { company_name: 'Mercadona SA', city: 'Valencia', website: 'https://www.mercadona.es', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Carrefour España', city: 'Madrid', website: 'https://www.carrefour.es', business_type: 'Retail/Direct Importer' },
+    { company_name: 'El Corte Inglés SA', city: 'Madrid', website: 'https://www.elcorteingles.es', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Metro de España', city: 'Madrid', website: 'https://www.metro.es', business_type: 'Wholesale/Direct Importer' },
+    { company_name: 'Especia SA', city: 'Alicante', business_type: 'Spice & Seasoning Importer' },
+    { company_name: 'Condis Supermercats', city: 'Barcelona', website: 'https://www.condis.es', business_type: 'Retail/Food Importer' },
+    { company_name: 'Costa Food Group', city: 'Vic (Barcelona)', business_type: 'Food Manufacturing & Import' },
+  ],
+  bangladesh: [
+    { company_name: 'Pran-RFL Group', city: 'Dhaka', website: 'https://www.pranfoods.net', business_type: 'Food Manufacturing & Trading' },
+    { company_name: 'Meghna Group of Industries', city: 'Dhaka', website: 'https://www.meghnagroup.biz', business_type: 'Food & Commodity Group' },
+    { company_name: 'Akij Group (Akij Food & Beverage)', city: 'Dhaka', website: 'https://www.akijfood.com', business_type: 'Food Manufacturing' },
+    { company_name: 'ACI Limited (Spice Division)', city: 'Dhaka', website: 'https://www.aci-bd.com', business_type: 'Food & Spice Company' },
+    { company_name: 'Square Food & Beverage Ltd', city: 'Dhaka', website: 'https://www.squarefoodandbeverage.com', business_type: 'Food Company' },
+    { company_name: 'Bangladesh Food Industries Ltd', city: 'Dhaka', business_type: 'Food Processing & Import' },
+    { company_name: 'Agora Superstores', city: 'Dhaka', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Shwapno (ACI Logistics)', city: 'Dhaka', website: 'https://www.shwapno.com', business_type: 'Retail/Spice Importer' },
+  ],
+  'sri-lanka': [
+    { company_name: 'Cargills Ceylon PLC', city: 'Colombo', website: 'https://www.cargillsceylon.com', business_type: 'Retail/Direct Importer' },
+    { company_name: 'John Keells Holdings PLC', city: 'Colombo', website: 'https://www.keells.com', business_type: 'Food Trading Conglomerate' },
+    { company_name: 'Lanka Sathosa (Retail)', city: 'Colombo', business_type: 'Retail/Food Importer' },
+    { company_name: 'Delmege Forsyth & Co Ltd', city: 'Colombo', website: 'https://www.delmege.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Hemas Holdings PLC', city: 'Colombo', website: 'https://www.hemas.com', business_type: 'Food & Consumer Goods' },
+    { company_name: 'Ceylon Cold Stores PLC', city: 'Colombo', website: 'https://www.keellssuper.com', business_type: 'Food Retail/Import' },
+    { company_name: 'Prima Ceylon Ltd', city: 'Colombo', business_type: 'Food Manufacturing/Import' },
+    { company_name: 'Maliban Biscuit Manufactories', city: 'Colombo', website: 'https://www.maliban.com', business_type: 'Food Company' },
+  ],
+  nepal: [
+    { company_name: 'CG Corp (Chaudhary Group)', city: 'Kathmandu', website: 'https://www.cgcorp.com', business_type: 'Food & Commodity Conglomerate' },
+    { company_name: 'Golcha Group', city: 'Kathmandu', website: 'https://www.golchagroup.com', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Dugar Group', city: 'Kathmandu', business_type: 'Food & Spice Trading' },
+    { company_name: 'Batas Group Nepal', city: 'Kathmandu', business_type: 'Food Manufacturing & Import' },
+    { company_name: 'Asian Spices Nepal Pvt Ltd', city: 'Kathmandu', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Surya Nepal (BAT Group)', city: 'Kathmandu', business_type: 'Food & Consumer Trading' },
+    { company_name: 'Nepal Trading House', city: 'Birgunj', business_type: 'Commodity & Food Trading' },
+    { company_name: 'Kumari Group', city: 'Kathmandu', business_type: 'Food & Agricultural Trading' },
+  ],
+  'south-africa': [
+    { company_name: 'Tiger Brands Ltd', city: 'Johannesburg', website: 'https://www.tigerbrands.com', business_type: 'Food Company (Spice Division)' },
+    { company_name: 'Shoprite Holdings Ltd', city: 'Cape Town', website: 'https://www.shopriteholdings.co.za', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Woolworths Holdings SA', city: 'Cape Town', website: 'https://www.woolworths.co.za', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Pick n Pay Retailers Pty Ltd', city: 'Cape Town', website: 'https://www.pnp.co.za', business_type: 'Retail/Direct Importer' },
+    { company_name: 'SPAR South Africa', city: 'Pinetown', website: 'https://www.spar.co.za', business_type: 'Retail/Food Importer' },
+    { company_name: 'Premier FMCG Pty Ltd', city: 'Johannesburg', website: 'https://www.premierfmcg.com', business_type: 'Food Manufacturing' },
+    { company_name: 'Cape Herb & Spice', city: 'Cape Town', website: 'https://www.capeherb.com', business_type: 'Spice Importer/Brand' },
+    { company_name: 'Giant Importers South Africa', city: 'Johannesburg', business_type: 'Food & Spice Importer' },
+  ],
+  mauritius: [
+    { company_name: 'IBL Group (Swan Foods)', city: 'Port Louis', website: 'https://www.ibl.mu', business_type: 'Food Trading Conglomerate' },
+    { company_name: 'Winner\'s Hypermarket (Cim Retail)', city: 'Port Louis', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Grays Inc. Ltd', city: 'Port Louis', website: 'https://www.grays.mu', business_type: 'Food & Commodity Trading' },
+    { company_name: 'Food and Allied Industries Group', city: 'Curepipe', business_type: 'Food Manufacturing/Import' },
+    { company_name: 'Ciel Group (Sun Foods)', city: 'Port Louis', website: 'https://www.cielgroup.com', business_type: 'Food & Consumer Trading' },
+    { company_name: 'Blends & Spices Ltd', city: 'Port Louis', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Super U Mauritius', city: 'Port Louis', business_type: 'Retail/Food Importer' },
+    { company_name: 'Intermart Mauritius', city: 'Port Louis', business_type: 'Retail/Direct Importer' },
+  ],
+  kenya: [
+    { company_name: 'Bidco Africa (Bidco Kenya)', city: 'Nairobi', website: 'https://www.bidcoafrica.com', business_type: 'Food Manufacturing & Import' },
+    { company_name: 'Naivas Supermarket', city: 'Nairobi', website: 'https://www.naivas.co.ke', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Carrefour Kenya (Majid Al Futtaim)', city: 'Nairobi', website: 'https://www.carrefour.ke', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Quickmart Supermarket', city: 'Nairobi', website: 'https://www.quickmart.co.ke', business_type: 'Retail/Food Importer' },
+    { company_name: 'Twiga Foods Ltd', city: 'Nairobi', website: 'https://www.twigafoods.com', business_type: 'Food Distribution/Trading' },
+    { company_name: 'East African Breweries (EABL)', city: 'Nairobi', business_type: 'Food & Beverage Group' },
+    { company_name: 'Kainat Spices Kenya', city: 'Nairobi', business_type: 'Spice Importer/Distributor' },
+    { company_name: 'Jambo Trading Company', city: 'Mombasa', business_type: 'Commodity & Food Trading' },
+  ],
+  tanzania: [
+    { company_name: 'Azam Group (Bakhresa Group)', city: 'Dar es Salaam', website: 'https://www.azamtanzania.com', business_type: 'Food & Commodity Group' },
+    { company_name: 'Shoprite Tanzania', city: 'Dar es Salaam', website: 'https://www.shoprite.co.tz', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Mukwano Industries Tanzania', city: 'Dar es Salaam', business_type: 'Food Manufacturing/Import' },
+    { company_name: 'Zan-Mart (Zanzibar)', city: 'Zanzibar', business_type: 'Retail/Food Importer' },
+    { company_name: 'Tanzania Food & Drugs Authority Traders', city: 'Dar es Salaam', business_type: 'Food Trading' },
+    { company_name: 'UAC Foods Tanzania', city: 'Dar es Salaam', business_type: 'Food Distribution' },
+    { company_name: 'Nakumatt Tanzania (Historical)', city: 'Dar es Salaam', business_type: 'Retail/Food Importer' },
+    { company_name: 'Goodwill Supplies Tanzania Ltd', city: 'Dar es Salaam', business_type: 'Commodity & Food Trading' },
+  ],
+  japan: [
+    { company_name: 'House Foods Group Inc', city: 'Tokyo', website: 'https://housefoods-group.com', business_type: 'Spice & Curry Company' },
+    { company_name: 'S&B Foods Inc', city: 'Tokyo', website: 'https://www.sbfoods.co.jp', business_type: 'Spice Importer/Brand' },
+    { company_name: 'Nagatanien Holdings Co Ltd', city: 'Shizuoka', website: 'https://www.nagatanien.co.jp', business_type: 'Spice & Seasoning' },
+    { company_name: 'Itochu Corporation (Food Division)', city: 'Tokyo', website: 'https://www.itochu.co.jp', business_type: 'Agricultural Commodity Trading' },
+    { company_name: 'Marubeni Corporation (Food Division)', city: 'Tokyo', website: 'https://www.marubeni.com', business_type: 'Commodity & Food Trading' },
+    { company_name: 'Mitsui & Co (Food & Agri Division)', city: 'Tokyo', website: 'https://www.mitsui.com', business_type: 'Agricultural Commodity Trading' },
+    { company_name: 'Yamaya Corporation', city: 'Sendai', website: 'https://www.yamaya.co.jp', business_type: 'Food & Spice Retail/Import' },
+    { company_name: 'Tokai Bussan Co Ltd', city: 'Nagoya', business_type: 'Food & Spice Trading' },
+  ],
+  'south-korea': [
+    { company_name: 'CJ CheilJedang Corp', city: 'Seoul', website: 'https://www.cj.co.kr', business_type: 'Food & Spice Manufacturing' },
+    { company_name: 'Ottogi Corporation', city: 'Anyang', website: 'https://www.ottogi.co.kr', business_type: 'Food Company/Spice Importer' },
+    { company_name: 'Lotte Chilsung Beverage', city: 'Seoul', website: 'https://www.lottechilsung.co.kr', business_type: 'Food & Beverage Group' },
+    { company_name: 'Samsung C&T Corporation (Trading)', city: 'Seoul', website: 'https://www.samsungcnt.com', business_type: 'Commodity & Food Trading' },
+    { company_name: 'Hyundai Department Store Group', city: 'Seoul', website: 'https://www.hdmall.co.kr', business_type: 'Retail/Direct Importer' },
+    { company_name: 'Shinsegae Food Co Ltd', city: 'Seoul', website: 'https://www.shinsegaefood.com', business_type: 'Food Company/Importer' },
+    { company_name: 'Daesang Corporation', city: 'Seoul', website: 'https://www.daesang.com', business_type: 'Food & Spice Company' },
+    { company_name: 'E-Mart Inc', city: 'Seoul', website: 'https://www.emart.com', business_type: 'Retail/Direct Importer' },
+  ],
 }
 
 function getCountryBaseline(country) {
@@ -108,7 +338,30 @@ function getCountryBaseline(country) {
   if (c.includes('malaysia')) return COUNTRY_BASELINES.malaysia
   if (c.includes('united states') || c.includes('usa') || c.includes('america')) return COUNTRY_BASELINES.usa
   if (c.includes('saudi')) return COUNTRY_BASELINES['saudi-arabia']
-  if (c.includes('germany') || c.includes('deutschland')) return COUNTRY_BASELINES.germany
+  if (c.includes('germany') || c.includes('deutsch')) return COUNTRY_BASELINES.germany
+  if (c.includes('qatar')) return COUNTRY_BASELINES.qatar
+  if (c.includes('kuwait')) return COUNTRY_BASELINES.kuwait
+  if (c.includes('bahrain')) return COUNTRY_BASELINES.bahrain
+  if (c.includes('oman')) return COUNTRY_BASELINES.oman
+  if (c.includes('singapore')) return COUNTRY_BASELINES.singapore
+  if (c.includes('indonesia')) return COUNTRY_BASELINES.indonesia
+  if (c.includes('thailand')) return COUNTRY_BASELINES.thailand
+  if (c.includes('vietnam') || c.includes('viet nam')) return COUNTRY_BASELINES.vietnam
+  if (c.includes('canada')) return COUNTRY_BASELINES.canada
+  if (c.includes('australia')) return COUNTRY_BASELINES.australia
+  if (c.includes('netherlands') || c.includes('holland')) return COUNTRY_BASELINES.netherlands
+  if (c.includes('france') || c.includes('french')) return COUNTRY_BASELINES.france
+  if (c.includes('italy') || c.includes('italia')) return COUNTRY_BASELINES.italy
+  if (c.includes('spain') || c.includes('españa')) return COUNTRY_BASELINES.spain
+  if (c.includes('bangladesh')) return COUNTRY_BASELINES.bangladesh
+  if (c.includes('sri lanka') || c.includes('srilanka')) return COUNTRY_BASELINES['sri-lanka']
+  if (c.includes('nepal')) return COUNTRY_BASELINES.nepal
+  if (c.includes('south africa')) return COUNTRY_BASELINES['south-africa']
+  if (c.includes('mauritius')) return COUNTRY_BASELINES.mauritius
+  if (c.includes('kenya')) return COUNTRY_BASELINES.kenya
+  if (c.includes('tanzania')) return COUNTRY_BASELINES.tanzania
+  if (c.includes('japan')) return COUNTRY_BASELINES.japan
+  if (c.includes('south korea') || c.includes('korea')) return COUNTRY_BASELINES['south-korea']
   return null
 }
 
